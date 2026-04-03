@@ -1,15 +1,19 @@
 package com.envirowatchsi
 
 import com.envirowatchsi.network.fetchRawAirQualityXml
+import com.envirowatchsi.network.fetchRawMeteoXml
 import com.envirowatchsi.network.fetchRawXml
 
 fun main() {
     val rawData = fetchRawXml()
-
-    println("Raw XML")
+    println("Raw Hydro XML")
     println(rawData)
 
-    println("Air quality (RAW)")
-    val rawDataAirQuality = fetchRawAirQualityXml()
-    println(rawDataAirQuality)
+    val rawData1 = fetchRawMeteoXml()
+    println("Raw Meteo XML")
+    println(rawData1)
+
+    println("Air quality raw XML")
+    val rawAirQualityXML = fetchRawAirQualityXml()
+    println(rawAirQualityXML)
 }
