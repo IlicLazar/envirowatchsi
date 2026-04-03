@@ -1,6 +1,10 @@
 package com.envirowatchsi
 
+import com.envirowatchsi.network.fetchRawXml
+
 fun main() {
-    println("EnviroWatch SI - Data Fetcher")
-    println("Project initialized successfully")
+    val rawData = fetchRawXml()
+
+    println("Raw XML")
+    println(rawData)
 }
