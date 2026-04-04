@@ -1,4 +1,4 @@
-package com.envirowatchsi.parsers
+package com.envirowatchsi.parser
 
 import com.envirowatchsi.model.AirQualityStation
 import org.w3c.dom.Element

@@ -4,53 +4,54 @@ import com.envirowatchsi.network.fetchRawAirQualityXml
 import com.envirowatchsi.network.fetchRawMeteoXml
 import com.envirowatchsi.network.fetchRawXml
 import com.envirowatchsi.parser.parseMeteoData
-import com.envirowatchsi.parsers.parseAirQualityData
+import com.envirowatchsi.parser.parseAirQualityData
+import com.envirowatchsi.parser.parseHydroData
 
 
 fun main() {
-    val rawData = fetchRawXml()
-    println("Raw Hydro XML")
-    println(rawData)
+    System.setOut(java.io.PrintStream(System.out, true, "UTF-8"))
+
+    val rawHydroData = fetchRawXml()
+    val hydroStations = parseHydroData(rawHydroData)
+    println("\nParsed Hydro Data")
+    for (s in hydroStations) {
+        println("Station:     ${s.stationName} (${s.stationId})")
+        println("Location:    lat=${s.latitude}, lon=${s.longitude}")
+        println("River:       ${s.riverName}")
+        println("Time:        ${s.measuredAt}")
+        println("Water level: ${s.waterLevel ?: "N/A"} cm")
+        println("Water flow:  ${s.waterFlow ?: "N/A"} m3/s")
+        println()
+    }
 
     val rawMeteoData = fetchRawMeteoXml()
-    println("Raw Meteo XML")
-    println(rawMeteoData)
-
-    println("\nPARSED METEO DATA")
     val meteoStations = parseMeteoData(rawMeteoData)
-    println("Number of stations: ${meteoStations.size}")
-    println("-".repeat(60))
-
+    println("\nParsed Meteo Data")
     for (s in meteoStations) {
-        println("Station:       ${s.stationName} (${s.stationId})")
-        println("Location:      lat=${s.latitude}, lon=${s.longitude}")
-        println("Measured at:   ${s.measuredAt}")
-        println("Temperature:   ${s.temperature} °C")
-        println("Humidity:      ${s.humidity} %")
-        println("Wind speed:    ${s.windSpeed ?: "N/A"} m/s")
-        println("Wind direction:      ${s.windDirection ?: "N/A"}")
-        println("Precipitation: ${s.precipitation ?: "N/A"} mm")
-        println("-".repeat(60))
+        println("Station:        ${s.stationName} (${s.stationId})")
+        println("Location:       lat=${s.latitude}, lon=${s.longitude}")
+        println("Time:           ${s.measuredAt}")
+        println("Temperature:    ${s.temperature} C")
+        println("Humidity:       ${s.humidity} %")
+        println("Wind speed:     ${s.windSpeed ?: "N/A"} m/s")
+        println("Wind direction: ${s.windDirection ?: "N/A"}")
+        println("Precipitation:  ${s.precipitation ?: "N/A"} mm")
+        println()
     }
 
     val rawAirQualityXml = fetchRawAirQualityXml()
-    val stations = parseAirQualityData(rawAirQualityXml)
-
-    println("=== PARSIRANI PODATKI - KAKOVOST ZRAKA ===")
-    println("Stevilo postaj: ${stations.size}")
-    println("-".repeat(80))
-
-    for (station in stations) {
-        println("ID: ${station.stationId}")
-        println("Ime: ${station.stationName}")
-        println("Lokacija: (${station.latitude}, ${station.longitude})")
-        println("Cas meritve: ${station.measuredAt}")
-        println("PM10: ${station.pm10 ?: "N/A"} mikrogramov po kubnem metru")
-        println("PM2.5: ${station.pm2_5 ?: "N/A"} mikrogramov po kubnem metru")
-        println("O3: ${station.o3 ?: "N/A"} mikrogramov po kubnem metru")
-        println("CO: ${station.co ?: "N/A"} mikrogramov po kubnem metru")
-        println("SO2: ${station.so2 ?: "N/A"} mikrogramov po kubnem metru")
-        println("Indeks kakovosti: ${station.airQualityIndex ?: "N/A"}")
+    val airStations = parseAirQualityData(rawAirQualityXml)
+    println("\nParsed Air Quality Data")
+    for (s in airStations) {
+        println("Station:       ${s.stationName} (${s.stationId})")
+        println("Location:      lat=${s.latitude}, lon=${s.longitude}")
+        println("Time:          ${s.measuredAt}")
+        println("PM10:          ${s.pm10 ?: "N/A"} ug/m3")
+        println("PM2.5:         ${s.pm2_5 ?: "N/A"} ug/m3")
+        println("O3:            ${s.o3 ?: "N/A"} ug/m3")
+        println("CO:            ${s.co ?: "N/A"} ug/m3")
+        println("SO2:           ${s.so2 ?: "N/A"} ug/m3")
+        println("Air quality index: ${s.airQualityIndex ?: "N/A"}")
         println()
     }
 }
