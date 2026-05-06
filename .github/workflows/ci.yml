@@ -14,20 +14,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK 8
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
 
       - name: Run unit tests
-        run: ./gradlew :server:test
+        run: ./EnviroWatchSI/gradlew :server:test -p ./EnviroWatchSI
 
       - name: Publish test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: server/build/reports/tests/test/
+          path: EnviroWatchSI/server/build/reports/tests/test/
