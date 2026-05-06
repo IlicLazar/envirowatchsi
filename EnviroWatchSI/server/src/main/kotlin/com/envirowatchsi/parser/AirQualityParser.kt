@@ -18,7 +18,9 @@ fun parseAirQualityData(xmlText: String): List<AirQualityStation> {
 
         fun textOrNull(tagName: String): Double? {
             val value = el.getElementsByTagName(tagName).item(0)?.textContent?.trim()
-            return if (value.isNullOrEmpty() || value == "<1") null else value.toDoubleOrNull()
+            if (value.isNullOrEmpty()) return null
+            val numericValue = value.toDoubleOrNull() ?: return null
+            return if (numericValue < 1.0) null else numericValue
         }
 
         val stationId = el.getAttribute("sifra")
