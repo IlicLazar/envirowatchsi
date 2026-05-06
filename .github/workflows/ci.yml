@@ -11,6 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout code
@@ -21,6 +23,9 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
+
+      - name: Make gradlew executable
+        run: chmod +x ./EnviroWatchSI/gradlew
 
       - name: Run unit tests
         run: ./EnviroWatchSI/gradlew :server:test -p ./EnviroWatchSI
