@@ -1,30 +1,35 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.ktor)
+    id("org.jetbrains.compose") version "1.7.3"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.3.0"
     application
 }
 
 group = "com.envirowatchsi"
 version = "1.0.0"
+
 application {
-    mainClass.set("com.envirowatchsi.ApplicationKt")
-    
+    mainClass.set("com.envirowatchsi.MainKt")
+
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 dependencies {
-    
+
     implementation(libs.logback)
     implementation(libs.ktor.serverCore)
     implementation(libs.ktor.serverNetty)
     testImplementation(libs.ktor.serverTestHost)
     testImplementation(libs.kotlin.testJunit)
+    implementation(compose.desktop.currentOs)
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {
+    google()
     mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 }
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(17)
 }
