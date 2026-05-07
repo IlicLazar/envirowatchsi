@@ -24,6 +24,8 @@ dependencies {
     testImplementation(libs.kotlin.testJunit)
     implementation(compose.desktop.currentOs)
     implementation(kotlin("stdlib-jdk8"))
+    implementation("io.ktor:ktor-client-core:3.0.3")
+    implementation("io.ktor:ktor-client-cio:3.0.3")
 }
 repositories {
     google()
