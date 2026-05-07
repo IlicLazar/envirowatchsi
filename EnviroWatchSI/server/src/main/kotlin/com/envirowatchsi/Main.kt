@@ -162,6 +162,13 @@ fun PlaceholderScreen(title: String) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text("Ta zaslon predstavlja osnovno postavitev za nadaljnjo implementacijo funkcionalnosti.")
+        Text(
+            text = "Trenutno izbran zaslon: $title",
+            style = MaterialTheme.typography.h6
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("Preklapljanje med zasloni poteka preko navigacijskega menija na levi strani aplikacije.")
     }
 }
