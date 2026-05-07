@@ -64,6 +64,10 @@ fun App() {
     }
 }
 @Composable
+fun ContentArea(selectedScreen: Screen) {
+    ContentArea(selectedScreen)
+}
+@Composable
 fun Sidebar(
     selectedScreen: Screen,
     onScreenSelected: (Screen)->Unit
