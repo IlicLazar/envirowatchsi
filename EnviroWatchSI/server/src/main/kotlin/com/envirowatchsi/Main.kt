@@ -81,12 +81,25 @@ fun Sidebar(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        Text(
+            text = "Navigacija",
+            style = MaterialTheme.typography.subtitle1
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         SidebarButton("Nadzorna plošča", Screen.DASHBOARD, selectedScreen, onScreenSelected)
         SidebarButton("Kakovost zraka", Screen.AIR_QUALITY, selectedScreen, onScreenSelected)
         SidebarButton("Meteorološki podatki", Screen.METEO, selectedScreen, onScreenSelected)
         SidebarButton("Hidrološki podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
+        Spacer(modifier = Modifier.weight(1f))
+
+        Text(
+            text = "Projektna naloga 2",
+            style = MaterialTheme.typography.caption
+        )
     }
 }
 @Composable
