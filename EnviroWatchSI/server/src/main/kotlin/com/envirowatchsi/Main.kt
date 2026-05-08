@@ -915,8 +915,51 @@ fun DeleteDataScreen() {
             Row {
                 Button(
                     onClick = {
-                        message = "Brisanje potrjeno."
-                        showConfirmation = false
+                        val id = selectedId.toIntOrNull()
+
+                        if (id == null) {
+                            message = "Vnesi veljaven ID."
+                            showConfirmation = false
+                            return@Button
+                        }
+
+                        scope.launch {
+                            message = "Brišem zapis..."
+
+                            message = try {
+                                withContext(Dispatchers.IO) {
+                                    val connection = URL("http://localhost:8080/api/$selectedTable/$id")
+                                        .openConnection() as java.net.HttpURLConnection
+
+                                    connection.requestMethod = "DELETE"
+
+                                    connection.inputStream
+                                        .bufferedReader()
+                                        .readText()
+                                }
+
+                                recordsText = withContext(Dispatchers.IO) {
+                                    URL("http://localhost:8080/api/$selectedTable")
+                                        .openStream()
+                                        .bufferedReader()
+                                        .readText()
+                                }.let { response ->
+                                    if (response == "[]") {
+                                        "Ni zapisov v izbrani tabeli."
+                                    } else {
+                                        response
+                                    }
+                                }
+
+                                selectedId = ""
+                                showConfirmation = false
+
+                                "Zapis je uspešno izbrisan."
+                            } catch (e: Exception) {
+                                showConfirmation = false
+                                "Napaka pri brisanju: ${e.message}"
+                            }
+                        }
                     }
                 ) {
                     Text("Da")
