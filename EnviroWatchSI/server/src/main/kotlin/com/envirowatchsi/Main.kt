@@ -627,6 +627,63 @@ fun DataEntryScreen() {
         Text(message)
     }
 }
+fun buildAirQualityJson(
+    stationName: String,
+    latitude: String,
+    longitude: String,
+    aqi: String
+): String {
+    return com.google.gson.Gson().toJson(
+        mapOf(
+            "stationName" to stationName,
+            "latitude" to latitude.toDoubleOrNull(),
+            "longitude" to longitude.toDoubleOrNull(),
+            "aqi" to aqi.toIntOrNull()
+        )
+    )
+}
+
+fun buildMeteoJson(
+    stationName: String,
+    latitude: String,
+    longitude: String,
+    temperature: String,
+    humidity: String,
+    windSpeed: String,
+    precipitation: String
+): String {
+    return com.google.gson.Gson().toJson(
+        mapOf(
+            "stationName" to stationName,
+            "latitude" to latitude.toDoubleOrNull(),
+            "longitude" to longitude.toDoubleOrNull(),
+            "temperature" to temperature.toDoubleOrNull(),
+            "humidity" to humidity.toDoubleOrNull(),
+            "windSpeed" to windSpeed.toDoubleOrNull(),
+            "precipitation" to precipitation.toDoubleOrNull()
+        )
+    )
+}
+
+fun buildHydroJson(
+    stationName: String,
+    riverName: String,
+    latitude: String,
+    longitude: String,
+    waterLevel: String,
+    waterFlow: String
+): String {
+    return com.google.gson.Gson().toJson(
+        mapOf(
+            "stationName" to stationName,
+            "riverName" to riverName,
+            "latitude" to latitude.toDoubleOrNull(),
+            "longitude" to longitude.toDoubleOrNull(),
+            "waterLevel" to waterLevel.toDoubleOrNull(),
+            "waterFlow" to waterFlow.toDoubleOrNull()
+        )
+    )
+}
 
 @Composable
 fun UpdateDataScreen() {
