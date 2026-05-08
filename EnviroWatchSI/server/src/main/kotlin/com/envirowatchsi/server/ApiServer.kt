@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 object ApiServer {
 
     fun start() {
+        com.envirowatchsi.database.DatabaseFactory.init()
         embeddedServer(
             Netty,
             port = 8080,
