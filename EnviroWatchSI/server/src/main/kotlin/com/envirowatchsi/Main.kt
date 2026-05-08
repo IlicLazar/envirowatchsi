@@ -221,22 +221,19 @@ fun DatabaseScreen() {
     val scope = rememberCoroutineScope()
 
     var selectedTable by remember { mutableStateOf("air-quality") }
-    var recordsText by remember { mutableStateOf("Klikni gumb za pridobitev podatkov.") }
+    var message by remember { mutableStateOf("Klikni gumb za pridobitev podatkov.") }
 
-    Column {
+    var headers by remember { mutableStateOf(listOf("ID", "Postaja", "Vrednost")) }
+    var rows by remember { mutableStateOf(emptyList<List<String>>()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         Text(
             text = "Podatkovna baza",
             style = MaterialTheme.typography.h4
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        DataTable(
-            headers = listOf("ID", "Postaja", "Vrednost"),
-            rows = listOf(
-                listOf("1", "Ljubljana", "42"),
-                listOf("2", "Maribor", "67")
-            )
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -264,30 +261,38 @@ fun DatabaseScreen() {
         Button(
             onClick = {
                 scope.launch {
-                    recordsText = "Pridobivanje podatkov..."
+                    message = "Pridobivanje podatkov..."
 
-                    recordsText = try {
-                        withContext(Dispatchers.IO) {
+                    try {
+                        val response = withContext(Dispatchers.IO) {
                             URL("http://localhost:8080/api/$selectedTable")
                                 .openStream()
                                 .bufferedReader(Charsets.UTF_8)
                                 .readText()
-                        }.let { response ->
-                            if (response == "[]") {
-                                "Ni zapisov v izbrani tabeli."
-                            } else {
-                                response
-                            }
+                        }
+
+                        val parsedRows = parseRowsForTable(selectedTable, response)
+
+                        headers = headersForTable(selectedTable)
+                        rows = parsedRows
+
+                        message = if (parsedRows.isEmpty()) {
+                            "Ni zapisov v izbrani tabeli."
+                        } else {
+                            "Podatki so uspešno naloženi."
                         }
                     } catch (e: Exception) {
-                        "Napaka pri pridobivanju podatkov: ${e.message}"
+                        rows = emptyList()
+                        message = "Napaka pri pridobivanju podatkov: ${e.message}"
                     }
                 }
             }
         ) {
             Text("Prikaži zapise")
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Izbrana tabela: $selectedTable",
             style = MaterialTheme.typography.subtitle1
@@ -295,7 +300,58 @@ fun DatabaseScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(recordsText)
+        Text(message)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        DataTable(
+            headers = headers,
+            rows = rows
+        )
+    }
+}
+
+fun headersForTable(table: String): List<String> {
+    return when (table) {
+        "air-quality" -> listOf("ID", "Postaja", "AQI")
+        "meteo" -> listOf("ID", "Postaja", "Temp.", "Vlažnost")
+        "hydro" -> listOf("ID", "Postaja", "Reka", "Vodostaj", "Pretok")
+        else -> listOf("ID", "Postaja")
+    }
+}
+
+fun parseRowsForTable(table: String, response: String): List<List<String>> {
+    if (response == "[]") return emptyList()
+
+    val gson = com.google.gson.Gson()
+    val listType = object : com.google.gson.reflect.TypeToken<List<Map<String, Any?>>>() {}.type
+    val records: List<Map<String, Any?>> = gson.fromJson(response, listType)
+
+    return records.map { record ->
+        when (table) {
+            "air-quality" -> listOf(
+                record["id"].toString(),
+                record["stationName"].toString(),
+                record["airQualityIndex"].toString()
+            )
+
+            "meteo" -> listOf(
+                record["id"].toString(),
+                record["stationName"].toString(),
+                record["temperature"].toString(),
+                record["humidity"].toString()
+            )
+
+            "hydro" -> listOf(
+                record["id"].toString(),
+                record["stationName"].toString(),
+                record["riverName"].toString(),
+                record["waterLevel"].toString(),
+                record["waterFlow"].toString()
+            )
+
+            else -> emptyList()
+        }
     }
 }
 
