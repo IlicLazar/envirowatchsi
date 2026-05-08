@@ -1055,7 +1055,9 @@ fun DataTable(
     headers: List<String>,
     rows: List<List<String>>
 ) {
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -1064,6 +1066,7 @@ fun DataTable(
                     text = header,
                     modifier = Modifier
                         .weight(1f)
+                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
                         .padding(8.dp),
                     style = MaterialTheme.typography.subtitle2
                 )
@@ -1081,7 +1084,11 @@ fun DataTable(
                         text = cell,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(8.dp)
+                            .padding(8.dp),
+                        style = when {
+                            cell.contains("null") -> MaterialTheme.typography.caption
+                            else -> MaterialTheme.typography.body2
+                        }
                     )
                 }
             }
