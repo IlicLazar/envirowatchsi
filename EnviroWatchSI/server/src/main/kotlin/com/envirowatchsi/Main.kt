@@ -1267,6 +1267,10 @@ fun MeteoScreen() {
                 text = "Pregled izbranega zapisa",
                 style = MaterialTheme.typography.h6
             )
+            Text(
+                text = "Podatki so pripravljeni za shranjevanje v bazo.",
+                style = MaterialTheme.typography.subtitle1
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -1355,6 +1359,10 @@ fun AirQualityScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Pregled izbranega zapisa", style = MaterialTheme.typography.h6)
+            Text(
+                text = "Podatki so pripravljeni za shranjevanje v bazo.",
+                style = MaterialTheme.typography.subtitle1
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -1445,6 +1453,10 @@ fun HydroScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text("Pregled izbranega zapisa", style = MaterialTheme.typography.h6)
+            Text(
+                text = "Podatki so pripravljeni za shranjevanje v bazo.",
+                style = MaterialTheme.typography.subtitle1
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
