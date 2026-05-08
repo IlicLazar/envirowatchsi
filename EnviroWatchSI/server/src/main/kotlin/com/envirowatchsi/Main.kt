@@ -22,7 +22,8 @@ enum class Screen {
     METEO,
     HYDRO,
     DATABASE,
-    GENERATOR
+    GENERATOR,
+    DATA_ENTRY
 }
 
 fun main() = application {
@@ -65,6 +66,7 @@ fun App() {
                     Screen.HYDRO -> PlaceholderScreen("Hidrološki podatki")
                     Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
+                    Screen.DATA_ENTRY -> DataEntryScreen()
                 }
             }
         }
@@ -105,6 +107,7 @@ fun Sidebar(
         SidebarButton("Hidrološki podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
+        SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
@@ -250,8 +253,12 @@ fun DatabaseScreen() {
                                 .openStream()
                                 .bufferedReader(Charsets.UTF_8)
                                 .readText()
-                        }.ifBlank {
-                            "Ni podatkov."
+                        }.let { response ->
+                            if (response == "[]") {
+                                "Ni zapisov v izbrani tabeli."
+                            } else {
+                                response
+                            }
                         }
                     } catch (e: Exception) {
                         "Napaka pri pridobivanju podatkov: ${e.message}"
@@ -261,9 +268,7 @@ fun DatabaseScreen() {
         ) {
             Text("Prikaži zapise")
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "Izbrana tabela: $selectedTable",
             style = MaterialTheme.typography.subtitle1
@@ -272,5 +277,45 @@ fun DatabaseScreen() {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(recordsText)
+    }
+}
+@Composable
+fun DataEntryScreen() {
+
+    var stationName by remember { mutableStateOf("") }
+    var aqi by remember { mutableStateOf("") }
+
+    Column {
+
+        Text(
+            text = "Vnos podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = stationName,
+            onValueChange = { stationName = it },
+            label = { Text("Ime postaje") }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = aqi,
+            onValueChange = { aqi = it },
+            label = { Text("AQI vrednost") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                println("Shrani podatke")
+            }
+        ) {
+            Text("Shrani")
+        }
     }
 }
