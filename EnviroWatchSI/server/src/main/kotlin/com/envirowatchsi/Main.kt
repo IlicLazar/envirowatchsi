@@ -264,12 +264,7 @@ fun DatabaseScreen() {
                     message = "Pridobivanje podatkov..."
 
                     try {
-                        val response = withContext(Dispatchers.IO) {
-                            URL("http://localhost:8080/api/$selectedTable")
-                                .openStream()
-                                .bufferedReader(Charsets.UTF_8)
-                                .readText()
-                        }
+                        val response = fetchDatabaseRecords(selectedTable)
 
                         val parsedRows = parseRowsForTable(selectedTable, response)
 
@@ -308,6 +303,15 @@ fun DatabaseScreen() {
             headers = headers,
             rows = rows
         )
+    }
+}
+
+suspend fun fetchDatabaseRecords(table: String): String {
+    return withContext(Dispatchers.IO) {
+        URL("http://localhost:8080/api/$table")
+            .openStream()
+            .bufferedReader(Charsets.UTF_8)
+            .readText()
     }
 }
 
