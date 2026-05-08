@@ -77,4 +77,52 @@ object DatabaseRepository {
             }
         }
     }
+
+    fun insertMeteoRecord(
+        stationName: String,
+        latitude: Double?,
+        longitude: Double?,
+        temperature: Double,
+        humidity: Double,
+        windSpeed: Double?,
+        precipitation: Double?
+    ) {
+        transaction {
+            MeteoStationsTable.insert {
+                it[stationId] = stationName.lowercase().replace(" ", "_")
+                it[MeteoStationsTable.stationName] = stationName
+                it[MeteoStationsTable.latitude] = latitude
+                it[MeteoStationsTable.longitude] = longitude
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
+                it[MeteoStationsTable.temperature] = temperature
+                it[MeteoStationsTable.humidity] = humidity
+                it[MeteoStationsTable.windSpeed] = windSpeed
+                it[windDirection] = null
+                it[MeteoStationsTable.precipitation] = precipitation
+            }
+        }
+    }
+
+    fun insertHydroRecord(
+        stationName: String,
+        riverName: String,
+        latitude: Double?,
+        longitude: Double?,
+        waterLevel: Double?,
+        waterFlow: Double?
+    ) {
+        transaction {
+            HydroStationsTable.insert {
+                it[stationId] = stationName.lowercase().replace(" ", "_")
+                it[HydroStationsTable.stationName] = stationName
+                it[HydroStationsTable.latitude] = latitude
+                it[HydroStationsTable.longitude] = longitude
+                it[HydroStationsTable.riverName] = riverName
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
+                it[HydroStationsTable.waterLevel] = waterLevel
+                it[HydroStationsTable.waterFlow] = waterFlow
+            }
+        }
+    }
+
 }

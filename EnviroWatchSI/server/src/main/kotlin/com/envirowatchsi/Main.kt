@@ -15,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 enum class Screen {
     DASHBOARD,
@@ -279,19 +281,64 @@ fun DatabaseScreen() {
         Text(recordsText)
     }
 }
+
+enum class EntryType {
+    AIR_QUALITY,
+    METEO,
+    HYDRO
+}
 @Composable
 fun DataEntryScreen() {
-    var stationName by remember { mutableStateOf("") }
-    var aqi by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
-    
-    Column {
 
+    var selectedType by remember { mutableStateOf(EntryType.AIR_QUALITY) }
+
+    var stationName by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf("") }
+
+    var aqi by remember { mutableStateOf("") }
+
+    var temperature by remember { mutableStateOf("") }
+    var humidity by remember { mutableStateOf("") }
+    var windSpeed by remember { mutableStateOf("") }
+    var precipitation by remember { mutableStateOf("") }
+
+    var riverName by remember { mutableStateOf("") }
+    var waterLevel by remember { mutableStateOf("") }
+    var waterFlow by remember { mutableStateOf("") }
+
+    var message by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
         Text(
             text = "Vnos podatkov",
             style = MaterialTheme.typography.h4
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedType = EntryType.AIR_QUALITY }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedType = EntryType.METEO }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedType = EntryType.HYDRO }) {
+                Text("Hydro")
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -301,34 +348,166 @@ fun DataEntryScreen() {
             label = { Text("Ime postaje") }
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = aqi,
-            onValueChange = { aqi = it },
-            label = { Text("AQI vrednost") }
+            value = latitude,
+            onValueChange = { latitude = it },
+            label = { Text("Latitude") }
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = longitude,
+            onValueChange = { longitude = it },
+            label = { Text("Longitude") }
+        )
+
+        when (selectedType) {
+            EntryType.AIR_QUALITY -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = aqi,
+                    onValueChange = { aqi = it },
+                    label = { Text("AQI") }
+                )
+            }
+
+            EntryType.METEO -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = temperature,
+                    onValueChange = { temperature = it },
+                    label = { Text("Temperature") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = humidity,
+                    onValueChange = { humidity = it },
+                    label = { Text("Humidity") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = windSpeed,
+                    onValueChange = { windSpeed = it },
+                    label = { Text("Wind Speed") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = precipitation,
+                    onValueChange = { precipitation = it },
+                    label = { Text("Precipitation") }
+                )
+            }
+
+            EntryType.HYDRO -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = riverName,
+                    onValueChange = { riverName = it },
+                    label = { Text("River Name") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterLevel,
+                    onValueChange = { waterLevel = it },
+                    label = { Text("Water Level") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterFlow,
+                    onValueChange = { waterFlow = it },
+                    label = { Text("Water Flow") }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (stationName.isBlank() || aqi.isBlank()) {
-                    message = "Vsa polja morajo biti izpolnjena."
+                if (stationName.isBlank()) {
+                    message = "Ime postaje je obvezno."
                     return@Button
                 }
-                if (aqi.toIntOrNull() == null) {
-                    message = "AQI mora biti številka."
-                    return@Button
-                }
+
                 scope.launch {
                     message = "Shranjevanje podatkov..."
 
                     message = try {
-                        withContext(Dispatchers.IO) {
-                            val postData = "stationName=${stationName}&aqi=${aqi}"
+                        val endpoint: String
+                        val postData: String
 
-                            URL("http://localhost:8080/api/air-quality")
+                        when (selectedType) {
+                            EntryType.AIR_QUALITY -> {
+                                val aqiValue = aqi.toDoubleOrNull()
+
+                                if (aqiValue == null) {
+                                    message = "AQI mora biti številka."
+                                    return@launch
+                                }
+
+                                endpoint = "air-quality"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&aqi=${aqiValue.toInt()}"
+                            }
+
+                            EntryType.METEO -> {
+                                val temperatureValue = temperature.toDoubleOrNull()
+                                val humidityValue = humidity.toDoubleOrNull()
+
+                                if (temperatureValue == null || humidityValue == null) {
+                                    message = "Temperature in humidity morata biti številki."
+                                    return@launch
+                                }
+
+                                endpoint = "meteo"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&temperature=$temperature" +
+                                            "&humidity=$humidity" +
+                                            "&windSpeed=$windSpeed" +
+                                            "&precipitation=$precipitation"
+                            }
+
+                            EntryType.HYDRO -> {
+                                if (riverName.isBlank()) {
+                                    message = "Ime reke je obvezno."
+                                    return@launch
+                                }
+
+                                endpoint = "hydro"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&riverName=$riverName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&waterLevel=$waterLevel" +
+                                            "&waterFlow=$waterFlow"
+                            }
+                        }
+
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$endpoint")
                                 .openConnection()
                                 .apply {
                                     doOutput = true
@@ -341,7 +520,16 @@ fun DataEntryScreen() {
                         }
 
                         stationName = ""
+                        latitude = ""
+                        longitude = ""
                         aqi = ""
+                        temperature = ""
+                        humidity = ""
+                        windSpeed = ""
+                        precipitation = ""
+                        riverName = ""
+                        waterLevel = ""
+                        waterFlow = ""
 
                         "Podatki so uspešno shranjeni."
                     } catch (e: Exception) {
@@ -352,7 +540,9 @@ fun DataEntryScreen() {
         ) {
             Text("Shrani")
         }
+
         Spacer(modifier = Modifier.height(12.dp))
+
         Text(message)
     }
 }

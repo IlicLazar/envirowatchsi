@@ -85,5 +85,62 @@ fun Application.module() {
                 status = HttpStatusCode.Created
             )
         }
+
+        post("/api/meteo") {
+            val p = call.receiveParameters()
+
+            val stationName = p["stationName"]
+            val latitude = p["latitude"]?.toDoubleOrNull()
+            val longitude = p["longitude"]?.toDoubleOrNull()
+            val temperature = p["temperature"]?.toDoubleOrNull()
+            val humidity = p["humidity"]?.toDoubleOrNull()
+            val windSpeed = p["windSpeed"]?.toDoubleOrNull()
+            val precipitation = p["precipitation"]?.toDoubleOrNull()
+
+            if (stationName.isNullOrBlank() || temperature == null || humidity == null) {
+                call.respondText("Invalid meteo input", status = HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            DatabaseRepository.insertMeteoRecord(
+                stationName,
+                latitude,
+                longitude,
+                temperature,
+                humidity,
+                windSpeed,
+                precipitation
+            )
+
+            call.respondText("Meteo record saved", status = HttpStatusCode.Created)
+        }
+
+        post("/api/hydro") {
+            val p = call.receiveParameters()
+
+            val stationName = p["stationName"]
+            val riverName = p["riverName"]
+            val latitude = p["latitude"]?.toDoubleOrNull()
+            val longitude = p["longitude"]?.toDoubleOrNull()
+            val waterLevel = p["waterLevel"]?.toDoubleOrNull()
+            val waterFlow = p["waterFlow"]?.toDoubleOrNull()
+
+            if (stationName.isNullOrBlank() || riverName.isNullOrBlank()) {
+                call.respondText("Invalid hydro input", status = HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            DatabaseRepository.insertHydroRecord(
+                stationName,
+                riverName,
+                latitude,
+                longitude,
+                waterLevel,
+                waterFlow
+            )
+
+            call.respondText("Hydro record saved", status = HttpStatusCode.Created)
+        }
+
     }
 }
