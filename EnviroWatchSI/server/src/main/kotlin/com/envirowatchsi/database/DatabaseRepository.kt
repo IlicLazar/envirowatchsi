@@ -3,6 +3,7 @@ package com.envirowatchsi.database
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.update
 
 object DatabaseRepository {
 
@@ -121,6 +122,36 @@ object DatabaseRepository {
                 it[measuredAt] = java.time.LocalDateTime.now().toString()
                 it[HydroStationsTable.waterLevel] = waterLevel
                 it[HydroStationsTable.waterFlow] = waterFlow
+            }
+        }
+    }
+
+    fun updateAirQualityRecord(id: Int, station: String, aqi: Int) {
+        transaction {
+            AirQualityStationsTable.update({ AirQualityStationsTable.id eq id }) {
+                it[stationName] = station
+                it[airQualityIndex] = aqi.toDouble()
+            }
+        }
+    }
+
+    fun updateMeteoRecord(id: Int, station: String, temperature: Double, humidity: Double) {
+        transaction {
+            MeteoStationsTable.update({ MeteoStationsTable.id eq id }) {
+                it[stationName] = station
+                it[MeteoStationsTable.temperature] = temperature
+                it[MeteoStationsTable.humidity] = humidity
+            }
+        }
+    }
+
+    fun updateHydroRecord(id: Int, station: String, river: String, level: Double?, flow: Double?) {
+        transaction {
+            HydroStationsTable.update({ HydroStationsTable.id eq id }) {
+                it[stationName] = station
+                it[riverName] = river
+                it[waterLevel] = level
+                it[waterFlow] = flow
             }
         }
     }

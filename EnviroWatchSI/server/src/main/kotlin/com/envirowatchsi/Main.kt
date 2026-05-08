@@ -723,6 +723,90 @@ fun UpdateDataScreen() {
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val id = selectedId.toIntOrNull()
+
+                if (id == null) {
+                    message = "Vnesi veljaven ID zapisa."
+                    return@Button
+                }
+
+                if (stationName.isBlank()) {
+                    message = "Ime postaje je obvezno."
+                    return@Button
+                }
+
+                scope.launch {
+                    message = "Shranjujem spremembe..."
+
+                    message = try {
+                        val endpoint: String
+                        val postData: String
+
+                        when (selectedTable) {
+                            "air-quality" -> {
+                                val aqiValue = aqi.toIntOrNull()
+                                if (aqiValue == null) {
+                                    message = "AQI mora biti številka."
+                                    return@launch
+                                }
+
+                                endpoint = "air-quality"
+                                postData = "stationName=$stationName&aqi=$aqiValue"
+                            }
+
+                            "meteo" -> {
+                                val tempValue = temperature.toDoubleOrNull()
+                                val humidityValue = humidity.toDoubleOrNull()
+
+                                if (tempValue == null || humidityValue == null) {
+                                    message = "Temperatura in vlažnost morata biti številki."
+                                    return@launch
+                                }
+
+                                endpoint = "meteo"
+                                postData = "stationName=$stationName&temperature=$tempValue&humidity=$humidityValue"
+                            }
+
+                            else -> {
+                                if (riverName.isBlank()) {
+                                    message = "Ime reke je obvezno."
+                                    return@launch
+                                }
+
+                                endpoint = "hydro"
+                                postData = "stationName=$stationName&riverName=$riverName&waterLevel=$waterLevel&waterFlow=$waterFlow"
+                            }
+                        }
+
+                        withContext(Dispatchers.IO) {
+                            val connection = URL("http://localhost:8080/api/$endpoint/$id")
+                                .openConnection() as java.net.HttpURLConnection
+
+                            connection.requestMethod = "PUT"
+                            connection.doOutput = true
+                            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+                            connection.outputStream.use {
+                                it.write(postData.toByteArray())
+                            }
+
+                            connection.inputStream.bufferedReader().readText()
+                        }
+
+                        "Spremembe so uspešno shranjene."
+                    } catch (e: Exception) {
+                        "Napaka pri shranjevanju sprememb: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Shrani spremembe")
+        }
+
         Text(message)
     }
 }

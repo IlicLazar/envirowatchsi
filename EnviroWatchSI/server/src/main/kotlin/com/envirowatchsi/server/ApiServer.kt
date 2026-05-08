@@ -142,5 +142,56 @@ fun Application.module() {
             call.respondText("Hydro record saved", status = HttpStatusCode.Created)
         }
 
+        put("/api/air-quality/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            val p = call.receiveParameters()
+
+            val stationName = p["stationName"]
+            val aqi = p["aqi"]?.toIntOrNull()
+
+            if (id == null || stationName.isNullOrBlank() || aqi == null) {
+                call.respondText("Invalid input", status = HttpStatusCode.BadRequest)
+                return@put
+            }
+
+            DatabaseRepository.updateAirQualityRecord(id, stationName, aqi)
+            call.respondText("Air quality record updated")
+        }
+
+        put("/api/meteo/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            val p = call.receiveParameters()
+
+            val stationName = p["stationName"]
+            val temperature = p["temperature"]?.toDoubleOrNull()
+            val humidity = p["humidity"]?.toDoubleOrNull()
+
+            if (id == null || stationName.isNullOrBlank() || temperature == null || humidity == null) {
+                call.respondText("Invalid input", status = HttpStatusCode.BadRequest)
+                return@put
+            }
+
+            DatabaseRepository.updateMeteoRecord(id, stationName, temperature, humidity)
+            call.respondText("Meteo record updated")
+        }
+
+        put("/api/hydro/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            val p = call.receiveParameters()
+
+            val stationName = p["stationName"]
+            val riverName = p["riverName"]
+            val waterLevel = p["waterLevel"]?.toDoubleOrNull()
+            val waterFlow = p["waterFlow"]?.toDoubleOrNull()
+
+            if (id == null || stationName.isNullOrBlank() || riverName.isNullOrBlank()) {
+                call.respondText("Invalid input", status = HttpStatusCode.BadRequest)
+                return@put
+            }
+
+            DatabaseRepository.updateHydroRecord(id, stationName, riverName, waterLevel, waterFlow)
+            call.respondText("Hydro record updated")
+        }
+
     }
 }
