@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import com.envirowatchsi.database.DatabaseRepository
 import com.google.gson.Gson
 import io.ktor.http.*
+import io.ktor.server.request.*
 
 object ApiServer {
 
@@ -61,6 +62,27 @@ fun Application.module() {
             call.respondText(
                 gson.toJson(DatabaseRepository.getHydroRecords()),
                 ContentType.Application.Json
+            )
+        }
+        post("/api/air-quality") {
+            val parameters = call.receiveParameters()
+
+            val stationName = parameters["stationName"]
+            val aqi = parameters["aqi"]?.toIntOrNull()
+
+            if (stationName.isNullOrBlank() || aqi == null) {
+                call.respondText(
+                    "Invalid input",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@post
+            }
+
+            DatabaseRepository.insertAirQualityRecord(stationName, aqi)
+
+            call.respondText(
+                "Air quality record saved",
+                status = HttpStatusCode.Created
             )
         }
     }

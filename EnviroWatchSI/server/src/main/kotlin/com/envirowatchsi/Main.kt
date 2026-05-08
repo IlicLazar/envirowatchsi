@@ -284,7 +284,8 @@ fun DataEntryScreen() {
     var stationName by remember { mutableStateOf("") }
     var aqi by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
-
+    val scope = rememberCoroutineScope()
+    
     Column {
 
         Text(
@@ -312,18 +313,41 @@ fun DataEntryScreen() {
 
         Button(
             onClick = {
-
                 if (stationName.isBlank() || aqi.isBlank()) {
                     message = "Vsa polja morajo biti izpolnjena."
                     return@Button
                 }
-
                 if (aqi.toIntOrNull() == null) {
                     message = "AQI mora biti številka."
                     return@Button
                 }
+                scope.launch {
+                    message = "Shranjevanje podatkov..."
 
-                message = "Podatki so veljavni."
+                    message = try {
+                        withContext(Dispatchers.IO) {
+                            val postData = "stationName=${stationName}&aqi=${aqi}"
+
+                            URL("http://localhost:8080/api/air-quality")
+                                .openConnection()
+                                .apply {
+                                    doOutput = true
+                                    setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+                                    outputStream.use { it.write(postData.toByteArray()) }
+                                }
+                                .getInputStream()
+                                .bufferedReader()
+                                .readText()
+                        }
+
+                        stationName = ""
+                        aqi = ""
+
+                        "Podatki so uspešno shranjeni."
+                    } catch (e: Exception) {
+                        "Napaka pri shranjevanju: ${e.message}"
+                    }
+                }
             }
         ) {
             Text("Shrani")

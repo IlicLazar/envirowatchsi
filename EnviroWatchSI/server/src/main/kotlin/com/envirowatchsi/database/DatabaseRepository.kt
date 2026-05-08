@@ -2,6 +2,7 @@ package com.envirowatchsi.database
 
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.insert
 
 object DatabaseRepository {
 
@@ -55,6 +56,25 @@ object DatabaseRepository {
                 "waterLevel" to it[HydroStationsTable.waterLevel],
                 "waterFlow" to it[HydroStationsTable.waterFlow]
             )
+        }
+    }
+
+    fun insertAirQualityRecord(station: String, aqi: Int) {
+        transaction {
+            AirQualityStationsTable.insert {
+                it[stationId] = station.lowercase().replace(" ", "_")
+                it[stationName] = station
+                it[latitude] = 0.0
+                it[longitude] = 0.0
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
+
+                it[pm10] = null
+                it[pm2_5] = null
+                it[o3] = null
+                it[co] = null
+                it[so2] = null
+                it[airQualityIndex] = aqi.toDouble()
+            }
         }
     }
 }
