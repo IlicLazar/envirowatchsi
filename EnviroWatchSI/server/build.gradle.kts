@@ -30,6 +30,7 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.46.1.0")
     implementation("io.ktor:ktor-client-core:3.0.3")
     implementation("io.ktor:ktor-client-cio:3.0.3")
+    implementation("com.google.code.gson:gson:2.11.0")
 }
 repositories {
     google()
