@@ -281,9 +281,9 @@ fun DatabaseScreen() {
 }
 @Composable
 fun DataEntryScreen() {
-
     var stationName by remember { mutableStateOf("") }
     var aqi by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
 
     Column {
 
@@ -312,10 +312,23 @@ fun DataEntryScreen() {
 
         Button(
             onClick = {
-                println("Shrani podatke")
+
+                if (stationName.isBlank() || aqi.isBlank()) {
+                    message = "Vsa polja morajo biti izpolnjena."
+                    return@Button
+                }
+
+                if (aqi.toIntOrNull() == null) {
+                    message = "AQI mora biti številka."
+                    return@Button
+                }
+
+                message = "Podatki so veljavni."
             }
         ) {
             Text("Shrani")
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(message)
     }
 }
