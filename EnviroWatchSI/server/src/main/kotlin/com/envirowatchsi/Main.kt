@@ -313,9 +313,9 @@ suspend fun fetchDatabaseRecords(table: String): String {
 
 fun headersForTable(table: String): List<String> {
     return when (table) {
-        "air-quality" -> listOf("ID", "Postaja", "AQI")
-        "meteo" -> listOf("ID", "Postaja", "Temp.", "Vlažnost")
-        "hydro" -> listOf("ID", "Postaja", "Reka", "Vodostaj", "Pretok")
+        "air-quality" -> listOf("ID", "Postaja", "Lat", "Lon", "AQI")
+        "meteo" -> listOf("ID", "Postaja","Lat", "Lon", "Temp.", "Vlažnost")
+        "hydro" -> listOf("ID", "Postaja","Lat", "Lon", "Reka", "Vodostaj", "Pretok")
         else -> listOf("ID", "Postaja")
     }
 }
@@ -333,12 +333,16 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "air-quality" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["latitude"].toString(),
+                    record["longitude"].toString(),
                     record["airQualityIndex"].toString()
                 )
 
                 "meteo" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["latitude"].toString(),
+                    record["longitude"].toString(),
                     record["temperature"].toString(),
                     record["humidity"].toString()
                 )
@@ -346,6 +350,8 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "hydro" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["latitude"].toString(),
+                    record["longitude"].toString(),
                     record["riverName"].toString(),
                     record["waterLevel"].toString(),
                     record["waterFlow"].toString()
