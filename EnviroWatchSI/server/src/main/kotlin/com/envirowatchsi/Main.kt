@@ -11,6 +11,12 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.envirowatchsi.network.fetchRawMeteoXml
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 enum class Screen {
     DASHBOARD,
@@ -18,7 +24,10 @@ enum class Screen {
     METEO,
     HYDRO,
     DATABASE,
-    GENERATOR
+    GENERATOR,
+    DATA_ENTRY,
+    UPDATE,
+    DELETE
 }
 
 fun main() = application {
@@ -59,8 +68,11 @@ fun App() {
                     Screen.AIR_QUALITY -> PlaceholderScreen("Kakovost zraka")
                     Screen.METEO -> PlaceholderScreen("Meteorološki podatki")
                     Screen.HYDRO -> PlaceholderScreen("Hidrološki podatki")
-                    Screen.DATABASE -> PlaceholderScreen("Upravljanje podatkovne baze")
+                    Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
+                    Screen.DATA_ENTRY -> DataEntryScreen()
+                    Screen.UPDATE -> UpdateDataScreen()
+                    Screen.DELETE -> DeleteDataScreen()
                 }
             }
         }
@@ -79,6 +91,7 @@ fun Sidebar(
         modifier = Modifier
             .width(240.dp)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Text(
@@ -101,6 +114,9 @@ fun Sidebar(
         SidebarButton("Hidrološki podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
+        SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
+        SidebarButton("Posodabljanje podatkov", Screen.UPDATE, selectedScreen, onScreenSelected)
+        SidebarButton("Brisanje podatkov", Screen.DELETE, selectedScreen, onScreenSelected)
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
@@ -198,5 +214,772 @@ fun PlaceholderScreen(title: String) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text("Preklapljanje med zasloni poteka preko navigacijskega menija na levi strani aplikacije.")
+    }
+}
+@Composable
+fun DatabaseScreen() {
+    val scope = rememberCoroutineScope()
+
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("Klikni gumb za pridobitev podatkov.") }
+
+    Column {
+        Text(
+            text = "Podatkovna baza",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Kakovost zraka")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hidro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = "Pridobivanje podatkov..."
+
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader(Charsets.UTF_8)
+                                .readText()
+                        }.let { response ->
+                            if (response == "[]") {
+                                "Ni zapisov v izbrani tabeli."
+                            } else {
+                                response
+                            }
+                        }
+                    } catch (e: Exception) {
+                        "Napaka pri pridobivanju podatkov: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Prikaži zapise")
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Izbrana tabela: $selectedTable",
+            style = MaterialTheme.typography.subtitle1
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(recordsText)
+    }
+}
+
+enum class EntryType {
+    AIR_QUALITY,
+    METEO,
+    HYDRO
+}
+@Composable
+fun DataEntryScreen() {
+    val scope = rememberCoroutineScope()
+
+    var selectedType by remember { mutableStateOf(EntryType.AIR_QUALITY) }
+
+    var stationName by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf("") }
+
+    var aqi by remember { mutableStateOf("") }
+
+    var temperature by remember { mutableStateOf("") }
+    var humidity by remember { mutableStateOf("") }
+    var windSpeed by remember { mutableStateOf("") }
+    var precipitation by remember { mutableStateOf("") }
+
+    var riverName by remember { mutableStateOf("") }
+    var waterLevel by remember { mutableStateOf("") }
+    var waterFlow by remember { mutableStateOf("") }
+
+    var message by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Vnos podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedType = EntryType.AIR_QUALITY }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedType = EntryType.METEO }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedType = EntryType.HYDRO }) {
+                Text("Hydro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = stationName,
+            onValueChange = { stationName = it },
+            label = { Text("Ime postaje") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = latitude,
+            onValueChange = { latitude = it },
+            label = { Text("Latitude") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = longitude,
+            onValueChange = { longitude = it },
+            label = { Text("Longitude") }
+        )
+
+        when (selectedType) {
+            EntryType.AIR_QUALITY -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = aqi,
+                    onValueChange = { aqi = it },
+                    label = { Text("AQI") }
+                )
+            }
+
+            EntryType.METEO -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = temperature,
+                    onValueChange = { temperature = it },
+                    label = { Text("Temperature") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = humidity,
+                    onValueChange = { humidity = it },
+                    label = { Text("Humidity") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = windSpeed,
+                    onValueChange = { windSpeed = it },
+                    label = { Text("Wind Speed") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = precipitation,
+                    onValueChange = { precipitation = it },
+                    label = { Text("Precipitation") }
+                )
+            }
+
+            EntryType.HYDRO -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = riverName,
+                    onValueChange = { riverName = it },
+                    label = { Text("River Name") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterLevel,
+                    onValueChange = { waterLevel = it },
+                    label = { Text("Water Level") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterFlow,
+                    onValueChange = { waterFlow = it },
+                    label = { Text("Water Flow") }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (stationName.isBlank()) {
+                    message = "Ime postaje je obvezno."
+                    return@Button
+                }
+
+                scope.launch {
+                    message = "Shranjevanje podatkov..."
+
+                    message = try {
+                        val endpoint: String
+                        val postData: String
+
+                        when (selectedType) {
+                            EntryType.AIR_QUALITY -> {
+                                val aqiValue = aqi.toDoubleOrNull()
+
+                                if (aqiValue == null) {
+                                    message = "AQI mora biti številka."
+                                    return@launch
+                                }
+
+                                endpoint = "air-quality"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&aqi=${aqiValue.toInt()}"
+                            }
+
+                            EntryType.METEO -> {
+                                val temperatureValue = temperature.toDoubleOrNull()
+                                val humidityValue = humidity.toDoubleOrNull()
+
+                                if (temperatureValue == null || humidityValue == null) {
+                                    message = "Temperature in humidity morata biti številki."
+                                    return@launch
+                                }
+
+                                endpoint = "meteo"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&temperature=$temperature" +
+                                            "&humidity=$humidity" +
+                                            "&windSpeed=$windSpeed" +
+                                            "&precipitation=$precipitation"
+                            }
+
+                            EntryType.HYDRO -> {
+                                if (riverName.isBlank()) {
+                                    message = "Ime reke je obvezno."
+                                    return@launch
+                                }
+
+                                endpoint = "hydro"
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&riverName=$riverName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&waterLevel=$waterLevel" +
+                                            "&waterFlow=$waterFlow"
+                            }
+                        }
+
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$endpoint")
+                                .openConnection()
+                                .apply {
+                                    doOutput = true
+                                    setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+                                    outputStream.use { it.write(postData.toByteArray()) }
+                                }
+                                .getInputStream()
+                                .bufferedReader()
+                                .readText()
+                        }
+
+                        stationName = ""
+                        latitude = ""
+                        longitude = ""
+                        aqi = ""
+                        temperature = ""
+                        humidity = ""
+                        windSpeed = ""
+                        precipitation = ""
+                        riverName = ""
+                        waterLevel = ""
+                        waterFlow = ""
+
+                        "Podatki so uspešno shranjeni."
+                    } catch (e: Exception) {
+                        "Napaka pri shranjevanju: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Shrani")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(message)
+    }
+}
+
+@Composable
+fun UpdateDataScreen() {
+    val scope = rememberCoroutineScope()
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("Najprej naloži obstoječe zapise.") }
+    var selectedId by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+    var stationName by remember { mutableStateOf("") }
+    var aqi by remember { mutableStateOf("") }
+    var temperature by remember { mutableStateOf("") }
+    var humidity by remember { mutableStateOf("") }
+    var riverName by remember { mutableStateOf("") }
+    var waterLevel by remember { mutableStateOf("") }
+    var waterFlow by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Posodabljanje podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hydro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Izbrana tabela: $selectedTable")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = "Nalagam podatke..."
+
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader(Charsets.UTF_8)
+                                .readText()
+                        }.let { response ->
+                            if (response == "[]") {
+                                "Ni zapisov v izbrani tabeli."
+                            } else {
+                                response
+                            }
+                        }
+                    } catch (e: Exception) {
+                        "Napaka pri nalaganju podatkov: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Naloži obstoječe zapise")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(recordsText)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = selectedId,
+            onValueChange = { selectedId = it },
+            label = { Text("ID zapisa za urejanje") }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                message = if (selectedId.toIntOrNull() == null) {
+                    "Vnesi veljaven ID zapisa."
+                } else {
+                    "Izbran zapis z ID: $selectedId"
+                }
+            }
+        ) {
+            Text("Izberi zapis")
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Urejanje vrednosti",
+            style = MaterialTheme.typography.h6
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = stationName,
+            onValueChange = { stationName = it },
+            label = { Text("Novo ime postaje") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        when (selectedTable) {
+            "air-quality" -> {
+                OutlinedTextField(
+                    value = aqi,
+                    onValueChange = { aqi = it },
+                    label = { Text("Nova AQI vrednost") }
+                )
+            }
+
+            "meteo" -> {
+                OutlinedTextField(
+                    value = temperature,
+                    onValueChange = { temperature = it },
+                    label = { Text("Nova temperatura") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = humidity,
+                    onValueChange = { humidity = it },
+                    label = { Text("Nova vlažnost") }
+                )
+            }
+
+            "hydro" -> {
+                OutlinedTextField(
+                    value = riverName,
+                    onValueChange = { riverName = it },
+                    label = { Text("Novo ime reke") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterLevel,
+                    onValueChange = { waterLevel = it },
+                    label = { Text("Nov vodostaj") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterFlow,
+                    onValueChange = { waterFlow = it },
+                    label = { Text("Nov pretok") }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val id = selectedId.toIntOrNull()
+
+                if (id == null) {
+                    message = "Vnesi veljaven ID zapisa."
+                    return@Button
+                }
+
+                if (stationName.isBlank()) {
+                    message = "Ime postaje je obvezno."
+                    return@Button
+                }
+
+                scope.launch {
+                    message = "Shranjujem spremembe..."
+
+                    message = try {
+                        val endpoint: String
+                        val postData: String
+
+                        when (selectedTable) {
+                            "air-quality" -> {
+                                val aqiValue = aqi.toIntOrNull()
+                                if (aqiValue == null) {
+                                    message = "AQI mora biti številka."
+                                    return@launch
+                                }
+
+                                endpoint = "air-quality"
+                                postData = "stationName=$stationName&aqi=$aqiValue"
+                            }
+
+                            "meteo" -> {
+                                val tempValue = temperature.toDoubleOrNull()
+                                val humidityValue = humidity.toDoubleOrNull()
+
+                                if (tempValue == null || humidityValue == null) {
+                                    message = "Temperatura in vlažnost morata biti številki."
+                                    return@launch
+                                }
+
+                                endpoint = "meteo"
+                                postData = "stationName=$stationName&temperature=$tempValue&humidity=$humidityValue"
+                            }
+
+                            else -> {
+                                if (riverName.isBlank()) {
+                                    message = "Ime reke je obvezno."
+                                    return@launch
+                                }
+
+                                endpoint = "hydro"
+                                postData = "stationName=$stationName&riverName=$riverName&waterLevel=$waterLevel&waterFlow=$waterFlow"
+                            }
+                        }
+
+                        withContext(Dispatchers.IO) {
+                            val connection = URL("http://localhost:8080/api/$endpoint/$id")
+                                .openConnection() as java.net.HttpURLConnection
+
+                            connection.requestMethod = "PUT"
+                            connection.doOutput = true
+                            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+                            connection.outputStream.use {
+                                it.write(postData.toByteArray())
+                            }
+
+                            connection.inputStream.bufferedReader().readText()
+                        }
+
+                        "Spremembe so uspešno shranjene."
+                    } catch (e: Exception) {
+                        "Napaka pri shranjevanju sprememb: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Shrani spremembe")
+        }
+
+        Text(message)
+    }
+}
+
+@Composable
+fun DeleteDataScreen() {
+    val scope = rememberCoroutineScope()
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("") }
+    var selectedId by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+    var showConfirmation by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Brisanje podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hydro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader()
+                                .readText()
+                        }
+                    } catch (e: Exception) {
+                        "Napaka: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Naloži zapise")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(recordsText)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = selectedId,
+            onValueChange = { selectedId = it },
+            label = { Text("ID zapisa za brisanje") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val id = selectedId.toIntOrNull()
+
+                if (id == null) {
+                    message = "Vnesi veljaven ID."
+                } else {
+                    showConfirmation = true
+                }
+            }
+        ) {
+            Text("Izbriši zapis")
+        }
+
+        if (showConfirmation) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Ali si prepričan, da želiš izbrisati zapis?",
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row {
+                Button(
+                    onClick = {
+                        val id = selectedId.toIntOrNull()
+
+                        if (id == null) {
+                            message = "Vnesi veljaven ID."
+                            showConfirmation = false
+                            return@Button
+                        }
+
+                        scope.launch {
+                            message = "Brišem zapis..."
+
+                            message = try {
+                                withContext(Dispatchers.IO) {
+                                    val connection = URL("http://localhost:8080/api/$selectedTable/$id")
+                                        .openConnection() as java.net.HttpURLConnection
+
+                                    connection.requestMethod = "DELETE"
+
+                                    connection.inputStream
+                                        .bufferedReader()
+                                        .readText()
+                                }
+
+                                recordsText = withContext(Dispatchers.IO) {
+                                    URL("http://localhost:8080/api/$selectedTable")
+                                        .openStream()
+                                        .bufferedReader()
+                                        .readText()
+                                }.let { response ->
+                                    if (response == "[]") {
+                                        "Ni zapisov v izbrani tabeli."
+                                    } else {
+                                        response
+                                    }
+                                }
+
+                                selectedId = ""
+                                showConfirmation = false
+
+                                "Zapis je uspešno izbrisan."
+                            } catch (e: Exception) {
+                                showConfirmation = false
+                                "Napaka pri brisanju: ${e.message}"
+                            }
+                        }
+                    }
+                ) {
+                    Text("Da")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        message = "Brisanje preklicano."
+                        showConfirmation = false
+                    }
+                ) {
+                    Text("Ne")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(message)
     }
 }
