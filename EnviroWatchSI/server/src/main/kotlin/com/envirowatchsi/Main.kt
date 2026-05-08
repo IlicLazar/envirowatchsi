@@ -25,7 +25,9 @@ enum class Screen {
     HYDRO,
     DATABASE,
     GENERATOR,
-    DATA_ENTRY
+    DATA_ENTRY,
+
+    UPDATE
 }
 
 fun main() = application {
@@ -69,6 +71,7 @@ fun App() {
                     Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
                     Screen.DATA_ENTRY -> DataEntryScreen()
+                    Screen.UPDATE -> UpdateDataScreen()
                 }
             }
         }
@@ -87,6 +90,7 @@ fun Sidebar(
         modifier = Modifier
             .width(240.dp)
             .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Text(
@@ -110,6 +114,7 @@ fun Sidebar(
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
         SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
+        SidebarButton("Posodabljanje podatkov", Screen.UPDATE, selectedScreen, onScreenSelected)
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
@@ -539,6 +544,110 @@ fun DataEntryScreen() {
             }
         ) {
             Text("Shrani")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(message)
+    }
+}
+
+@Composable
+fun UpdateDataScreen() {
+    val scope = rememberCoroutineScope()
+
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("Najprej naloži obstoječe zapise.") }
+    var selectedId by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Posodabljanje podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hydro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Izbrana tabela: $selectedTable")
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = "Nalagam podatke..."
+
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader(Charsets.UTF_8)
+                                .readText()
+                        }.let { response ->
+                            if (response == "[]") {
+                                "Ni zapisov v izbrani tabeli."
+                            } else {
+                                response
+                            }
+                        }
+                    } catch (e: Exception) {
+                        "Napaka pri nalaganju podatkov: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Naloži obstoječe zapise")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(recordsText)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = selectedId,
+            onValueChange = { selectedId = it },
+            label = { Text("ID zapisa za urejanje") }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Button(
+            onClick = {
+                message = if (selectedId.toIntOrNull() == null) {
+                    "Vnesi veljaven ID zapisa."
+                } else {
+                    "Izbran zapis z ID: $selectedId"
+                }
+            }
+        ) {
+            Text("Izberi zapis")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
