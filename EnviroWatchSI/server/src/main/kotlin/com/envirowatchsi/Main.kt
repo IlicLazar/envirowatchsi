@@ -816,11 +816,11 @@ fun UpdateDataScreen() {
 @Composable
 fun DeleteDataScreen() {
     val scope = rememberCoroutineScope()
-
     var selectedTable by remember { mutableStateOf("air-quality") }
     var recordsText by remember { mutableStateOf("") }
     var selectedId by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    var showConfirmation by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -889,10 +889,50 @@ fun DeleteDataScreen() {
 
         Button(
             onClick = {
-                message = "Zapis pripravljen za brisanje."
+                val id = selectedId.toIntOrNull()
+
+                if (id == null) {
+                    message = "Vnesi veljaven ID."
+                } else {
+                    showConfirmation = true
+                }
             }
         ) {
             Text("Izbriši zapis")
+        }
+
+        if (showConfirmation) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Ali si prepričan, da želiš izbrisati zapis?",
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row {
+                Button(
+                    onClick = {
+                        message = "Brisanje potrjeno."
+                        showConfirmation = false
+                    }
+                ) {
+                    Text("Da")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        message = "Brisanje preklicano."
+                        showConfirmation = false
+                    }
+                ) {
+                    Text("Ne")
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
