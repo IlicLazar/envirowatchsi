@@ -11,6 +11,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.envirowatchsi.network.fetchRawMeteoXml
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 enum class Screen {
     DASHBOARD,
@@ -59,7 +63,7 @@ fun App() {
                     Screen.AIR_QUALITY -> PlaceholderScreen("Kakovost zraka")
                     Screen.METEO -> PlaceholderScreen("Meteorološki podatki")
                     Screen.HYDRO -> PlaceholderScreen("Hidrološki podatki")
-                    Screen.DATABASE -> PlaceholderScreen("Upravljanje podatkovne baze")
+                    Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
                 }
             }
@@ -198,5 +202,75 @@ fun PlaceholderScreen(title: String) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text("Preklapljanje med zasloni poteka preko navigacijskega menija na levi strani aplikacije.")
+    }
+}
+@Composable
+fun DatabaseScreen() {
+    val scope = rememberCoroutineScope()
+
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("Klikni gumb za pridobitev podatkov.") }
+
+    Column {
+        Text(
+            text = "Podatkovna baza",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Kakovost zraka")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hidro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = "Pridobivanje podatkov..."
+
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader(Charsets.UTF_8)
+                                .readText()
+                        }.ifBlank {
+                            "Ni podatkov."
+                        }
+                    } catch (e: Exception) {
+                        "Napaka pri pridobivanju podatkov: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Prikaži zapise")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Izbrana tabela: $selectedTable",
+            style = MaterialTheme.typography.subtitle1
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(recordsText)
     }
 }
