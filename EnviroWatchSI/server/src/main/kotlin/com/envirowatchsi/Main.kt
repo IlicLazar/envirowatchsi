@@ -26,8 +26,8 @@ enum class Screen {
     DATABASE,
     GENERATOR,
     DATA_ENTRY,
-
-    UPDATE
+    UPDATE,
+    DELETE
 }
 
 fun main() = application {
@@ -72,6 +72,7 @@ fun App() {
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
                     Screen.DATA_ENTRY -> DataEntryScreen()
                     Screen.UPDATE -> UpdateDataScreen()
+                    Screen.DELETE -> DeleteDataScreen()
                 }
             }
         }
@@ -115,6 +116,7 @@ fun Sidebar(
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
         SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
         SidebarButton("Posodabljanje podatkov", Screen.UPDATE, selectedScreen, onScreenSelected)
+        SidebarButton("Brisanje podatkov", Screen.DELETE, selectedScreen, onScreenSelected)
         Spacer(modifier = Modifier.weight(1f))
 
         Text(
@@ -806,6 +808,94 @@ fun UpdateDataScreen() {
         ) {
             Text("Shrani spremembe")
         }
+
+        Text(message)
+    }
+}
+
+@Composable
+fun DeleteDataScreen() {
+    val scope = rememberCoroutineScope()
+
+    var selectedTable by remember { mutableStateOf("air-quality") }
+    var recordsText by remember { mutableStateOf("") }
+    var selectedId by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Brisanje podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row {
+            Button(onClick = { selectedTable = "air-quality" }) {
+                Text("Air Quality")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "meteo" }) {
+                Text("Meteo")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(onClick = { selectedTable = "hydro" }) {
+                Text("Hydro")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    recordsText = try {
+                        withContext(Dispatchers.IO) {
+                            URL("http://localhost:8080/api/$selectedTable")
+                                .openStream()
+                                .bufferedReader()
+                                .readText()
+                        }
+                    } catch (e: Exception) {
+                        "Napaka: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Naloži zapise")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(recordsText)
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        OutlinedTextField(
+            value = selectedId,
+            onValueChange = { selectedId = it },
+            label = { Text("ID zapisa za brisanje") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                message = "Zapis pripravljen za brisanje."
+            }
+        ) {
+            Text("Izbriši zapis")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(message)
     }

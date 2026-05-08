@@ -193,5 +193,53 @@ fun Application.module() {
             call.respondText("Hydro record updated")
         }
 
+        delete("/api/air-quality/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if (id == null) {
+                call.respondText(
+                    "Invalid ID",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@delete
+            }
+
+            DatabaseRepository.deleteAirQualityRecord(id)
+
+            call.respondText("Air quality record deleted")
+        }
+
+        delete("/api/meteo/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if (id == null) {
+                call.respondText(
+                    "Invalid ID",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@delete
+            }
+
+            DatabaseRepository.deleteMeteoRecord(id)
+
+            call.respondText("Meteo record deleted")
+        }
+
+        delete("/api/hydro/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if (id == null) {
+                call.respondText(
+                    "Invalid ID",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@delete
+            }
+
+            DatabaseRepository.deleteHydroRecord(id)
+
+            call.respondText("Hydro record deleted")
+        }
+
     }
 }

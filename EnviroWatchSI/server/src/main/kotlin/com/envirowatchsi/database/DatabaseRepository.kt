@@ -4,7 +4,8 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.update
-
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 object DatabaseRepository {
 
     fun getAirQualityRecords(): List<Map<String, Any?>> = transaction {
@@ -152,6 +153,30 @@ object DatabaseRepository {
                 it[riverName] = river
                 it[waterLevel] = level
                 it[waterFlow] = flow
+            }
+        }
+    }
+
+    fun deleteAirQualityRecord(id: Int) {
+        transaction {
+            AirQualityStationsTable.deleteWhere {
+                AirQualityStationsTable.id eq id
+            }
+        }
+    }
+
+    fun deleteMeteoRecord(id: Int) {
+        transaction {
+            MeteoStationsTable.deleteWhere {
+                MeteoStationsTable.id eq id
+            }
+        }
+    }
+
+    fun deleteHydroRecord(id: Int) {
+        transaction {
+            HydroStationsTable.deleteWhere {
+                HydroStationsTable.id eq id
             }
         }
     }
