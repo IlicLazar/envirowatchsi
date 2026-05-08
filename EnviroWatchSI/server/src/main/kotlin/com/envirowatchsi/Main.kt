@@ -1,6 +1,8 @@
 package com.envirowatchsi
 
 import com.envirowatchsi.parser.parseMeteoData
+import com.envirowatchsi.parser.parseAirQualityData
+import com.envirowatchsi.parser.parseHydroData
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.envirowatchsi.network.fetchRawMeteoXml
+import com.envirowatchsi.network.fetchRawAirQualityXml
+import com.envirowatchsi.network.fetchRawXml
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -65,9 +69,9 @@ fun App() {
             ){
                 when(selectedScreen){
                     Screen.DASHBOARD -> DashboardScreen()
-                    Screen.AIR_QUALITY -> PlaceholderScreen("Kakovost zraka")
+                    Screen.AIR_QUALITY -> AirQualityScreen()
                     Screen.METEO -> MeteoScreen()
-                    Screen.HYDRO -> PlaceholderScreen("Hidrološki podatki")
+                    Screen.HYDRO -> HydroScreen()
                     Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
                     Screen.DATA_ENTRY -> DataEntryScreen()
@@ -1273,6 +1277,184 @@ fun MeteoScreen() {
             Text("Vlažnost: ${record.humidity}")
             Text("Veter: ${record.windSpeed}")
             Text("Padavine: ${record.precipitation}")
+        }
+    }
+}
+@Composable
+fun AirQualityScreen() {
+    val scope = rememberCoroutineScope()
+
+    var records by remember { mutableStateOf(emptyList<com.envirowatchsi.model.AirQualityStation>()) }
+    var selectedRecord by remember { mutableStateOf<com.envirowatchsi.model.AirQualityStation?>(null) }
+    var message by remember { mutableStateOf("Klikni gumb za pridobitev podatkov o kakovosti zraka.") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text("Kakovost zraka", style = MaterialTheme.typography.h4)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    message = "Pridobivanje in razčlenjevanje podatkov o kakovosti zraka..."
+
+                    try {
+                        val parsed = withContext(Dispatchers.IO) {
+                            val xml = fetchRawAirQualityXml()
+                            parseAirQualityData(xml).take(10)
+                        }
+
+                        records = parsed
+                        selectedRecord = null
+                        message = "Pridobljenih zapisov: ${parsed.size}"
+                    } catch (e: Exception) {
+                        records = emptyList()
+                        message = "Napaka: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Pridobi podatke o kakovosti zraka")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(message)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        records.forEach { record ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Button(
+                    onClick = {
+                        selectedRecord = record
+                        message = "Izbran zapis: ${record.stationName}"
+                    }
+                ) {
+                    Text("Izberi")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "${record.stationName} | AQI: ${record.airQualityIndex}",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            Divider()
+        }
+
+        selectedRecord?.let { record ->
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Pregled izbranega zapisa", style = MaterialTheme.typography.h6)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Postaja: ${record.stationName}")
+            Text("Latitude: ${record.latitude}")
+            Text("Longitude: ${record.longitude}")
+            Text("PM10: ${record.pm10}")
+            Text("PM2.5: ${record.pm2_5}")
+            Text("O3: ${record.o3}")
+            Text("CO: ${record.co}")
+            Text("SO2: ${record.so2}")
+            Text("AQI: ${record.airQualityIndex}")
+        }
+    }
+}
+@Composable
+fun HydroScreen() {
+    val scope = rememberCoroutineScope()
+
+    var records by remember { mutableStateOf(emptyList<com.envirowatchsi.model.HydroStation>()) }
+    var selectedRecord by remember { mutableStateOf<com.envirowatchsi.model.HydroStation?>(null) }
+    var message by remember { mutableStateOf("Klikni gumb za pridobitev hidroloških podatkov.") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text("Hidrološki podatki", style = MaterialTheme.typography.h4)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    message = "Pridobivanje in razčlenjevanje hidroloških podatkov..."
+
+                    try {
+                        val parsed = withContext(Dispatchers.IO) {
+                            val xml = fetchRawXml()
+                            parseHydroData(xml).take(10)
+                        }
+
+                        records = parsed
+                        selectedRecord = null
+                        message = "Pridobljenih zapisov: ${parsed.size}"
+                    } catch (e: Exception) {
+                        records = emptyList()
+                        message = "Napaka: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Pridobi hidrološke podatke")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(message)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        records.forEach { record ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Button(
+                    onClick = {
+                        selectedRecord = record
+                        message = "Izbran zapis: ${record.stationName}"
+                    }
+                ) {
+                    Text("Izberi")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "${record.stationName} | ${record.riverName} | ${record.waterLevel}",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            Divider()
+        }
+
+        selectedRecord?.let { record ->
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Pregled izbranega zapisa", style = MaterialTheme.typography.h6)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Postaja: ${record.stationName}")
+            Text("Reka: ${record.riverName}")
+            Text("Latitude: ${record.latitude}")
+            Text("Longitude: ${record.longitude}")
+            Text("Vodostaj: ${record.waterLevel}")
+            Text("Pretok: ${record.waterFlow}")
+            Text("Čas meritve: ${record.measuredAt}")
         }
     }
 }
