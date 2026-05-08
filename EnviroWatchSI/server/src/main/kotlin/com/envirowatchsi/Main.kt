@@ -325,37 +325,41 @@ fun headersForTable(table: String): List<String> {
 }
 
 fun parseRowsForTable(table: String, response: String): List<List<String>> {
-    if (response == "[]") return emptyList()
+    if (response.isBlank() || response == "[]") return emptyList()
 
-    val gson = com.google.gson.Gson()
-    val listType = object : com.google.gson.reflect.TypeToken<List<Map<String, Any?>>>() {}.type
-    val records: List<Map<String, Any?>> = gson.fromJson(response, listType)
+    return try {
+        val gson = com.google.gson.Gson()
+        val listType = object : com.google.gson.reflect.TypeToken<List<Map<String, Any?>>>() {}.type
+        val records: List<Map<String, Any?>> = gson.fromJson(response, listType)
 
-    return records.map { record ->
-        when (table) {
-            "air-quality" -> listOf(
-                record["id"].toString(),
-                record["stationName"].toString(),
-                record["airQualityIndex"].toString()
-            )
+        records.map { record ->
+            when (table) {
+                "air-quality" -> listOf(
+                    record["id"].toString(),
+                    record["stationName"].toString(),
+                    record["airQualityIndex"].toString()
+                )
 
-            "meteo" -> listOf(
-                record["id"].toString(),
-                record["stationName"].toString(),
-                record["temperature"].toString(),
-                record["humidity"].toString()
-            )
+                "meteo" -> listOf(
+                    record["id"].toString(),
+                    record["stationName"].toString(),
+                    record["temperature"].toString(),
+                    record["humidity"].toString()
+                )
 
-            "hydro" -> listOf(
-                record["id"].toString(),
-                record["stationName"].toString(),
-                record["riverName"].toString(),
-                record["waterLevel"].toString(),
-                record["waterFlow"].toString()
-            )
+                "hydro" -> listOf(
+                    record["id"].toString(),
+                    record["stationName"].toString(),
+                    record["riverName"].toString(),
+                    record["waterLevel"].toString(),
+                    record["waterFlow"].toString()
+                )
 
-            else -> emptyList()
+                else -> emptyList()
+            }
         }
+    } catch (e: Exception) {
+        emptyList()
     }
 }
 
