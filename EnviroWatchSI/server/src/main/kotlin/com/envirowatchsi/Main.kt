@@ -20,6 +20,7 @@ enum class Screen {
 }
 
 fun main() = application {
+    com.envirowatchsi.server.ApiServer.start()
     Window(
         onCloseRequest = ::exitApplication,
         title = "EnviroWatch SI"
