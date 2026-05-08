@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.envirowatchsi.network.fetchRawMeteoXml
+import kotlinx.coroutines.launch
 
 enum class Screen {
     DASHBOARD,
@@ -131,6 +133,8 @@ fun SidebarButton(
 }
 @Composable
 fun DashboardScreen(){
+    val scope = rememberCoroutineScope()
+    var connectionStatus by remember { mutableStateOf("Povezava še ni testirana.") }
     Column {
         Text(
             text = "Digitalni dvojček okoljskega stanja v Sloveniji",
@@ -151,6 +155,29 @@ fun DashboardScreen(){
         Text("- Hidrološki podatki")
         Text("- Upravljanje podatkovne baze")
         Text("- Generator namišljenih podatkov")
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    connectionStatus = "Testiranje povezave..."
+
+                    connectionStatus = try {
+                        val xml = fetchRawMeteoXml()
+                        "Povezava uspešna. Prejeto znakov: ${xml.length}"
+                    } catch (e: Exception) {
+                        "Napaka pri povezavi: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Test povezave s spletnim servisom")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(connectionStatus)
     }
 }
 @Composable
