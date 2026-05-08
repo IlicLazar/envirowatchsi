@@ -531,7 +531,7 @@ fun DataEntryScreen() {
 
                     message = try {
                         val endpoint: String
-                        val postData: String
+                        val jsonBody: String
 
                         when (selectedType) {
                             EntryType.AIR_QUALITY -> {
@@ -543,11 +543,13 @@ fun DataEntryScreen() {
                                 }
 
                                 endpoint = "air-quality"
-                                postData =
-                                    "stationName=$stationName" +
-                                            "&latitude=$latitude" +
-                                            "&longitude=$longitude" +
-                                            "&aqi=${aqiValue.toInt()}"
+
+                                jsonBody = buildAirQualityJson(
+                                    stationName,
+                                    latitude,
+                                    longitude,
+                                    aqi
+                                )
                             }
 
                             EntryType.METEO -> {
@@ -560,14 +562,16 @@ fun DataEntryScreen() {
                                 }
 
                                 endpoint = "meteo"
-                                postData =
-                                    "stationName=$stationName" +
-                                            "&latitude=$latitude" +
-                                            "&longitude=$longitude" +
-                                            "&temperature=$temperature" +
-                                            "&humidity=$humidity" +
-                                            "&windSpeed=$windSpeed" +
-                                            "&precipitation=$precipitation"
+
+                                jsonBody = buildMeteoJson(
+                                    stationName,
+                                    latitude,
+                                    longitude,
+                                    temperature,
+                                    humidity,
+                                    windSpeed,
+                                    precipitation
+                                )
                             }
 
                             EntryType.HYDRO -> {
@@ -577,25 +581,36 @@ fun DataEntryScreen() {
                                 }
 
                                 endpoint = "hydro"
-                                postData =
-                                    "stationName=$stationName" +
-                                            "&riverName=$riverName" +
-                                            "&latitude=$latitude" +
-                                            "&longitude=$longitude" +
-                                            "&waterLevel=$waterLevel" +
-                                            "&waterFlow=$waterFlow"
+
+                                jsonBody = buildHydroJson(
+                                    stationName,
+                                    riverName,
+                                    latitude,
+                                    longitude,
+                                    waterLevel,
+                                    waterFlow
+                                )
                             }
                         }
 
                         withContext(Dispatchers.IO) {
-                            URL("http://localhost:8080/api/$endpoint")
-                                .openConnection()
-                                .apply {
-                                    doOutput = true
-                                    setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-                                    outputStream.use { it.write(postData.toByteArray()) }
-                                }
-                                .getInputStream()
+
+                            val connection = URL("http://localhost:8080/api/$endpoint")
+                                .openConnection() as java.net.HttpURLConnection
+
+                            connection.requestMethod = "POST"
+                            connection.doOutput = true
+
+                            connection.setRequestProperty(
+                                "Content-Type",
+                                "application/json"
+                            )
+
+                            connection.outputStream.use {
+                                it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                            }
+
+                            connection.inputStream
                                 .bufferedReader()
                                 .readText()
                         }

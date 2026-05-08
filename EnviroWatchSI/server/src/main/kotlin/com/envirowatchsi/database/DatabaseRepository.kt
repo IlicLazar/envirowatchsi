@@ -61,13 +61,18 @@ object DatabaseRepository {
         }
     }
 
-    fun insertAirQualityRecord(station: String, aqi: Int) {
+    fun insertAirQualityRecord(
+        station: String,
+        latitudeValue: Double?,
+        longitudeValue: Double?,
+        aqi: Int
+    ) {
         transaction {
             AirQualityStationsTable.insert {
                 it[stationId] = station.lowercase().replace(" ", "_")
                 it[stationName] = station
-                it[latitude] = 0.0
-                it[longitude] = 0.0
+                it[latitude] = latitudeValue ?: 0.0
+                it[longitude] = longitudeValue ?: 0.0
                 it[measuredAt] = java.time.LocalDateTime.now().toString()
 
                 it[pm10] = null

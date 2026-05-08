@@ -65,10 +65,18 @@ fun Application.module() {
             )
         }
         post("/api/air-quality") {
-            val parameters = call.receiveParameters()
 
-            val stationName = parameters["stationName"]
-            val aqi = parameters["aqi"]?.toIntOrNull()
+            val body = call.receiveText()
+
+            val data = Gson().fromJson(
+                body,
+                Map::class.java
+            )
+
+            val stationName = data["stationName"] as? String
+            val latitude = data["latitude"] as? Double
+            val longitude = data["longitude"] as? Double
+            val aqi = data["aqi"] as? Double
 
             if (stationName.isNullOrBlank() || aqi == null) {
                 call.respondText(
@@ -78,13 +86,19 @@ fun Application.module() {
                 return@post
             }
 
-            DatabaseRepository.insertAirQualityRecord(stationName, aqi)
+            DatabaseRepository.insertAirQualityRecord(
+                stationName,
+                latitude,
+                longitude,
+                aqi.toInt()
+            )
 
             call.respondText(
                 "Air quality record saved",
                 status = HttpStatusCode.Created
             )
         }
+
 
         post("/api/meteo") {
             val p = call.receiveParameters()
