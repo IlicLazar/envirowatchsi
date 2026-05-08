@@ -101,15 +101,20 @@ fun Application.module() {
 
 
         post("/api/meteo") {
-            val p = call.receiveParameters()
+            val body = call.receiveText()
 
-            val stationName = p["stationName"]
-            val latitude = p["latitude"]?.toDoubleOrNull()
-            val longitude = p["longitude"]?.toDoubleOrNull()
-            val temperature = p["temperature"]?.toDoubleOrNull()
-            val humidity = p["humidity"]?.toDoubleOrNull()
-            val windSpeed = p["windSpeed"]?.toDoubleOrNull()
-            val precipitation = p["precipitation"]?.toDoubleOrNull()
+            val data = Gson().fromJson(
+                body,
+                Map::class.java
+            )
+
+            val stationName = data["stationName"] as? String
+            val latitude = data["latitude"] as? Double
+            val longitude = data["longitude"] as? Double
+            val temperature = data["temperature"] as? Double
+            val humidity = data["humidity"] as? Double
+            val windSpeed = data["windSpeed"] as? Double
+            val precipitation = data["precipitation"] as? Double
 
             if (stationName.isNullOrBlank() || temperature == null || humidity == null) {
                 call.respondText("Invalid meteo input", status = HttpStatusCode.BadRequest)
@@ -130,14 +135,19 @@ fun Application.module() {
         }
 
         post("/api/hydro") {
-            val p = call.receiveParameters()
+            val body = call.receiveText()
 
-            val stationName = p["stationName"]
-            val riverName = p["riverName"]
-            val latitude = p["latitude"]?.toDoubleOrNull()
-            val longitude = p["longitude"]?.toDoubleOrNull()
-            val waterLevel = p["waterLevel"]?.toDoubleOrNull()
-            val waterFlow = p["waterFlow"]?.toDoubleOrNull()
+            val data = Gson().fromJson(
+                body,
+                Map::class.java
+            )
+
+            val stationName = data["stationName"] as? String
+            val riverName = data["riverName"] as? String
+            val latitude = data["latitude"] as? Double
+            val longitude = data["longitude"] as? Double
+            val waterLevel = data["waterLevel"] as? Double
+            val waterFlow = data["waterFlow"] as? Double
 
             if (stationName.isNullOrBlank() || riverName.isNullOrBlank()) {
                 call.respondText("Invalid hydro input", status = HttpStatusCode.BadRequest)

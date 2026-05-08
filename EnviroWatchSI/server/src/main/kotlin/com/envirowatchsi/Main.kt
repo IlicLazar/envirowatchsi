@@ -12,7 +12,6 @@ import androidx.compose.ui.window.application
 import com.envirowatchsi.network.fetchRawMeteoXml
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
 import androidx.compose.foundation.verticalScroll
@@ -78,10 +77,7 @@ fun App() {
         }
     }
 }
-@Composable
-fun ContentArea(selectedScreen: Screen) {
-    ContentArea(selectedScreen)
-}
+
 @Composable
 fun Sidebar(
     selectedScreen: Screen,
