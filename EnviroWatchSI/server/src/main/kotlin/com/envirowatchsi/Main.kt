@@ -1281,6 +1281,48 @@ fun MeteoScreen() {
             Text("Vlažnost: ${record.humidity}")
             Text("Veter: ${record.windSpeed}")
             Text("Padavine: ${record.precipitation}")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        message = "Shranjevanje izbranega zapisa..."
+
+                        message = try {
+                            val jsonBody = buildMeteoJson(
+                                record.stationName,
+                                record.latitude?.toString() ?: "",
+                                record.longitude?.toString() ?: "",
+                                record.temperature.toString(),
+                                record.humidity.toString(),
+                                record.windSpeed?.toString() ?: "",
+                                record.precipitation?.toString() ?: ""
+                            )
+
+                            withContext(Dispatchers.IO) {
+                                val connection = URL("http://localhost:8080/api/meteo")
+                                    .openConnection() as java.net.HttpURLConnection
+
+                                connection.requestMethod = "POST"
+                                connection.doOutput = true
+                                connection.setRequestProperty("Content-Type", "application/json")
+
+                                connection.outputStream.use {
+                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                                }
+
+                                connection.inputStream.bufferedReader().readText()
+                            }
+
+                            "Izbran meteo zapis je shranjen v bazo."
+                        } catch (e: Exception) {
+                            "Napaka pri shranjevanju: ${e.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Shrani v bazo")
+            }
         }
     }
 }
@@ -1375,6 +1417,45 @@ fun AirQualityScreen() {
             Text("CO: ${record.co}")
             Text("SO2: ${record.so2}")
             Text("AQI: ${record.airQualityIndex}")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        message = "Shranjevanje izbranega zapisa..."
+
+                        message = try {
+                            val jsonBody = buildAirQualityJson(
+                                record.stationName,
+                                record.latitude.toString(),
+                                record.longitude.toString(),
+                                record.airQualityIndex?.toInt()?.toString() ?: "0"
+                            )
+
+                            withContext(Dispatchers.IO) {
+                                val connection = URL("http://localhost:8080/api/air-quality")
+                                    .openConnection() as java.net.HttpURLConnection
+
+                                connection.requestMethod = "POST"
+                                connection.doOutput = true
+                                connection.setRequestProperty("Content-Type", "application/json")
+
+                                connection.outputStream.use {
+                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                                }
+
+                                connection.inputStream.bufferedReader().readText()
+                            }
+
+                            "Izbran zapis kakovosti zraka je shranjen v bazo."
+                        } catch (e: Exception) {
+                            "Napaka pri shranjevanju: ${e.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Shrani v bazo")
+            }
         }
     }
 }
@@ -1467,6 +1548,47 @@ fun HydroScreen() {
             Text("Vodostaj: ${record.waterLevel}")
             Text("Pretok: ${record.waterFlow}")
             Text("Čas meritve: ${record.measuredAt}")
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        message = "Shranjevanje izbranega zapisa..."
+
+                        message = try {
+                            val jsonBody = buildHydroJson(
+                                record.stationName,
+                                record.riverName,
+                                record.latitude?.toString() ?: "",
+                                record.longitude?.toString() ?: "",
+                                record.waterLevel?.toString() ?: "",
+                                record.waterFlow?.toString() ?: ""
+                            )
+
+                            withContext(Dispatchers.IO) {
+                                val connection = URL("http://localhost:8080/api/hydro")
+                                    .openConnection() as java.net.HttpURLConnection
+
+                                connection.requestMethod = "POST"
+                                connection.doOutput = true
+                                connection.setRequestProperty("Content-Type", "application/json")
+
+                                connection.outputStream.use {
+                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                                }
+
+                                connection.inputStream.bufferedReader().readText()
+                            }
+
+                            "Izbran hidro zapis je shranjen v bazo."
+                        } catch (e: Exception) {
+                            "Napaka pri shranjevanju: ${e.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Shrani v bazo")
+            }
         }
     }
 }
