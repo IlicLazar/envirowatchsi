@@ -1,5 +1,6 @@
 package com.envirowatchsi
 
+import com.envirowatchsi.parser.parseMeteoData
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -65,7 +66,7 @@ fun App() {
                 when(selectedScreen){
                     Screen.DASHBOARD -> DashboardScreen()
                     Screen.AIR_QUALITY -> PlaceholderScreen("Kakovost zraka")
-                    Screen.METEO -> PlaceholderScreen("Meteorološki podatki")
+                    Screen.METEO -> MeteoScreen()
                     Screen.HYDRO -> PlaceholderScreen("Hidrološki podatki")
                     Screen.DATABASE -> DatabaseScreen()
                     Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
@@ -1176,6 +1177,102 @@ fun DataTable(
             }
 
             Divider()
+        }
+    }
+}
+@Composable
+fun MeteoScreen() {
+    val scope = rememberCoroutineScope()
+
+    var records by remember { mutableStateOf(emptyList<com.envirowatchsi.model.MeteoStation>()) }
+    var selectedRecord by remember { mutableStateOf<com.envirowatchsi.model.MeteoStation?>(null) }
+    var message by remember { mutableStateOf("Klikni gumb za pridobitev meteo podatkov.") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Meteorološki podatki",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                scope.launch {
+                    message = "Pridobivanje in razčlenjevanje meteo podatkov..."
+
+                    try {
+                        val parsed = withContext(Dispatchers.IO) {
+                            val xml = fetchRawMeteoXml()
+                            parseMeteoData(xml).take(10)
+                        }
+
+                        records = parsed
+                        selectedRecord = null
+                        message = "Pridobljenih zapisov: ${parsed.size}"
+                    } catch (e: Exception) {
+                        records = emptyList()
+                        message = "Napaka: ${e.message}"
+                    }
+                }
+            }
+        ) {
+            Text("Pridobi meteo podatke")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(message)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        records.forEach { record ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Button(
+                    onClick = {
+                        selectedRecord = record
+                        message = "Izbran zapis: ${record.stationName}"
+                    }
+                ) {
+                    Text("Izberi")
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = "${record.stationName} | ${record.temperature} °C | ${record.humidity} %",
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+
+            Divider()
+        }
+
+        selectedRecord?.let { record ->
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Pregled izbranega zapisa",
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Postaja: ${record.stationName}")
+            Text("Latitude: ${record.latitude}")
+            Text("Longitude: ${record.longitude}")
+            Text("Temperatura: ${record.temperature}")
+            Text("Vlažnost: ${record.humidity}")
+            Text("Veter: ${record.windSpeed}")
+            Text("Padavine: ${record.precipitation}")
         }
     }
 }
