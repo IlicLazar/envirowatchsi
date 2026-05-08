@@ -231,6 +231,16 @@ fun DatabaseScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        DataTable(
+            headers = listOf("ID", "Postaja", "Vrednost"),
+            rows = listOf(
+                listOf("1", "Ljubljana", "42"),
+                listOf("2", "Maribor", "67")
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Row {
             Button(onClick = { selectedTable = "air-quality" }) {
                 Text("Kakovost zraka")
@@ -981,5 +991,46 @@ fun DeleteDataScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(message)
+    }
+}
+
+@Composable
+fun DataTable(
+    headers: List<String>,
+    rows: List<List<String>>
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            headers.forEach { header ->
+                Text(
+                    text = header,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(8.dp),
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
+        }
+
+        Divider()
+
+        rows.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                row.forEach { cell ->
+                    Text(
+                        text = cell,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp)
+                    )
+                }
+            }
+
+            Divider()
+        }
     }
 }
