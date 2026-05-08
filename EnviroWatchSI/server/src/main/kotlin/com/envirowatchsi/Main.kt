@@ -274,7 +274,7 @@ fun DatabaseScreen() {
                         message = if (parsedRows.isEmpty()) {
                             "Ni zapisov v izbrani tabeli."
                         } else {
-                            "Podatki so uspešno naloženi."
+                            "Prikazanih zapisov: ${parsedRows.size}"
                         }
                     } catch (e: Exception) {
                         rows = emptyList()
