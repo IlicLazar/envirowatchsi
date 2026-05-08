@@ -1,6 +1,6 @@
 package com.envirowatchsi.model
 
-class AirQualityStation(
+data class AirQualityStation(
     val stationId: String,
     val stationName: String,
     val latitude: Double,
