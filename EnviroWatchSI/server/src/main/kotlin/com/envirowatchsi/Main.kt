@@ -555,11 +555,17 @@ fun DataEntryScreen() {
 @Composable
 fun UpdateDataScreen() {
     val scope = rememberCoroutineScope()
-
     var selectedTable by remember { mutableStateOf("air-quality") }
     var recordsText by remember { mutableStateOf("Najprej naloži obstoječe zapise.") }
     var selectedId by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+    var stationName by remember { mutableStateOf("") }
+    var aqi by remember { mutableStateOf("") }
+    var temperature by remember { mutableStateOf("") }
+    var humidity by remember { mutableStateOf("") }
+    var riverName by remember { mutableStateOf("") }
+    var waterLevel by remember { mutableStateOf("") }
+    var waterFlow by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -650,7 +656,72 @@ fun UpdateDataScreen() {
             Text("Izberi zapis")
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Urejanje vrednosti",
+            style = MaterialTheme.typography.h6
+        )
+
         Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = stationName,
+            onValueChange = { stationName = it },
+            label = { Text("Novo ime postaje") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        when (selectedTable) {
+            "air-quality" -> {
+                OutlinedTextField(
+                    value = aqi,
+                    onValueChange = { aqi = it },
+                    label = { Text("Nova AQI vrednost") }
+                )
+            }
+
+            "meteo" -> {
+                OutlinedTextField(
+                    value = temperature,
+                    onValueChange = { temperature = it },
+                    label = { Text("Nova temperatura") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = humidity,
+                    onValueChange = { humidity = it },
+                    label = { Text("Nova vlažnost") }
+                )
+            }
+
+            "hydro" -> {
+                OutlinedTextField(
+                    value = riverName,
+                    onValueChange = { riverName = it },
+                    label = { Text("Novo ime reke") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterLevel,
+                    onValueChange = { waterLevel = it },
+                    label = { Text("Nov vodostaj") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = waterFlow,
+                    onValueChange = { waterFlow = it },
+                    label = { Text("Nov pretok") }
+                )
+            }
+        }
 
         Text(message)
     }
