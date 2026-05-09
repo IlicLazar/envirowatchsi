@@ -227,6 +227,11 @@ fun DatabaseScreen() {
     var headers by remember { mutableStateOf(listOf("ID", "Postaja", "Vrednost")) }
     var rows by remember { mutableStateOf(emptyList<List<String>>()) }
 
+    var stationFilter by remember { mutableStateOf("")}
+
+    var minValueFilter by remember { mutableStateOf("")}
+    var maxValueFilter by remember { mutableStateOf("")}
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -240,19 +245,31 @@ fun DatabaseScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row {
-            Button(onClick = { selectedTable = "air-quality" }) {
+            Button(onClick = {
+                selectedTable = "air-quality"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Kakovost zraka")
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { selectedTable = "meteo" }) {
+            Button(onClick = {
+                selectedTable = "meteo"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Meteo")
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { selectedTable = "hydro" }) {
+            Button(onClick = {
+                selectedTable = "hydro"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Hidro")
             }
         }
@@ -286,23 +303,61 @@ fun DatabaseScreen() {
         ) {
             Text("Prikaži zapise")
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "Izbrana tabela: $selectedTable",
             style = MaterialTheme.typography.subtitle1
+
         )
-
+        Text("Aktiven filter tipa podatka: $selectedTable")
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(message)
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = stationFilter,
+            onValueChange = { stationFilter = it },
+            label = { Text("Filtriraj po merilni postaji") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
 
+        Row {
+            OutlinedTextField(
+                value = minValueFilter,
+                onValueChange = { minValueFilter = it },
+                label = { Text("Minimalna vrednost") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxValueFilter,
+                onValueChange = { maxValueFilter = it },
+                label = { Text("Maksimalna vrednost") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        val minValue = minValueFilter.toDoubleOrNull()
+        val maxValue = maxValueFilter.toDoubleOrNull()
+
+        val filteredRows = rows.filter { row ->
+            val stationMatches =
+                stationFilter.isBlank() || row.any {
+                    it.contains(stationFilter, ignoreCase = true)
+                }
+
+            val numericValue = row.lastOrNull()?.toDoubleOrNull()
+
+            val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
+            val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
+
+            stationMatches && minMatches && maxMatches
+        }
         DataTable(
             headers = headers,
-            rows = rows
+            rows = filteredRows
         )
     }
 }
