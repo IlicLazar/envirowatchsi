@@ -322,71 +322,59 @@ fun DatabaseScreen() {
             onValueChange = { stationFilter = it },
             label = { Text("Filtriraj po merilni postaji") }
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Sortiranje",
+            style = MaterialTheme.typography.h6
+        )
+
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(
-            onClick = {
-                if (sortMode == "station") {
-                    sortAscending = !sortAscending
-                } else {
-                    sortMode = "station"
-                    sortAscending = true
+        Row {
+            SortDropdown(
+                label = "Sortiraj po",
+                selectedText = when (sortMode) {
+                    "station" -> "Postaja"
+                    "date" -> "Datum meritve"
+                    "value" -> "Vrednost meritve"
+                    else -> "Postaja"
+                },
+                options = listOf("Postaja", "Datum meritve", "Vrednost meritve"),
+                onOptionSelected = { selected ->
+                    sortMode = when (selected) {
+                        "Postaja" -> "station"
+                        "Datum meritve" -> "date"
+                        "Vrednost meritve" -> "value"
+                        else -> "station"
+                    }
                 }
-            }
-        ) {
-            Text(
-                if (sortMode == "station") {
-                    if (sortAscending) "Postaja: A-Z" else "Postaja: Z-A"
-                } else {
-                    "Sortiraj po postaji"
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            SortDropdown(
+                label = "Smer",
+                selectedText = when (sortMode) {
+                    "station" -> if (sortAscending) "A-Z" else "Z-A"
+                    "date" -> if (sortAscending) "Najstariji" else "Najnoviji"
+                    "value" -> if (sortAscending) "Najmanjša" else "Največja"
+                    else -> "A-Z"
+                },
+                options = when (sortMode) {
+                    "station" -> listOf("A-Z", "Z-A")
+                    "date" -> listOf("Najstariji", "Najnoviji")
+                    "value" -> listOf("Najmanjša", "Največja")
+                    else -> listOf("A-Z", "Z-A")
+                },
+                onOptionSelected = { selected ->
+                    sortAscending = when (selected) {
+                        "A-Z", "Najstariji", "Najmanjša" -> true
+                        else -> false
+                    }
                 }
             )
         }
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                if (sortMode == "date") {
-                    sortAscending = !sortAscending
-                } else {
-                    sortMode = "date"
-                    sortAscending = true
-                }
-            }
-        ) {
-            Text(
-                if (sortMode == "date") {
-                    if (sortAscending) "Datum: najstariji" else "Datum: najnoviji"
-                } else {
-                    "Sortiraj po datumu"
-                }
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Button(
-            onClick = {
-                if (sortMode == "value") {
-                    sortAscending = !sortAscending
-                } else {
-                    sortMode = "value"
-                    sortAscending = true
-                }
-            }
-        ) {
-            Text(
-                if (sortMode == "value") {
-                    if (sortAscending)
-                        "Vrednost: najmanja"
-                    else
-                        "Vrednost: največja"
-                } else {
-                    "Sortiraj po vrednosti"
-                }
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-
         Row {
             OutlinedTextField(
                 value = minValueFilter,
@@ -453,6 +441,45 @@ fun DatabaseScreen() {
             headers = headers,
             rows = filteredRows
         )
+    }
+}
+@Composable
+fun SortDropdown(
+    label: String,
+    selectedText: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Text(label)
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box {
+            Button(
+                onClick = { expanded = true }
+            ) {
+                Text("$selectedText ▼")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    ) {
+                        Text(option)
+                    }
+                }
+            }
+        }
     }
 }
 
