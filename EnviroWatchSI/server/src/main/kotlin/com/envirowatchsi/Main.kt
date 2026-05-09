@@ -364,6 +364,29 @@ fun DatabaseScreen() {
         }
         Spacer(modifier = Modifier.height(8.dp))
 
+        Button(
+            onClick = {
+                if (sortMode == "value") {
+                    sortAscending = !sortAscending
+                } else {
+                    sortMode = "value"
+                    sortAscending = true
+                }
+            }
+        ) {
+            Text(
+                if (sortMode == "value") {
+                    if (sortAscending)
+                        "Vrednost: najmanja"
+                    else
+                        "Vrednost: največja"
+                } else {
+                    "Sortiraj po vrednosti"
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row {
             OutlinedTextField(
                 value = minValueFilter,
@@ -387,6 +410,7 @@ fun DatabaseScreen() {
 
         val stationNameColumnIndex = 1
         val measuredAtColumnIndex = 2
+        val numericValueColumnIndex = headers.lastIndex
 
         val filteredRows = rows
             .filter { row ->
@@ -409,15 +433,16 @@ fun DatabaseScreen() {
                         "date" -> filteredList.sortedBy {
                             it.getOrNull(measuredAtColumnIndex)
                         }
-
+                        "value" -> filteredList.sortedBy {
+                            it.getOrNull(numericValueColumnIndex)
+                                ?.toDoubleOrNull()
+                        }
                         "station" -> filteredList.sortedBy {
                             it.getOrNull(stationNameColumnIndex)
                                 ?.lowercase()
                         }
-
                         else -> filteredList
                     }
-
                 if (sortAscending) {
                     sortedRows
                 } else {
