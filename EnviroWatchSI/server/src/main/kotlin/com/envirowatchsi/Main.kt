@@ -232,7 +232,9 @@ fun DatabaseScreen() {
     var minValueFilter by remember { mutableStateOf("")}
     var maxValueFilter by remember { mutableStateOf("")}
 
-    var sortByStationAscending by remember { mutableStateOf(true) }
+    var sortMode by remember { mutableStateOf("station") }
+    var sortAscending by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -324,15 +326,40 @@ fun DatabaseScreen() {
 
         Button(
             onClick = {
-                sortByStationAscending =
-                    !sortByStationAscending
+                if (sortMode == "station") {
+                    sortAscending = !sortAscending
+                } else {
+                    sortMode = "station"
+                    sortAscending = true
+                }
             }
         ) {
             Text(
-                if (sortByStationAscending)
-                    "Uredi po postaji Z-A"
-                else
-                    "Uredi po postaji A-Z"
+                if (sortMode == "station") {
+                    if (sortAscending) "Postaja: A-Z" else "Postaja: Z-A"
+                } else {
+                    "Sortiraj po postaji"
+                }
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (sortMode == "date") {
+                    sortAscending = !sortAscending
+                } else {
+                    sortMode = "date"
+                    sortAscending = true
+                }
+            }
+        ) {
+            Text(
+                if (sortMode == "date") {
+                    if (sortAscending) "Datum: najstariji" else "Datum: najnoviji"
+                } else {
+                    "Sortiraj po datumu"
+                }
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
@@ -359,6 +386,7 @@ fun DatabaseScreen() {
         val maxValue = maxValueFilter.toDoubleOrNull()
 
         val stationNameColumnIndex = 1
+        val measuredAtColumnIndex = 2
 
         val filteredRows = rows
             .filter { row ->
@@ -375,12 +403,26 @@ fun DatabaseScreen() {
                 val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
                 stationMatches && minMatches && maxMatches
             }
-            .sortedBy { it.getOrNull(stationNameColumnIndex)?.lowercase() }
-            .let { sortedRows ->
-                if (sortByStationAscending)
+            .let { filteredList ->
+                val sortedRows =
+                    when (sortMode) {
+                        "date" -> filteredList.sortedBy {
+                            it.getOrNull(measuredAtColumnIndex)
+                        }
+
+                        "station" -> filteredList.sortedBy {
+                            it.getOrNull(stationNameColumnIndex)
+                                ?.lowercase()
+                        }
+
+                        else -> filteredList
+                    }
+
+                if (sortAscending) {
                     sortedRows
-                else
+                } else {
                     sortedRows.reversed()
+                }
             }
         DataTable(
             headers = headers,
@@ -400,9 +442,9 @@ suspend fun fetchDatabaseRecords(table: String): String {
 
 fun headersForTable(table: String): List<String> {
     return when (table) {
-        "air-quality" -> listOf("ID", "Postaja", "Lat", "Lon", "AQI")
-        "meteo" -> listOf("ID", "Postaja","Lat", "Lon", "Temp.", "Vlažnost")
-        "hydro" -> listOf("ID", "Postaja","Lat", "Lon", "Reka", "Vodostaj", "Pretok")
+        "air-quality" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "AQI")
+        "meteo" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "Temp.", "Vlažnost")
+        "hydro" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "Reka", "Vodostaj", "Pretok")
         else -> listOf("ID", "Postaja")
     }
 }
@@ -420,6 +462,7 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "air-quality" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["airQualityIndex"].toString()
@@ -428,6 +471,7 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "meteo" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["temperature"].toString(),
@@ -437,13 +481,13 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "hydro" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["riverName"].toString(),
                     record["waterLevel"].toString(),
                     record["waterFlow"].toString()
                 )
-
                 else -> emptyList()
             }
         }
