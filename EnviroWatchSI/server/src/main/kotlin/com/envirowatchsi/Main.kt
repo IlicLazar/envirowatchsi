@@ -1775,6 +1775,7 @@ fun HydroScreen() {
 
 @Composable
 fun GeneratorScreen() {
+    val scope = rememberCoroutineScope()
     var recordCount by remember { mutableStateOf("10") }
     var minTemperature by remember { mutableStateOf("-10") }
     var maxTemperature by remember { mutableStateOf("35") }
@@ -2127,6 +2128,9 @@ fun GeneratorScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(message)
+        Spacer(modifier = Modifier.height(12.dp))
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -2162,6 +2166,101 @@ fun GeneratorScreen() {
                     message = "Zapis je odstranjen iz predogleda."
                 }
             )
+            Button(
+                onClick = {
+                    scope.launch{
+                        val selectedRowsData = generatedRows.filterIndexed { index, _ ->
+                            selectedGeneratedRows.contains(index)
+                        }
+
+                        if (selectedRowsData.isEmpty()) {
+                            message = "Izberi vsaj en zapis za shranjevanje."
+                            return@launch
+                        }
+
+                        try {
+
+                            selectedRowsData.forEach { row ->
+
+                                val endpoint: String
+                                val jsonBody: String
+
+                                when (selectedGeneratorType) {
+
+                                    "meteo" -> {
+                                        endpoint = "meteo"
+
+                                        jsonBody = buildMeteoJson(
+                                            stationName = row[0],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            temperature = row[1].replace(" °C", ""),
+                                            humidity = row[2].replace(" %", ""),
+                                            windSpeed = row[3].replace(" km/h", ""),
+                                            precipitation = row[4].replace(" mm", "")
+                                        )
+                                    }
+
+                                    "hydro" -> {
+                                        endpoint = "hydro"
+
+                                        jsonBody = buildHydroJson(
+                                            stationName = row[0],
+                                            riverName = row[1],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            waterLevel = row[2].replace(" cm", ""),
+                                            waterFlow = row[3].replace(" m³/s", "")
+                                        )
+                                    }
+
+                                    else -> {
+                                        endpoint = "air-quality"
+
+                                        jsonBody = buildAirQualityJson(
+                                            stationName = row[0],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            aqi = row[4].toDoubleOrNull()?.toInt()?.toString() ?: "0"
+                                        )
+                                    }
+                                }
+
+                                withContext(Dispatchers.IO) {
+
+                                    val connection = URL("http://localhost:8080/api/$endpoint")
+                                        .openConnection() as java.net.HttpURLConnection
+
+                                    connection.requestMethod = "POST"
+                                    connection.doOutput = true
+
+                                    connection.setRequestProperty(
+                                        "Content-Type",
+                                        "application/json"
+                                    )
+
+                                    connection.outputStream.use {
+                                        it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                                    }
+
+                                    connection.inputStream
+                                        .bufferedReader()
+                                        .readText()
+                                }
+                            }
+
+                            message =
+                                "Uspešno shranjenih zapisov: ${selectedRowsData.size}"
+
+                        } catch (e: Exception) {
+
+                            message = "Napaka pri shranjevanju: ${e.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Shrani izbrane podatke")
+            }
         }
     }
 }
