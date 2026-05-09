@@ -1787,6 +1787,9 @@ fun GeneratorScreen() {
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
     var generatedHeaders by remember { mutableStateOf(emptyList<String>()) }
     var generatedRows by remember { mutableStateOf(emptyList<List<String>>()) }
+    var selectedGeneratedRows by remember {
+        mutableStateOf(setOf<Int>())
+    }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -2034,6 +2037,7 @@ fun GeneratorScreen() {
                                         "%.1f mm".format(precipitation)
                                     )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
                                 generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
@@ -2067,6 +2071,7 @@ fun GeneratorScreen() {
                                         "%.1f m³/s".format(waterFlow)
                                     )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
                                 generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
@@ -2103,6 +2108,7 @@ fun GeneratorScreen() {
                                         "%.1f".format(aqi)
                                     )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
                                 generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
@@ -2138,18 +2144,113 @@ fun GeneratorScreen() {
             GeneratedDataTable(
                 headers = generatedHeaders,
                 rows = generatedRows,
+                selectedRows = selectedGeneratedRows,
+                onSelectionChange = { rowIndex, selected ->
+                    selectedGeneratedRows =
+                        if (selected) {
+                            selectedGeneratedRows + rowIndex
+                        } else {
+                            selectedGeneratedRows - rowIndex
+                        }
+                },
                 onDeleteRow = { rowIndex ->
                     generatedRows = generatedRows.filterIndexed { index, _ ->
                         index != rowIndex
                     }
 
+                    selectedGeneratedRows = generatedRows.indices.toSet()
                     message = "Zapis je odstranjen iz predogleda."
                 }
             )
         }
     }
 }
+@Composable
+fun GeneratedDataTable(
+    headers: List<String>,
+    rows: List<List<String>>,
+    selectedRows: Set<Int>,
+    onSelectionChange: (Int, Boolean) -> Unit,
+    onDeleteRow: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Shrani",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
 
+            headers.forEach { header ->
+                Text(
+                    text = header,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                        .padding(8.dp),
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
+
+            Text(
+                text = "Akcija",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
+        }
+
+        Divider()
+
+        rows.forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = selectedRows.contains(index),
+                    onCheckedChange = { checked ->
+                        onSelectionChange(index, checked)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                )
+
+                row.forEach { cell ->
+                    Text(
+                        text = cell,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onDeleteRow(index)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                ) {
+                    Text("Odstrani")
+                }
+            }
+
+            Divider()
+        }
+    }
+}
 @Composable
 fun RangeInputRow(
     title: String,
