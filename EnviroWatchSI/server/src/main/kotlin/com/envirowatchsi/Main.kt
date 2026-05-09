@@ -1794,6 +1794,7 @@ fun GeneratorScreen() {
     var generatedAirQualityRecords by remember {
         mutableStateOf(emptyList<String>())
     }
+    var selectedGeneratorType by remember { mutableStateOf("meteo") }
 
     Column(
         modifier = Modifier
@@ -1807,149 +1808,155 @@ fun GeneratorScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = recordCount,
-            onValueChange = { recordCount = it },
-            label = { Text("Število generiranih zapisov") }
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 4.dp
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Nastavitve generiranja",
+                    style = MaterialTheme.typography.h6
+                )
 
-        Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            text = "Območje temperature",
-            style = MaterialTheme.typography.h6
-        )
+                OutlinedTextField(
+                    value = recordCount,
+                    onValueChange = { recordCount = it },
+                    label = { Text("Število generiranih zapisov") },
+                    modifier = Modifier.width(280.dp)
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-        Row {
-            OutlinedTextField(
-                value = minTemperature,
-                onValueChange = { minTemperature = it },
-                label = { Text("Min temperatura") },
-                modifier = Modifier.weight(1f)
-            )
+                Text("Tip podatkov")
 
-            Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            OutlinedTextField(
-                value = maxTemperature,
-                onValueChange = { maxTemperature = it },
-                label = { Text("Max temperatura") },
-                modifier = Modifier.weight(1f)
-            )
-        }
+                Row {
+                    Button(onClick = { selectedGeneratorType = "meteo" }) {
+                        Text("Meteo")
+                    }
 
-        Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
-        Text(
-            text = "Območje vlage",
-            style = MaterialTheme.typography.h6
-        )
+                    Button(onClick = { selectedGeneratorType = "hydro" }) {
+                        Text("Hidro")
+                    }
 
-        Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
-        Row {
-            OutlinedTextField(
-                value = minHumidity,
-                onValueChange = { minHumidity = it },
-                label = { Text("Min vlaga") },
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = maxHumidity,
-                onValueChange = { maxHumidity = it },
-                label = { Text("Max vlaga") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Območje vodostaja",
-            style = MaterialTheme.typography.h6
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row {
-            OutlinedTextField(
-                value = minWaterLevel,
-                onValueChange = { minWaterLevel = it },
-                label = { Text("Min vodostaj") },
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = maxWaterLevel,
-                onValueChange = { maxWaterLevel = it },
-                label = { Text("Max vodostaj") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Območje kakovosti zraka",
-            style = MaterialTheme.typography.h6
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row {
-            OutlinedTextField(
-                value = minAirQuality,
-                onValueChange = { minAirQuality = it },
-                label = { Text("Min kakovost zraka") },
-                modifier = Modifier.weight(1f)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = maxAirQuality,
-                onValueChange = { maxAirQuality = it },
-                label = { Text("Max kakovost zraka") },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Button(
-            onClick = {
-                val count = recordCount.toIntOrNull()
-
-                if (count == null || count <= 0) {
-                    message = "Vnesi veljavno pozitivno število."
-                    generatedMeteoRecords = emptyList()
-                    return@Button
+                    Button(onClick = { selectedGeneratorType = "air" }) {
+                        Text("Kakovost zraka")
+                    }
                 }
+            }
+        }
 
-                generatedMeteoRecords = List(count) { index ->
-                    val stationName = "Meteo postaja ${index + 1}"
-                    val stationId = stationName.lowercase().replace(" ", "_")
-                    val latitude = Random.nextDouble(45.4, 46.9)
-                    val longitude = Random.nextDouble(13.4, 16.6)
-                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
-                    val minTemp = minTemperature.toDoubleOrNull() ?: -10.0
-                    val maxTemp = maxTemperature.toDoubleOrNull() ?: 35.0
-                    val temperature =
-                        Random.nextDouble(minTemp, maxTemp)
-                    val minHum = minHumidity.toDoubleOrNull() ?: 20.0
-                    val maxHum = maxHumidity.toDoubleOrNull() ?: 100.0
-                    val humidity =
-                        Random.nextDouble(minHum, maxHum)
-                    val windSpeed = Random.nextDouble(0.0, 20.0)
-                    val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
-                    val precipitation = Random.nextDouble(0.0, 30.0)
+        Spacer(modifier = Modifier.height(16.dp))
 
-                    """
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 4.dp
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Območja vrednosti",
+                    style = MaterialTheme.typography.h6
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                when (selectedGeneratorType) {
+                    "meteo" -> {
+                        RangeInputRow(
+                            title = "Temperatura",
+                            minValue = minTemperature,
+                            onMinChange = { minTemperature = it },
+                            maxValue = maxTemperature,
+                            onMaxChange = { maxTemperature = it }
+                        )
+
+                        RangeInputRow(
+                            title = "Vlaga",
+                            minValue = minHumidity,
+                            onMinChange = { minHumidity = it },
+                            maxValue = maxHumidity,
+                            onMaxChange = { maxHumidity = it }
+                        )
+                    }
+
+                    "hydro" -> {
+                        RangeInputRow(
+                            title = "Vodostaj",
+                            minValue = minWaterLevel,
+                            onMinChange = { minWaterLevel = it },
+                            maxValue = maxWaterLevel,
+                            onMaxChange = { maxWaterLevel = it }
+                        )
+                    }
+
+                    "air" -> {
+                        RangeInputRow(
+                            title = "Kakovost zraka",
+                            minValue = minAirQuality,
+                            onMinChange = { minAirQuality = it },
+                            maxValue = maxAirQuality,
+                            onMaxChange = { maxAirQuality = it }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = 4.dp
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Generiranje podatkov",
+                    style = MaterialTheme.typography.h6
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = {
+                        val count = recordCount.toIntOrNull()
+
+                        if (count == null || count <= 0) {
+                            message = "Vnesi veljavno pozitivno število."
+                            generatedMeteoRecords = emptyList()
+                            generatedHydroRecords = emptyList()
+                            generatedAirQualityRecords = emptyList()
+                            return@Button
+                        }
+
+                        when (selectedGeneratorType) {
+                            "meteo" -> {
+                                generatedMeteoRecords = List(count) { index ->
+                                    val stationName = "Meteo postaja ${index + 1}"
+                                    val stationId = stationName.lowercase().replace(" ", "_")
+                                    val latitude = Random.nextDouble(45.4, 46.9)
+                                    val longitude = Random.nextDouble(13.4, 16.6)
+                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
+
+                                    val minTemp = minTemperature.toDoubleOrNull() ?: -10.0
+                                    val maxTemp = maxTemperature.toDoubleOrNull() ?: 35.0
+                                    val temperature = Random.nextDouble(minTemp, maxTemp)
+
+                                    val minHum = minHumidity.toDoubleOrNull() ?: 20.0
+                                    val maxHum = maxHumidity.toDoubleOrNull() ?: 100.0
+                                    val humidity = Random.nextDouble(minHum, maxHum)
+
+                                    val windSpeed = Random.nextDouble(0.0, 20.0)
+                                    val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
+                                    val precipitation = Random.nextDouble(0.0, 30.0)
+
+                                    """
                     Meteo zapis ${index + 1}
                     ID postaje: $stationId
                     Postaja: $stationName
@@ -1962,41 +1969,29 @@ fun GeneratorScreen() {
                     Smer vetra: $windDirection
                     Padavine: ${"%.1f".format(precipitation)} mm
                     """.trimIndent()
-                }
+                                }
 
-                message =
-                    "Uspešno generiranih meteo zapisov: $count"
-            }
-        ) {
-            Text("Generiraj meteo podatke")
-        }
+                                generatedHydroRecords = emptyList()
+                                generatedAirQualityRecords = emptyList()
+                                message = "Uspešno generiranih meteo zapisov: $count"
+                            }
 
-        Spacer(modifier = Modifier.height(8.dp))
+                            "hydro" -> {
+                                generatedHydroRecords = List(count) { index ->
+                                    val stationName = "Hidro postaja ${index + 1}"
+                                    val stationId = stationName.lowercase().replace(" ", "_")
+                                    val riverName = listOf("Sava", "Drava", "Soča", "Mura", "Krka", "Savinja").random()
+                                    val latitude = Random.nextDouble(45.4, 46.9)
+                                    val longitude = Random.nextDouble(13.4, 16.6)
+                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
-        Button(
-            onClick = {
-                val count = recordCount.toIntOrNull()
+                                    val minLevel = minWaterLevel.toDoubleOrNull() ?: 20.0
+                                    val maxLevel = maxWaterLevel.toDoubleOrNull() ?: 500.0
+                                    val waterLevel = Random.nextDouble(minLevel, maxLevel)
 
-                if (count == null || count <= 0) {
-                    message = "Vnesi veljavno pozitivno število."
-                    generatedHydroRecords = emptyList()
-                    return@Button
-                }
+                                    val waterFlow = Random.nextDouble(1.0, 300.0)
 
-                generatedHydroRecords = List(count) { index ->
-                    val stationName = "Hidro postaja ${index + 1}"
-                    val stationId = stationName.lowercase().replace(" ", "_")
-                    val riverName = listOf("Sava", "Drava", "Soča", "Mura", "Krka", "Savinja").random()
-                    val latitude = Random.nextDouble(45.4, 46.9)
-                    val longitude = Random.nextDouble(13.4, 16.6)
-                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
-                    val minLevel = minWaterLevel.toDoubleOrNull() ?: 20.0
-                    val maxLevel = maxWaterLevel.toDoubleOrNull() ?: 500.0
-                    val waterLevel =
-                        Random.nextDouble(minLevel, maxLevel)
-                    val waterFlow = Random.nextDouble(1.0, 300.0)
-
-                    """
+                                    """
                     Hidro zapis ${index + 1}
                     ID postaje: $stationId
                     Postaja: $stationName
@@ -2007,42 +2002,32 @@ fun GeneratorScreen() {
                     Vodostaj: ${"%.1f".format(waterLevel)} cm
                     Pretok: ${"%.1f".format(waterFlow)} m³/s
                     """.trimIndent()
-                }
+                                }
 
-                message = "Uspešno generiranih hidro zapisov: $count"
-            }
-        ) {
-            Text("Generiraj hidro podatke")
-        }
+                                generatedMeteoRecords = emptyList()
+                                generatedAirQualityRecords = emptyList()
+                                message = "Uspešno generiranih hidro zapisov: $count"
+                            }
 
-        Spacer(modifier = Modifier.height(8.dp))
+                            "air" -> {
+                                generatedAirQualityRecords = List(count) { index ->
+                                    val stationName = "Zrak postaja ${index + 1}"
+                                    val stationId = stationName.lowercase().replace(" ", "_")
+                                    val latitude = Random.nextDouble(45.4, 46.9)
+                                    val longitude = Random.nextDouble(13.4, 16.6)
+                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
-        Button(
-            onClick = {
-                val count = recordCount.toIntOrNull()
+                                    val minAq = minAirQuality.toDoubleOrNull() ?: 5.0
+                                    val maxAq = maxAirQuality.toDoubleOrNull() ?: 120.0
 
-                if (count == null || count <= 0) {
-                    message = "Vnesi veljavno pozitivno število."
-                    generatedAirQualityRecords = emptyList()
-                    return@Button
-                }
+                                    val pm10 = Random.nextDouble(minAq, maxAq)
+                                    val pm25 = Random.nextDouble(minAq, maxAq)
+                                    val o3 = Random.nextDouble(minAq, maxAq)
+                                    val co = Random.nextDouble(0.1, 2.0)
+                                    val so2 = Random.nextDouble(1.0, 40.0)
+                                    val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
 
-                generatedAirQualityRecords = List(count) { index ->
-                    val stationName = "Zrak postaja ${index + 1}"
-                    val stationId = stationName.lowercase().replace(" ", "_")
-                    val latitude = Random.nextDouble(45.4, 46.9)
-                    val longitude = Random.nextDouble(13.4, 16.6)
-                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
-                    val minAq = minAirQuality.toDoubleOrNull() ?: 5.0
-                    val maxAq = maxAirQuality.toDoubleOrNull() ?: 120.0
-                    val pm10 = Random.nextDouble(minAq, maxAq)
-                    val pm25 = Random.nextDouble(minAq, maxAq)
-                    val o3 = Random.nextDouble(minAq, maxAq)
-                    val co = Random.nextDouble(0.1, 2.0)
-                    val so2 = Random.nextDouble(1.0, 40.0)
-                    val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
-
-                    """
+                                    """
                     Zrak zapis ${index + 1}
                     ID postaje: $stationId
                     Postaja: $stationName
@@ -2056,12 +2041,18 @@ fun GeneratorScreen() {
                     SO2: ${"%.1f".format(so2)}
                     AQI: ${"%.1f".format(aqi)}
                     """.trimIndent()
-                }
+                                }
 
-                message = "Uspešno generiranih zapisov kakovosti zraka: $count"
+                                generatedMeteoRecords = emptyList()
+                                generatedHydroRecords = emptyList()
+                                message = "Uspešno generiranih zapisov kakovosti zraka: $count"
+                            }
+                        }
+                    }
+                ) {
+                    Text("Generiraj podatke")
+                }
             }
-        ) {
-            Text("Generiraj podatke kakovosti zraka")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -2071,46 +2062,68 @@ fun GeneratorScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         generatedMeteoRecords.forEach { record ->
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
-            ) {
-                Text(
-                    text = record,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
+            GeneratedRecordCard(record)
         }
 
         generatedHydroRecords.forEach { record ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
-            ) {
-                Text(
-                    text = record,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
+            GeneratedRecordCard(record)
         }
 
         generatedAirQualityRecords.forEach { record ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                elevation = 4.dp
-            ) {
-                Text(
-                    text = record,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
+            GeneratedRecordCard(record)
         }
+    }
+}
+
+@Composable
+fun RangeInputRow(
+    title: String,
+    minValue: String,
+    onMinChange: (String) -> Unit,
+    maxValue: String,
+    onMaxChange: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.subtitle1
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Row {
+            OutlinedTextField(
+                value = minValue,
+                onValueChange = onMinChange,
+                label = { Text("Min") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxValue,
+                onValueChange = onMaxChange,
+                label = { Text("Max") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+    }
+}
+
+@Composable
+fun GeneratedRecordCard(record: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = 4.dp
+    ) {
+        Text(
+            text = record,
+            modifier = Modifier.padding(12.dp)
+        )
     }
 }
