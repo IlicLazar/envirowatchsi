@@ -232,6 +232,7 @@ fun DatabaseScreen() {
     var minValueFilter by remember { mutableStateOf("")}
     var maxValueFilter by remember { mutableStateOf("")}
 
+    var sortByStationAscending by remember { mutableStateOf(true) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -321,6 +322,21 @@ fun DatabaseScreen() {
         )
         Spacer(modifier = Modifier.height(8.dp))
 
+        Button(
+            onClick = {
+                sortByStationAscending =
+                    !sortByStationAscending
+            }
+        ) {
+            Text(
+                if (sortByStationAscending)
+                    "Uredi po postaji Z-A"
+                else
+                    "Uredi po postaji A-Z"
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+
         Row {
             OutlinedTextField(
                 value = minValueFilter,
@@ -342,19 +358,30 @@ fun DatabaseScreen() {
         val minValue = minValueFilter.toDoubleOrNull()
         val maxValue = maxValueFilter.toDoubleOrNull()
 
-        val filteredRows = rows.filter { row ->
-            val stationMatches =
-                stationFilter.isBlank() || row.any {
-                    it.contains(stationFilter, ignoreCase = true)
-                }
+        val stationNameColumnIndex = 1
 
-            val numericValue = row.lastOrNull()?.toDoubleOrNull()
+        val filteredRows = rows
+            .filter { row ->
+                val stationMatches =
+                    stationFilter.isBlank() || row.getOrNull(stationNameColumnIndex)
+                        ?.contains(
+                                    stationFilter,
+                                    ignoreCase = true
+                                ) == true
 
-            val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
-            val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
+                val numericValue = row.lastOrNull()?.toDoubleOrNull()
 
-            stationMatches && minMatches && maxMatches
-        }
+                val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
+                val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
+                stationMatches && minMatches && maxMatches
+            }
+            .sortedBy { it.getOrNull(stationNameColumnIndex)?.lowercase() }
+            .let { sortedRows ->
+                if (sortByStationAscending)
+                    sortedRows
+                else
+                    sortedRows.reversed()
+            }
         DataTable(
             headers = headers,
             rows = filteredRows
