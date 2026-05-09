@@ -232,6 +232,9 @@ fun DatabaseScreen() {
     var minValueFilter by remember { mutableStateOf("")}
     var maxValueFilter by remember { mutableStateOf("")}
 
+    var sortMode by remember { mutableStateOf("station") }
+    var sortAscending by remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -319,8 +322,59 @@ fun DatabaseScreen() {
             onValueChange = { stationFilter = it },
             label = { Text("Filtriraj po merilni postaji") }
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Sortiranje",
+            style = MaterialTheme.typography.h6
+        )
+
         Spacer(modifier = Modifier.height(8.dp))
 
+        Row {
+            SortDropdown(
+                label = "Sortiraj po",
+                selectedText = when (sortMode) {
+                    "station" -> "Postaja"
+                    "date" -> "Datum meritve"
+                    "value" -> "Vrednost meritve"
+                    else -> "Postaja"
+                },
+                options = listOf("Postaja", "Datum meritve", "Vrednost meritve"),
+                onOptionSelected = { selected ->
+                    sortMode = when (selected) {
+                        "Postaja" -> "station"
+                        "Datum meritve" -> "date"
+                        "Vrednost meritve" -> "value"
+                        else -> "station"
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            SortDropdown(
+                label = "Smer",
+                selectedText = when (sortMode) {
+                    "station" -> if (sortAscending) "A-Z" else "Z-A"
+                    "date" -> if (sortAscending) "Najstariji" else "Najnoviji"
+                    "value" -> if (sortAscending) "Najmanjša" else "Največja"
+                    else -> "A-Z"
+                },
+                options = when (sortMode) {
+                    "station" -> listOf("A-Z", "Z-A")
+                    "date" -> listOf("Najstariji", "Najnoviji")
+                    "value" -> listOf("Najmanjša", "Največja")
+                    else -> listOf("A-Z", "Z-A")
+                },
+                onOptionSelected = { selected ->
+                    sortAscending = when (selected) {
+                        "A-Z", "Najstariji", "Najmanjša" -> true
+                        else -> false
+                    }
+                }
+            )
+        }
         Row {
             OutlinedTextField(
                 value = minValueFilter,
@@ -342,23 +396,90 @@ fun DatabaseScreen() {
         val minValue = minValueFilter.toDoubleOrNull()
         val maxValue = maxValueFilter.toDoubleOrNull()
 
-        val filteredRows = rows.filter { row ->
-            val stationMatches =
-                stationFilter.isBlank() || row.any {
-                    it.contains(stationFilter, ignoreCase = true)
+        val stationNameColumnIndex = 1
+        val measuredAtColumnIndex = 2
+        val numericValueColumnIndex = headers.lastIndex
+
+        val filteredRows = rows
+            .filter { row ->
+                val stationMatches =
+                    stationFilter.isBlank() || row.getOrNull(stationNameColumnIndex)
+                        ?.contains(
+                                    stationFilter,
+                                    ignoreCase = true
+                                ) == true
+
+                val numericValue = row.lastOrNull()?.toDoubleOrNull()
+
+                val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
+                val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
+                stationMatches && minMatches && maxMatches
+            }
+            .let { filteredList ->
+                val sortedRows =
+                    when (sortMode) {
+                        "date" -> filteredList.sortedBy {
+                            it.getOrNull(measuredAtColumnIndex)
+                        }
+                        "value" -> filteredList.sortedBy {
+                            it.getOrNull(numericValueColumnIndex)
+                                ?.toDoubleOrNull()
+                        }
+                        "station" -> filteredList.sortedBy {
+                            it.getOrNull(stationNameColumnIndex)
+                                ?.lowercase()
+                        }
+                        else -> filteredList
+                    }
+                if (sortAscending) {
+                    sortedRows
+                } else {
+                    sortedRows.reversed()
                 }
-
-            val numericValue = row.lastOrNull()?.toDoubleOrNull()
-
-            val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
-            val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
-
-            stationMatches && minMatches && maxMatches
-        }
+            }
         DataTable(
             headers = headers,
             rows = filteredRows
         )
+    }
+}
+@Composable
+fun SortDropdown(
+    label: String,
+    selectedText: String,
+    options: List<String>,
+    onOptionSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Text(label)
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Box {
+            Button(
+                onClick = { expanded = true }
+            ) {
+                Text("$selectedText ▼")
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    ) {
+                        Text(option)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -373,9 +494,9 @@ suspend fun fetchDatabaseRecords(table: String): String {
 
 fun headersForTable(table: String): List<String> {
     return when (table) {
-        "air-quality" -> listOf("ID", "Postaja", "Lat", "Lon", "AQI")
-        "meteo" -> listOf("ID", "Postaja","Lat", "Lon", "Temp.", "Vlažnost")
-        "hydro" -> listOf("ID", "Postaja","Lat", "Lon", "Reka", "Vodostaj", "Pretok")
+        "air-quality" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "AQI")
+        "meteo" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "Temp.", "Vlažnost")
+        "hydro" -> listOf("ID", "Postaja", "Datum meritve", "Lat", "Lon", "Reka", "Vodostaj", "Pretok")
         else -> listOf("ID", "Postaja")
     }
 }
@@ -393,6 +514,7 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "air-quality" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["airQualityIndex"].toString()
@@ -401,6 +523,7 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "meteo" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["temperature"].toString(),
@@ -410,13 +533,13 @@ fun parseRowsForTable(table: String, response: String): List<List<String>> {
                 "hydro" -> listOf(
                     record["id"].toString(),
                     record["stationName"].toString(),
+                    record["measuredAt"].toString(),
                     record["latitude"].toString(),
                     record["longitude"].toString(),
                     record["riverName"].toString(),
                     record["waterLevel"].toString(),
                     record["waterFlow"].toString()
                 )
-
                 else -> emptyList()
             }
         }
