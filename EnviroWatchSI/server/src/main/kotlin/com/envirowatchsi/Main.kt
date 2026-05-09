@@ -1778,6 +1778,8 @@ fun GeneratorScreen() {
     var recordCount by remember { mutableStateOf("10") }
     var minTemperature by remember { mutableStateOf("-10") }
     var maxTemperature by remember { mutableStateOf("35") }
+    var minHumidity by remember { mutableStateOf("20") }
+    var maxHumidity by remember { mutableStateOf("100") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
@@ -1834,6 +1836,33 @@ fun GeneratorScreen() {
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Območje vlage",
+            style = MaterialTheme.typography.h6
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row {
+            OutlinedTextField(
+                value = minHumidity,
+                onValueChange = { minHumidity = it },
+                label = { Text("Min vlaga") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxHumidity,
+                onValueChange = { maxHumidity = it },
+                label = { Text("Max vlaga") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
         Button(
             onClick = {
                 val count = recordCount.toIntOrNull()
@@ -1854,7 +1883,10 @@ fun GeneratorScreen() {
                     val maxTemp = maxTemperature.toDoubleOrNull() ?: 35.0
                     val temperature =
                         Random.nextDouble(minTemp, maxTemp)
-                    val humidity = Random.nextDouble(20.0, 100.0)
+                    val minHum = minHumidity.toDoubleOrNull() ?: 20.0
+                    val maxHum = maxHumidity.toDoubleOrNull() ?: 100.0
+                    val humidity =
+                        Random.nextDouble(minHum, maxHum)
                     val windSpeed = Random.nextDouble(0.0, 20.0)
                     val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
                     val precipitation = Random.nextDouble(0.0, 30.0)
