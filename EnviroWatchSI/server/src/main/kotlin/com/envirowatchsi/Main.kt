@@ -241,19 +241,31 @@ fun DatabaseScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row {
-            Button(onClick = { selectedTable = "air-quality" }) {
+            Button(onClick = {
+                selectedTable = "air-quality"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Kakovost zraka")
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { selectedTable = "meteo" }) {
+            Button(onClick = {
+                selectedTable = "meteo"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Meteo")
             }
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            Button(onClick = { selectedTable = "hydro" }) {
+            Button(onClick = {
+                selectedTable = "hydro"
+                stationFilter = ""
+                rows = emptyList()
+            }) {
                 Text("Hidro")
             }
         }
@@ -291,7 +303,9 @@ fun DatabaseScreen() {
         Text(
             text = "Izbrana tabela: $selectedTable",
             style = MaterialTheme.typography.subtitle1
+
         )
+        Text("Aktiven filter tipa podatka: $selectedTable")
         Spacer(modifier = Modifier.height(8.dp))
         Text(message)
 
