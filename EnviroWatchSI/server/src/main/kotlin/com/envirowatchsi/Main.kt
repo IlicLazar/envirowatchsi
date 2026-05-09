@@ -2135,9 +2135,16 @@ fun GeneratorScreen() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            DataTable(
+            GeneratedDataTable(
                 headers = generatedHeaders,
-                rows = generatedRows
+                rows = generatedRows,
+                onDeleteRow = { rowIndex ->
+                    generatedRows = generatedRows.filterIndexed { index, _ ->
+                        index != rowIndex
+                    }
+
+                    message = "Zapis je odstranjen iz predogleda."
+                }
             )
         }
     }
@@ -2180,7 +2187,71 @@ fun RangeInputRow(
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
+@Composable
+fun GeneratedDataTable(
+    headers: List<String>,
+    rows: List<List<String>>,
+    onDeleteRow: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            headers.forEach { header ->
+                Text(
+                    text = header,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                        .padding(8.dp),
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
 
+            Text(
+                text = "Akcija",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
+        }
+
+        Divider()
+
+        rows.forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                row.forEach { cell ->
+                    Text(
+                        text = cell,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onDeleteRow(index)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                ) {
+                    Text("Odstrani")
+                }
+            }
+
+            Divider()
+        }
+    }
+}
 @Composable
 fun GeneratedRecordCard(record: String) {
     Card(
