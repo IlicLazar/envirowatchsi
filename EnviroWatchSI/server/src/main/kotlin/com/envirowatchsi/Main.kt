@@ -1782,6 +1782,8 @@ fun GeneratorScreen() {
     var maxHumidity by remember { mutableStateOf("100") }
     var minWaterLevel by remember { mutableStateOf("20") }
     var maxWaterLevel by remember { mutableStateOf("500") }
+    var minAirQuality by remember { mutableStateOf("5") }
+    var maxAirQuality by remember { mutableStateOf("120") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
@@ -1888,6 +1890,33 @@ fun GeneratorScreen() {
                 value = maxWaterLevel,
                 onValueChange = { maxWaterLevel = it },
                 label = { Text("Max vodostaj") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Območje kakovosti zraka",
+            style = MaterialTheme.typography.h6
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row {
+            OutlinedTextField(
+                value = minAirQuality,
+                onValueChange = { minAirQuality = it },
+                label = { Text("Min kakovost zraka") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxAirQuality,
+                onValueChange = { maxAirQuality = it },
+                label = { Text("Max kakovost zraka") },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -2004,10 +2033,11 @@ fun GeneratorScreen() {
                     val latitude = Random.nextDouble(45.4, 46.9)
                     val longitude = Random.nextDouble(13.4, 16.6)
                     val measuredAt = LocalDateTime.now().minusHours(index.toLong())
-
-                    val pm10 = Random.nextDouble(5.0, 80.0)
-                    val pm25 = Random.nextDouble(3.0, 50.0)
-                    val o3 = Random.nextDouble(10.0, 120.0)
+                    val minAq = minAirQuality.toDoubleOrNull() ?: 5.0
+                    val maxAq = maxAirQuality.toDoubleOrNull() ?: 120.0
+                    val pm10 = Random.nextDouble(minAq, maxAq)
+                    val pm25 = Random.nextDouble(minAq, maxAq)
+                    val o3 = Random.nextDouble(minAq, maxAq)
                     val co = Random.nextDouble(0.1, 2.0)
                     val so2 = Random.nextDouble(1.0, 40.0)
                     val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
