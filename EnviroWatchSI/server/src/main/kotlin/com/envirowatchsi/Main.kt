@@ -21,6 +21,7 @@ import kotlinx.coroutines.withContext
 import java.net.URL
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import kotlin.random.Random
 
 enum class Screen {
     DASHBOARD,
@@ -1775,6 +1776,9 @@ fun HydroScreen() {
 fun GeneratorScreen() {
     var recordCount by remember { mutableStateOf("10") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
+    var generatedMeteoRecords by remember {
+        mutableStateOf(emptyList<String>())
+    }
 
     Column(
         modifier = Modifier
@@ -1800,18 +1804,57 @@ fun GeneratorScreen() {
             onClick = {
                 val count = recordCount.toIntOrNull()
 
-                message = if (count == null || count <= 0) {
-                    "Vnesi veljavno pozitivno število."
-                } else {
-                    "Pripravljeno za generiranje $count zapisov."
+                if (count == null || count <= 0) {
+                    message = "Vnesi veljavno pozitivno število."
+                    generatedMeteoRecords = emptyList()
+                    return@Button
                 }
+
+                generatedMeteoRecords = List(count) { index ->
+
+                    val temperature =
+                        Random.nextDouble(-10.0, 35.0)
+
+                    val humidity =
+                        Random.nextDouble(20.0, 100.0)
+
+                    val windSpeed =
+                        Random.nextDouble(0.0, 20.0)
+
+                    """
+            Meteo zapis ${index + 1}
+            Temperatura: ${"%.1f".format(temperature)} °C
+            Vlažnost: ${"%.1f".format(humidity)} %
+            Hitrost vetra: ${"%.1f".format(windSpeed)} km/h
+            """.trimIndent()
+                }
+
+                message =
+                    "Uspešno generiranih zapisov: $count"
             }
         ) {
-            Text("Potrdi število zapisov")
+            Text("Generiraj meteo podatke")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(message)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        generatedMeteoRecords.forEach { record ->
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = 4.dp
+            ) {
+                Text(
+                    text = record,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
     }
 }
