@@ -226,6 +226,7 @@ fun DatabaseScreen() {
 
     var headers by remember { mutableStateOf(listOf("ID", "Postaja", "Vrednost")) }
     var rows by remember { mutableStateOf(emptyList<List<String>>()) }
+    var stationFilter by remember { mutableStateOf("")}
 
     Column(
         modifier = Modifier
@@ -286,23 +287,29 @@ fun DatabaseScreen() {
         ) {
             Text("Prikaži zapise")
         }
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = "Izbrana tabela: $selectedTable",
             style = MaterialTheme.typography.subtitle1
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(message)
 
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = stationFilter,
+            onValueChange = { stationFilter = it },
+            label = { Text("Filtriraj po merilni postaji") }
+        )
         Spacer(modifier = Modifier.height(16.dp))
-
+        val filteredRows = rows.filter { row ->
+            stationFilter.isBlank() || row.any {
+                it.contains(stationFilter, ignoreCase = true)
+            }
+        }
         DataTable(
             headers = headers,
-            rows = rows
+            rows = filteredRows
         )
     }
 }
