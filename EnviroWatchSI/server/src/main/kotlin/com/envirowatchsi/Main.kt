@@ -1780,6 +1780,8 @@ fun GeneratorScreen() {
     var maxTemperature by remember { mutableStateOf("35") }
     var minHumidity by remember { mutableStateOf("20") }
     var maxHumidity by remember { mutableStateOf("100") }
+    var minWaterLevel by remember { mutableStateOf("20") }
+    var maxWaterLevel by remember { mutableStateOf("500") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
@@ -1863,6 +1865,33 @@ fun GeneratorScreen() {
             )
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Območje vodostaja",
+            style = MaterialTheme.typography.h6
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row {
+            OutlinedTextField(
+                value = minWaterLevel,
+                onValueChange = { minWaterLevel = it },
+                label = { Text("Min vodostaj") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxWaterLevel,
+                onValueChange = { maxWaterLevel = it },
+                label = { Text("Max vodostaj") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+
         Button(
             onClick = {
                 val count = recordCount.toIntOrNull()
@@ -1932,8 +1961,10 @@ fun GeneratorScreen() {
                     val latitude = Random.nextDouble(45.4, 46.9)
                     val longitude = Random.nextDouble(13.4, 16.6)
                     val measuredAt = LocalDateTime.now().minusHours(index.toLong())
-
-                    val waterLevel = Random.nextDouble(20.0, 500.0)
+                    val minLevel = minWaterLevel.toDoubleOrNull() ?: 20.0
+                    val maxLevel = maxWaterLevel.toDoubleOrNull() ?: 500.0
+                    val waterLevel =
+                        Random.nextDouble(minLevel, maxLevel)
                     val waterFlow = Random.nextDouble(1.0, 300.0)
 
                     """
