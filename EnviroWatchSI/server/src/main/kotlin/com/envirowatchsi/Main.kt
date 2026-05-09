@@ -73,7 +73,7 @@ fun App() {
                     Screen.METEO -> MeteoScreen()
                     Screen.HYDRO -> HydroScreen()
                     Screen.DATABASE -> DatabaseScreen()
-                    Screen.GENERATOR -> PlaceholderScreen("Generator namišljenih podatkov")
+                    Screen.GENERATOR -> GeneratorScreen()
                     Screen.DATA_ENTRY -> DataEntryScreen()
                     Screen.UPDATE -> UpdateDataScreen()
                     Screen.DELETE -> DeleteDataScreen()
@@ -1768,5 +1768,50 @@ fun HydroScreen() {
                 Text("Shrani v bazo")
             }
         }
+    }
+}
+
+@Composable
+fun GeneratorScreen() {
+    var recordCount by remember { mutableStateOf("10") }
+    var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Generator naključnih podatkov",
+            style = MaterialTheme.typography.h4
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = recordCount,
+            onValueChange = { recordCount = it },
+            label = { Text("Število generiranih zapisov") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                val count = recordCount.toIntOrNull()
+
+                message = if (count == null || count <= 0) {
+                    "Vnesi veljavno pozitivno število."
+                } else {
+                    "Pripravljeno za generiranje $count zapisov."
+                }
+            }
+        ) {
+            Text("Potrdi število zapisov")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(message)
     }
 }
