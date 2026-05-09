@@ -1779,6 +1779,9 @@ fun GeneratorScreen() {
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
     }
+    var generatedHydroRecords by remember {
+        mutableStateOf(emptyList<String>())
+    }
 
     Column(
         modifier = Modifier
@@ -1830,10 +1833,39 @@ fun GeneratorScreen() {
                 }
 
                 message =
-                    "Uspešno generiranih zapisov: $count"
+                    "Uspešno generiranih meteo zapisov: $count"
             }
         ) {
             Text("Generiraj meteo podatke")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                val count = recordCount.toIntOrNull()
+
+                if (count == null || count <= 0) {
+                    message = "Vnesi veljavno pozitivno število."
+                    generatedHydroRecords = emptyList()
+                    return@Button
+                }
+
+                generatedHydroRecords = List(count) { index ->
+                    val waterLevel = Random.nextDouble(20.0, 500.0)
+                    val waterFlow = Random.nextDouble(1.0, 300.0)
+
+                    """
+            Hidro zapis ${index + 1}
+            Vodostaj: ${"%.1f".format(waterLevel)} cm
+            Pretok: ${"%.1f".format(waterFlow)} m³/s
+            """.trimIndent()
+                }
+
+                message = "Uspešno generiranih hidro zapisov: $count"
+            }
+        ) {
+            Text("Generiraj hidro podatke")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1844,6 +1876,20 @@ fun GeneratorScreen() {
 
         generatedMeteoRecords.forEach { record ->
 
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = 4.dp
+            ) {
+                Text(
+                    text = record,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+
+        generatedHydroRecords.forEach { record ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
