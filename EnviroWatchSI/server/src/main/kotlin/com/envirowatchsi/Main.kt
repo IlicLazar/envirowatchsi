@@ -22,6 +22,7 @@ import java.net.URL
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import kotlin.random.Random
+import java.time.LocalDateTime
 
 enum class Screen {
     DASHBOARD,
@@ -1782,6 +1783,9 @@ fun GeneratorScreen() {
     var generatedHydroRecords by remember {
         mutableStateOf(emptyList<String>())
     }
+    var generatedAirQualityRecords by remember {
+        mutableStateOf(emptyList<String>())
+    }
 
     Column(
         modifier = Modifier
@@ -1814,22 +1818,31 @@ fun GeneratorScreen() {
                 }
 
                 generatedMeteoRecords = List(count) { index ->
+                    val stationName = "Meteo postaja ${index + 1}"
+                    val stationId = stationName.lowercase().replace(" ", "_")
+                    val latitude = Random.nextDouble(45.4, 46.9)
+                    val longitude = Random.nextDouble(13.4, 16.6)
+                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
-                    val temperature =
-                        Random.nextDouble(-10.0, 35.0)
-
-                    val humidity =
-                        Random.nextDouble(20.0, 100.0)
-
-                    val windSpeed =
-                        Random.nextDouble(0.0, 20.0)
+                    val temperature = Random.nextDouble(-10.0, 35.0)
+                    val humidity = Random.nextDouble(20.0, 100.0)
+                    val windSpeed = Random.nextDouble(0.0, 20.0)
+                    val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
+                    val precipitation = Random.nextDouble(0.0, 30.0)
 
                     """
-            Meteo zapis ${index + 1}
-            Temperatura: ${"%.1f".format(temperature)} °C
-            Vlažnost: ${"%.1f".format(humidity)} %
-            Hitrost vetra: ${"%.1f".format(windSpeed)} km/h
-            """.trimIndent()
+                    Meteo zapis ${index + 1}
+                    ID postaje: $stationId
+                    Postaja: $stationName
+                    Latitude: ${"%.4f".format(latitude)}
+                    Longitude: ${"%.4f".format(longitude)}
+                    Čas meritve: $measuredAt
+                    Temperatura: ${"%.1f".format(temperature)} °C
+                    Vlažnost: ${"%.1f".format(humidity)} %
+                    Hitrost vetra: ${"%.1f".format(windSpeed)} km/h
+                    Smer vetra: $windDirection
+                    Padavine: ${"%.1f".format(precipitation)} mm
+                    """.trimIndent()
                 }
 
                 message =
@@ -1852,20 +1865,81 @@ fun GeneratorScreen() {
                 }
 
                 generatedHydroRecords = List(count) { index ->
+                    val stationName = "Hidro postaja ${index + 1}"
+                    val stationId = stationName.lowercase().replace(" ", "_")
+                    val riverName = listOf("Sava", "Drava", "Soča", "Mura", "Krka", "Savinja").random()
+                    val latitude = Random.nextDouble(45.4, 46.9)
+                    val longitude = Random.nextDouble(13.4, 16.6)
+                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
+
                     val waterLevel = Random.nextDouble(20.0, 500.0)
                     val waterFlow = Random.nextDouble(1.0, 300.0)
 
                     """
-            Hidro zapis ${index + 1}
-            Vodostaj: ${"%.1f".format(waterLevel)} cm
-            Pretok: ${"%.1f".format(waterFlow)} m³/s
-            """.trimIndent()
+                    Hidro zapis ${index + 1}
+                    ID postaje: $stationId
+                    Postaja: $stationName
+                    Reka: $riverName
+                    Latitude: ${"%.4f".format(latitude)}
+                    Longitude: ${"%.4f".format(longitude)}
+                    Čas meritve: $measuredAt
+                    Vodostaj: ${"%.1f".format(waterLevel)} cm
+                    Pretok: ${"%.1f".format(waterFlow)} m³/s
+                    """.trimIndent()
                 }
 
                 message = "Uspešno generiranih hidro zapisov: $count"
             }
         ) {
             Text("Generiraj hidro podatke")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                val count = recordCount.toIntOrNull()
+
+                if (count == null || count <= 0) {
+                    message = "Vnesi veljavno pozitivno število."
+                    generatedAirQualityRecords = emptyList()
+                    return@Button
+                }
+
+                generatedAirQualityRecords = List(count) { index ->
+                    val stationName = "Zrak postaja ${index + 1}"
+                    val stationId = stationName.lowercase().replace(" ", "_")
+                    val latitude = Random.nextDouble(45.4, 46.9)
+                    val longitude = Random.nextDouble(13.4, 16.6)
+                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
+
+                    val pm10 = Random.nextDouble(5.0, 80.0)
+                    val pm25 = Random.nextDouble(3.0, 50.0)
+                    val o3 = Random.nextDouble(10.0, 120.0)
+                    val co = Random.nextDouble(0.1, 2.0)
+                    val so2 = Random.nextDouble(1.0, 40.0)
+                    val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
+
+                    """
+                    Zrak zapis ${index + 1}
+                    ID postaje: $stationId
+                    Postaja: $stationName
+                    Latitude: ${"%.4f".format(latitude)}
+                    Longitude: ${"%.4f".format(longitude)}
+                    Čas meritve: $measuredAt
+                    PM10: ${"%.1f".format(pm10)}
+                    PM2.5: ${"%.1f".format(pm25)}
+                    O3: ${"%.1f".format(o3)}
+                    CO: ${"%.1f".format(co)}
+                    SO2: ${"%.1f".format(so2)}
+                    AQI: ${"%.1f".format(aqi)}
+                    """.trimIndent()
+                }
+
+                message = "Uspešno generiranih zapisov kakovosti zraka: $count"
+            }
+        ) {
+            Text("Generiraj podatke kakovosti zraka")
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1890,6 +1964,20 @@ fun GeneratorScreen() {
         }
 
         generatedHydroRecords.forEach { record ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                elevation = 4.dp
+            ) {
+                Text(
+                    text = record,
+                    modifier = Modifier.padding(12.dp)
+                )
+            }
+        }
+
+        generatedAirQualityRecords.forEach { record ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
