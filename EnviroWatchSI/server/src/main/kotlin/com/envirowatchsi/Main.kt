@@ -1785,6 +1785,8 @@ fun GeneratorScreen() {
     var minAirQuality by remember { mutableStateOf("5") }
     var maxAirQuality by remember { mutableStateOf("120") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
+    var generatedHeaders by remember { mutableStateOf(emptyList<String>()) }
+    var generatedRows by remember { mutableStateOf(emptyList<List<String>>()) }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -1937,12 +1939,17 @@ fun GeneratorScreen() {
 
                         when (selectedGeneratorType) {
                             "meteo" -> {
-                                generatedMeteoRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "Temperatura",
+                                "Vlaga",
+                                "Veter",
+                                "Padavine"
+                            )
+
+                                generatedRows = List(count) { index ->
+
                                     val stationName = "Meteo postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minTemp = minTemperature.toDoubleOrNull() ?: -10.0
                                     val maxTemp = maxTemperature.toDoubleOrNull() ?: 35.0
@@ -1953,37 +1960,35 @@ fun GeneratorScreen() {
                                     val humidity = Random.nextDouble(minHum, maxHum)
 
                                     val windSpeed = Random.nextDouble(0.0, 20.0)
-                                    val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
                                     val precipitation = Random.nextDouble(0.0, 30.0)
 
-                                    """
-                    Meteo zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    Temperatura: ${"%.1f".format(temperature)} °C
-                    Vlažnost: ${"%.1f".format(humidity)} %
-                    Hitrost vetra: ${"%.1f".format(windSpeed)} km/h
-                    Smer vetra: $windDirection
-                    Padavine: ${"%.1f".format(precipitation)} mm
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        "%.1f °C".format(temperature),
+                                        "%.1f %%".format(humidity),
+                                        "%.1f km/h".format(windSpeed),
+                                        "%.1f mm".format(precipitation)
+                                    )
                                 }
 
+                                generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
                                 generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih meteo zapisov: $count"
                             }
 
                             "hydro" -> {
-                                generatedHydroRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "Reka",
+                                "Vodostaj",
+                                "Pretok"
+                            )
+
+                                generatedRows = List(count) { index ->
                                     val stationName = "Hidro postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
                                     val riverName = listOf("Sava", "Drava", "Soča", "Mura", "Krka", "Savinja").random()
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minLevel = minWaterLevel.toDoubleOrNull() ?: 20.0
                                     val maxLevel = maxWaterLevel.toDoubleOrNull() ?: 500.0
@@ -1991,31 +1996,32 @@ fun GeneratorScreen() {
 
                                     val waterFlow = Random.nextDouble(1.0, 300.0)
 
-                                    """
-                    Hidro zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Reka: $riverName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    Vodostaj: ${"%.1f".format(waterLevel)} cm
-                    Pretok: ${"%.1f".format(waterFlow)} m³/s
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        riverName,
+                                        "%.1f cm".format(waterLevel),
+                                        "%.1f m³/s".format(waterFlow)
+                                    )
                                 }
 
                                 generatedMeteoRecords = emptyList()
+                                generatedHydroRecords = emptyList()
                                 generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih hidro zapisov: $count"
                             }
 
                             "air" -> {
-                                generatedAirQualityRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "PM10",
+                                "PM2.5",
+                                "O3",
+                                "AQI"
+                            )
+
+                                generatedRows = List(count) { index ->
                                     val stationName = "Zrak postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minAq = minAirQuality.toDoubleOrNull() ?: 5.0
                                     val maxAq = maxAirQuality.toDoubleOrNull() ?: 120.0
@@ -2023,28 +2029,21 @@ fun GeneratorScreen() {
                                     val pm10 = Random.nextDouble(minAq, maxAq)
                                     val pm25 = Random.nextDouble(minAq, maxAq)
                                     val o3 = Random.nextDouble(minAq, maxAq)
-                                    val co = Random.nextDouble(0.1, 2.0)
-                                    val so2 = Random.nextDouble(1.0, 40.0)
-                                    val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
+                                    val aqi = listOf(pm10, pm25, o3).maxOrNull() ?: 0.0
 
-                                    """
-                    Zrak zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    PM10: ${"%.1f".format(pm10)}
-                    PM2.5: ${"%.1f".format(pm25)}
-                    O3: ${"%.1f".format(o3)}
-                    CO: ${"%.1f".format(co)}
-                    SO2: ${"%.1f".format(so2)}
-                    AQI: ${"%.1f".format(aqi)}
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        "%.1f".format(pm10),
+                                        "%.1f".format(pm25),
+                                        "%.1f".format(o3),
+                                        "%.1f".format(aqi)
+                                    )
                                 }
 
                                 generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
+                                generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih zapisov kakovosti zraka: $count"
                             }
                         }
@@ -2061,16 +2060,21 @@ fun GeneratorScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        generatedMeteoRecords.forEach { record ->
-            GeneratedRecordCard(record)
-        }
+        if (generatedRows.isNotEmpty()) {
 
-        generatedHydroRecords.forEach { record ->
-            GeneratedRecordCard(record)
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        generatedAirQualityRecords.forEach { record ->
-            GeneratedRecordCard(record)
+            Text(
+                text = "Predogled generiranih podatkov",
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            DataTable(
+                headers = generatedHeaders,
+                rows = generatedRows
+            )
         }
     }
 }
