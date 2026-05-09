@@ -226,7 +226,11 @@ fun DatabaseScreen() {
 
     var headers by remember { mutableStateOf(listOf("ID", "Postaja", "Vrednost")) }
     var rows by remember { mutableStateOf(emptyList<List<String>>()) }
+
     var stationFilter by remember { mutableStateOf("")}
+
+    var minValueFilter by remember { mutableStateOf("")}
+    var maxValueFilter by remember { mutableStateOf("")}
 
     Column(
         modifier = Modifier
@@ -315,11 +319,41 @@ fun DatabaseScreen() {
             onValueChange = { stationFilter = it },
             label = { Text("Filtriraj po merilni postaji") }
         )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Row {
+            OutlinedTextField(
+                value = minValueFilter,
+                onValueChange = { minValueFilter = it },
+                label = { Text("Minimalna vrednost") },
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            OutlinedTextField(
+                value = maxValueFilter,
+                onValueChange = { maxValueFilter = it },
+                label = { Text("Maksimalna vrednost") },
+                modifier = Modifier.weight(1f)
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
+        val minValue = minValueFilter.toDoubleOrNull()
+        val maxValue = maxValueFilter.toDoubleOrNull()
+
         val filteredRows = rows.filter { row ->
-            stationFilter.isBlank() || row.any {
-                it.contains(stationFilter, ignoreCase = true)
-            }
+            val stationMatches =
+                stationFilter.isBlank() || row.any {
+                    it.contains(stationFilter, ignoreCase = true)
+                }
+
+            val numericValue = row.lastOrNull()?.toDoubleOrNull()
+
+            val minMatches = minValue == null || (numericValue != null && numericValue >= minValue)
+            val maxMatches = maxValue == null || (numericValue != null && numericValue <= maxValue)
+
+            stationMatches && minMatches && maxMatches
         }
         DataTable(
             headers = headers,
