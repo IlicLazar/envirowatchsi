@@ -1936,6 +1936,70 @@ fun GeneratorScreen() {
                             generatedAirQualityRecords = emptyList()
                             return@Button
                         }
+                        val validationError = when (selectedGeneratorType) {
+
+                            "meteo" -> {
+                                val minTemp = minTemperature.toDoubleOrNull()
+                                val maxTemp = maxTemperature.toDoubleOrNull()
+
+                                val minHum = minHumidity.toDoubleOrNull()
+                                val maxHum = maxHumidity.toDoubleOrNull()
+
+                                when {
+                                    minTemp == null || maxTemp == null ->
+                                        "Temperatura mora biti številka."
+
+                                    minTemp >= maxTemp ->
+                                        "Minimalna temperatura mora biti manjša od maksimalne."
+
+                                    minHum == null || maxHum == null ->
+                                        "Vlaga mora biti številka."
+
+                                    minHum >= maxHum ->
+                                        "Minimalna vlaga mora biti manjša od maksimalne."
+
+                                    else -> null
+                                }
+                            }
+
+                            "hydro" -> {
+                                val minLevel = minWaterLevel.toDoubleOrNull()
+                                val maxLevel = maxWaterLevel.toDoubleOrNull()
+
+                                when {
+                                    minLevel == null || maxLevel == null ->
+                                        "Vodostaj mora biti številka."
+
+                                    minLevel >= maxLevel ->
+                                        "Minimalni vodostaj mora biti manjši od maksimalnega."
+
+                                    else -> null
+                                }
+                            }
+
+                            "air" -> {
+                                val minAq = minAirQuality.toDoubleOrNull()
+                                val maxAq = maxAirQuality.toDoubleOrNull()
+
+                                when {
+                                    minAq == null || maxAq == null ->
+                                        "Kakovost zraka mora biti številka."
+
+                                    minAq >= maxAq ->
+                                        "Minimalna kakovost zraka mora biti manjša od maksimalne."
+
+                                    else -> null
+                                }
+                            }
+
+                            else -> null
+                        }
+
+                        if (validationError != null) {
+                            message = validationError
+                            generatedRows = emptyList()
+                            return@Button
+                        }
 
                         when (selectedGeneratorType) {
                             "meteo" -> {
