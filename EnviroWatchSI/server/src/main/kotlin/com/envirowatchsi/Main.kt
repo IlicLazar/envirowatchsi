@@ -2252,6 +2252,12 @@ fun GeneratorScreen() {
                             message =
                                 "Uspešno shranjenih zapisov: ${selectedRowsData.size}"
 
+                            generatedRows = generatedRows.filterIndexed { index, _ ->
+                                !selectedGeneratedRows.contains(index)
+                            }
+
+                            selectedGeneratedRows = generatedRows.indices.toSet()
+
                         } catch (e: Exception) {
 
                             message = "Napaka pri shranjevanju: ${e.message}"
