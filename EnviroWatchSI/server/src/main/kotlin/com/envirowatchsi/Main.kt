@@ -1894,6 +1894,7 @@ fun HydroScreen() {
 
 @Composable
 fun GeneratorScreen() {
+    val scope = rememberCoroutineScope()
     var recordCount by remember { mutableStateOf("10") }
     var minTemperature by remember { mutableStateOf("-10") }
     var maxTemperature by remember { mutableStateOf("35") }
@@ -1904,6 +1905,11 @@ fun GeneratorScreen() {
     var minAirQuality by remember { mutableStateOf("5") }
     var maxAirQuality by remember { mutableStateOf("120") }
     var message by remember { mutableStateOf("Vnesi število zapisov za generiranje.") }
+    var generatedHeaders by remember { mutableStateOf(emptyList<String>()) }
+    var generatedRows by remember { mutableStateOf(emptyList<List<String>>()) }
+    var selectedGeneratedRows by remember {
+        mutableStateOf(setOf<Int>())
+    }
     var generatedMeteoRecords by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -2053,15 +2059,84 @@ fun GeneratorScreen() {
                             generatedAirQualityRecords = emptyList()
                             return@Button
                         }
+                        val validationError = when (selectedGeneratorType) {
+
+                            "meteo" -> {
+                                val minTemp = minTemperature.toDoubleOrNull()
+                                val maxTemp = maxTemperature.toDoubleOrNull()
+
+                                val minHum = minHumidity.toDoubleOrNull()
+                                val maxHum = maxHumidity.toDoubleOrNull()
+
+                                when {
+                                    minTemp == null || maxTemp == null ->
+                                        "Temperatura mora biti številka."
+
+                                    minTemp >= maxTemp ->
+                                        "Minimalna temperatura mora biti manjša od maksimalne."
+
+                                    minHum == null || maxHum == null ->
+                                        "Vlaga mora biti številka."
+
+                                    minHum >= maxHum ->
+                                        "Minimalna vlaga mora biti manjša od maksimalne."
+
+                                    else -> null
+                                }
+                            }
+
+                            "hydro" -> {
+                                val minLevel = minWaterLevel.toDoubleOrNull()
+                                val maxLevel = maxWaterLevel.toDoubleOrNull()
+
+                                when {
+                                    minLevel == null || maxLevel == null ->
+                                        "Vodostaj mora biti številka."
+
+                                    minLevel >= maxLevel ->
+                                        "Minimalni vodostaj mora biti manjši od maksimalnega."
+
+                                    else -> null
+                                }
+                            }
+
+                            "air" -> {
+                                val minAq = minAirQuality.toDoubleOrNull()
+                                val maxAq = maxAirQuality.toDoubleOrNull()
+
+                                when {
+                                    minAq == null || maxAq == null ->
+                                        "Kakovost zraka mora biti številka."
+
+                                    minAq >= maxAq ->
+                                        "Minimalna kakovost zraka mora biti manjša od maksimalne."
+
+                                    else -> null
+                                }
+                            }
+
+                            else -> null
+                        }
+
+                        if (validationError != null) {
+                            message = validationError
+                            generatedRows = emptyList()
+                            return@Button
+                        }
 
                         when (selectedGeneratorType) {
                             "meteo" -> {
-                                generatedMeteoRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "Temperatura",
+                                "Vlaga",
+                                "Veter",
+                                "Padavine"
+                            )
+
+                                generatedRows = List(count) { index ->
+
                                     val stationName = "Meteo postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minTemp = minTemperature.toDoubleOrNull() ?: -10.0
                                     val maxTemp = maxTemperature.toDoubleOrNull() ?: 35.0
@@ -2072,37 +2147,36 @@ fun GeneratorScreen() {
                                     val humidity = Random.nextDouble(minHum, maxHum)
 
                                     val windSpeed = Random.nextDouble(0.0, 20.0)
-                                    val windDirection = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW").random()
                                     val precipitation = Random.nextDouble(0.0, 30.0)
 
-                                    """
-                    Meteo zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    Temperatura: ${"%.1f".format(temperature)} °C
-                    Vlažnost: ${"%.1f".format(humidity)} %
-                    Hitrost vetra: ${"%.1f".format(windSpeed)} km/h
-                    Smer vetra: $windDirection
-                    Padavine: ${"%.1f".format(precipitation)} mm
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        "%.1f °C".format(temperature),
+                                        "%.1f %%".format(humidity),
+                                        "%.1f km/h".format(windSpeed),
+                                        "%.1f mm".format(precipitation)
+                                    )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
+                                generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
                                 generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih meteo zapisov: $count"
                             }
 
                             "hydro" -> {
-                                generatedHydroRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "Reka",
+                                "Vodostaj",
+                                "Pretok"
+                            )
+
+                                generatedRows = List(count) { index ->
                                     val stationName = "Hidro postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
                                     val riverName = listOf("Sava", "Drava", "Soča", "Mura", "Krka", "Savinja").random()
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minLevel = minWaterLevel.toDoubleOrNull() ?: 20.0
                                     val maxLevel = maxWaterLevel.toDoubleOrNull() ?: 500.0
@@ -2110,31 +2184,33 @@ fun GeneratorScreen() {
 
                                     val waterFlow = Random.nextDouble(1.0, 300.0)
 
-                                    """
-                    Hidro zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Reka: $riverName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    Vodostaj: ${"%.1f".format(waterLevel)} cm
-                    Pretok: ${"%.1f".format(waterFlow)} m³/s
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        riverName,
+                                        "%.1f cm".format(waterLevel),
+                                        "%.1f m³/s".format(waterFlow)
+                                    )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
                                 generatedMeteoRecords = emptyList()
+                                generatedHydroRecords = emptyList()
                                 generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih hidro zapisov: $count"
                             }
 
                             "air" -> {
-                                generatedAirQualityRecords = List(count) { index ->
+                                generatedHeaders = listOf(
+                                "Postaja",
+                                "PM10",
+                                "PM2.5",
+                                "O3",
+                                "AQI"
+                            )
+
+                                generatedRows = List(count) { index ->
                                     val stationName = "Zrak postaja ${index + 1}"
-                                    val stationId = stationName.lowercase().replace(" ", "_")
-                                    val latitude = Random.nextDouble(45.4, 46.9)
-                                    val longitude = Random.nextDouble(13.4, 16.6)
-                                    val measuredAt = LocalDateTime.now().minusHours(index.toLong())
 
                                     val minAq = minAirQuality.toDoubleOrNull() ?: 5.0
                                     val maxAq = maxAirQuality.toDoubleOrNull() ?: 120.0
@@ -2142,28 +2218,22 @@ fun GeneratorScreen() {
                                     val pm10 = Random.nextDouble(minAq, maxAq)
                                     val pm25 = Random.nextDouble(minAq, maxAq)
                                     val o3 = Random.nextDouble(minAq, maxAq)
-                                    val co = Random.nextDouble(0.1, 2.0)
-                                    val so2 = Random.nextDouble(1.0, 40.0)
-                                    val aqi = listOf(pm10, pm25, o3, co, so2).maxOrNull() ?: 0.0
+                                    val aqi = listOf(pm10, pm25, o3).maxOrNull() ?: 0.0
 
-                                    """
-                    Zrak zapis ${index + 1}
-                    ID postaje: $stationId
-                    Postaja: $stationName
-                    Latitude: ${"%.4f".format(latitude)}
-                    Longitude: ${"%.4f".format(longitude)}
-                    Čas meritve: $measuredAt
-                    PM10: ${"%.1f".format(pm10)}
-                    PM2.5: ${"%.1f".format(pm25)}
-                    O3: ${"%.1f".format(o3)}
-                    CO: ${"%.1f".format(co)}
-                    SO2: ${"%.1f".format(so2)}
-                    AQI: ${"%.1f".format(aqi)}
-                    """.trimIndent()
+                                    listOf(
+                                        stationName,
+                                        "%.1f".format(pm10),
+                                        "%.1f".format(pm25),
+                                        "%.1f".format(o3),
+                                        "%.1f".format(aqi)
+                                    )
                                 }
+                                selectedGeneratedRows = generatedRows.indices.toSet()
 
                                 generatedMeteoRecords = emptyList()
                                 generatedHydroRecords = emptyList()
+                                generatedAirQualityRecords = emptyList()
+
                                 message = "Uspešno generiranih zapisov kakovosti zraka: $count"
                             }
                         }
@@ -2177,23 +2247,234 @@ fun GeneratorScreen() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(message)
+        Spacer(modifier = Modifier.height(12.dp))
+
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        generatedMeteoRecords.forEach { record ->
-            GeneratedRecordCard(record)
-        }
+        if (generatedRows.isNotEmpty()) {
 
-        generatedHydroRecords.forEach { record ->
-            GeneratedRecordCard(record)
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        generatedAirQualityRecords.forEach { record ->
-            GeneratedRecordCard(record)
+            Text(
+                text = "Predogled generiranih podatkov",
+                style = MaterialTheme.typography.h6
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            GeneratedDataTable(
+                headers = generatedHeaders,
+                rows = generatedRows,
+                selectedRows = selectedGeneratedRows,
+                onSelectionChange = { rowIndex, selected ->
+                    selectedGeneratedRows =
+                        if (selected) {
+                            selectedGeneratedRows + rowIndex
+                        } else {
+                            selectedGeneratedRows - rowIndex
+                        }
+                },
+                onDeleteRow = { rowIndex ->
+                    generatedRows = generatedRows.filterIndexed { index, _ ->
+                        index != rowIndex
+                    }
+
+                    selectedGeneratedRows = generatedRows.indices.toSet()
+                    message = "Zapis je odstranjen iz predogleda."
+                }
+            )
+            Button(
+                onClick = {
+                    scope.launch{
+                        val selectedRowsData = generatedRows.filterIndexed { index, _ ->
+                            selectedGeneratedRows.contains(index)
+                        }
+
+                        if (selectedRowsData.isEmpty()) {
+                            message = "Izberi vsaj en zapis za shranjevanje."
+                            return@launch
+                        }
+
+                        try {
+
+                            selectedRowsData.forEach { row ->
+
+                                val endpoint: String
+                                val jsonBody: String
+
+                                when (selectedGeneratorType) {
+
+                                    "meteo" -> {
+                                        endpoint = "meteo"
+
+                                        jsonBody = buildMeteoJson(
+                                            stationName = row[0],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            temperature = row[1].replace(" °C", ""),
+                                            humidity = row[2].replace(" %", ""),
+                                            windSpeed = row[3].replace(" km/h", ""),
+                                            precipitation = row[4].replace(" mm", "")
+                                        )
+                                    }
+
+                                    "hydro" -> {
+                                        endpoint = "hydro"
+
+                                        jsonBody = buildHydroJson(
+                                            stationName = row[0],
+                                            riverName = row[1],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            waterLevel = row[2].replace(" cm", ""),
+                                            waterFlow = row[3].replace(" m³/s", "")
+                                        )
+                                    }
+
+                                    else -> {
+                                        endpoint = "air-quality"
+
+                                        jsonBody = buildAirQualityJson(
+                                            stationName = row[0],
+                                            latitude = Random.nextDouble(45.4, 46.9).toString(),
+                                            longitude = Random.nextDouble(13.4, 16.6).toString(),
+                                            aqi = row[4].toDoubleOrNull()?.toInt()?.toString() ?: "0"
+                                        )
+                                    }
+                                }
+
+                                withContext(Dispatchers.IO) {
+
+                                    val connection = URL("http://localhost:8080/api/$endpoint")
+                                        .openConnection() as java.net.HttpURLConnection
+
+                                    connection.requestMethod = "POST"
+                                    connection.doOutput = true
+
+                                    connection.setRequestProperty(
+                                        "Content-Type",
+                                        "application/json"
+                                    )
+
+                                    connection.outputStream.use {
+                                        it.write(jsonBody.toByteArray(Charsets.UTF_8))
+                                    }
+
+                                    connection.inputStream
+                                        .bufferedReader()
+                                        .readText()
+                                }
+                            }
+
+                            message =
+                                "Uspešno shranjenih zapisov: ${selectedRowsData.size}"
+
+                            generatedRows = generatedRows.filterIndexed { index, _ ->
+                                !selectedGeneratedRows.contains(index)
+                            }
+
+                            selectedGeneratedRows = generatedRows.indices.toSet()
+
+                        } catch (e: Exception) {
+
+                            message = "Napaka pri shranjevanju: ${e.message}"
+                        }
+                    }
+                }
+            ) {
+                Text("Shrani izbrane podatke")
+            }
         }
     }
 }
+@Composable
+fun GeneratedDataTable(
+    headers: List<String>,
+    rows: List<List<String>>,
+    selectedRows: Set<Int>,
+    onSelectionChange: (Int, Boolean) -> Unit,
+    onDeleteRow: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = "Shrani",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
 
+            headers.forEach { header ->
+                Text(
+                    text = header,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                        .padding(8.dp),
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
+
+            Text(
+                text = "Akcija",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
+        }
+
+        Divider()
+
+        rows.forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = selectedRows.contains(index),
+                    onCheckedChange = { checked ->
+                        onSelectionChange(index, checked)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                )
+
+                row.forEach { cell ->
+                    Text(
+                        text = cell,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onDeleteRow(index)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                ) {
+                    Text("Odstrani")
+                }
+            }
+
+            Divider()
+        }
+    }
+}
 @Composable
 fun RangeInputRow(
     title: String,
@@ -2231,7 +2512,71 @@ fun RangeInputRow(
         Spacer(modifier = Modifier.height(12.dp))
     }
 }
+@Composable
+fun GeneratedDataTable(
+    headers: List<String>,
+    rows: List<List<String>>,
+    onDeleteRow: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            headers.forEach { header ->
+                Text(
+                    text = header,
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                        .padding(8.dp),
+                    style = MaterialTheme.typography.subtitle2
+                )
+            }
 
+            Text(
+                text = "Akcija",
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
+                    .padding(8.dp),
+                style = MaterialTheme.typography.subtitle2
+            )
+        }
+
+        Divider()
+
+        rows.forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                row.forEach { cell ->
+                    Text(
+                        text = cell,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(8.dp),
+                        style = MaterialTheme.typography.body2
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        onDeleteRow(index)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                ) {
+                    Text("Odstrani")
+                }
+            }
+
+            Divider()
+        }
+    }
+}
 @Composable
 fun GeneratedRecordCard(record: String) {
     Card(
