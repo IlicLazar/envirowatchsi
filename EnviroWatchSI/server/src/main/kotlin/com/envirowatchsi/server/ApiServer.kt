@@ -171,14 +171,33 @@ fun Application.module() {
             val p = call.receiveParameters()
 
             val stationName = p["stationName"]
-            val aqi = p["aqi"]?.toIntOrNull()
+            val latitude = p["latitude"]?.toDoubleOrNull() ?: 0.0
+            val longitude = p["longitude"]?.toDoubleOrNull() ?: 0.0
+            val pm10 = p["pm10"]?.toDoubleOrNull()
+            val pm25 = p["pm25"]?.toDoubleOrNull()
+            val o3 = p["o3"]?.toDoubleOrNull()
+            val co = p["co"]?.toDoubleOrNull()
+            val so2 = p["so2"]?.toDoubleOrNull()
+            val aqi = p["aqi"]?.toDoubleOrNull()
 
             if (id == null || stationName.isNullOrBlank() || aqi == null) {
                 call.respondText("Invalid input", status = HttpStatusCode.BadRequest)
                 return@put
             }
 
-            DatabaseRepository.updateAirQualityRecord(id, stationName, aqi)
+            DatabaseRepository.updateAirQualityRecord(
+                id,
+                stationName,
+                latitude,
+                longitude,
+                pm10,
+                pm25,
+                o3,
+                co,
+                so2,
+                aqi
+            )
+
             call.respondText("Air quality record updated")
         }
 
@@ -187,15 +206,31 @@ fun Application.module() {
             val p = call.receiveParameters()
 
             val stationName = p["stationName"]
+            val latitude = p["latitude"]?.toDoubleOrNull()
+            val longitude = p["longitude"]?.toDoubleOrNull()
             val temperature = p["temperature"]?.toDoubleOrNull()
             val humidity = p["humidity"]?.toDoubleOrNull()
+            val windSpeed = p["windSpeed"]?.toDoubleOrNull()
+            val windDirection = p["windDirection"]?.takeIf { it.isNotBlank() }
+            val precipitation = p["precipitation"]?.toDoubleOrNull()
 
             if (id == null || stationName.isNullOrBlank() || temperature == null || humidity == null) {
                 call.respondText("Invalid input", status = HttpStatusCode.BadRequest)
                 return@put
             }
 
-            DatabaseRepository.updateMeteoRecord(id, stationName, temperature, humidity)
+            DatabaseRepository.updateMeteoRecord(
+                id,
+                stationName,
+                latitude,
+                longitude,
+                temperature,
+                humidity,
+                windSpeed,
+                windDirection,
+                precipitation
+            )
+
             call.respondText("Meteo record updated")
         }
 
@@ -205,6 +240,8 @@ fun Application.module() {
 
             val stationName = p["stationName"]
             val riverName = p["riverName"]
+            val latitude = p["latitude"]?.toDoubleOrNull()
+            val longitude = p["longitude"]?.toDoubleOrNull()
             val waterLevel = p["waterLevel"]?.toDoubleOrNull()
             val waterFlow = p["waterFlow"]?.toDoubleOrNull()
 
@@ -213,7 +250,16 @@ fun Application.module() {
                 return@put
             }
 
-            DatabaseRepository.updateHydroRecord(id, stationName, riverName, waterLevel, waterFlow)
+            DatabaseRepository.updateHydroRecord(
+                id,
+                stationName,
+                riverName,
+                latitude,
+                longitude,
+                waterLevel,
+                waterFlow
+            )
+
             call.respondText("Hydro record updated")
         }
 

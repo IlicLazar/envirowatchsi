@@ -901,6 +901,16 @@ fun UpdateDataScreen() {
     var riverName by remember { mutableStateOf("") }
     var waterLevel by remember { mutableStateOf("") }
     var waterFlow by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf("") }
+    var pm10 by remember { mutableStateOf("") }
+    var pm25 by remember { mutableStateOf("") }
+    var o3 by remember { mutableStateOf("") }
+    var co by remember { mutableStateOf("") }
+    var so2 by remember { mutableStateOf("") }
+    var windSpeed by remember { mutableStateOf("") }
+    var windDirection by remember { mutableStateOf("") }
+    var precipitation by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -1008,8 +1018,66 @@ fun UpdateDataScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        OutlinedTextField(
+            value = latitude,
+            onValueChange = { latitude = it },
+            label = { Text("Nova latitude") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = longitude,
+            onValueChange = { longitude = it },
+            label = { Text("Nova longitude") }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         when (selectedTable) {
+
             "air-quality" -> {
+
+                OutlinedTextField(
+                    value = pm10,
+                    onValueChange = { pm10 = it },
+                    label = { Text("PM10") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = pm25,
+                    onValueChange = { pm25 = it },
+                    label = { Text("PM2.5") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = o3,
+                    onValueChange = { o3 = it },
+                    label = { Text("O3") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = co,
+                    onValueChange = { co = it },
+                    label = { Text("CO") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = so2,
+                    onValueChange = { so2 = it },
+                    label = { Text("SO2") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = aqi,
                     onValueChange = { aqi = it },
@@ -1030,6 +1098,30 @@ fun UpdateDataScreen() {
                     value = humidity,
                     onValueChange = { humidity = it },
                     label = { Text("Nova vlažnost") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = windSpeed,
+                    onValueChange = { windSpeed = it },
+                    label = { Text("Hitrost vetra") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = windDirection,
+                    onValueChange = { windDirection = it },
+                    label = { Text("Smer vetra") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = precipitation,
+                    onValueChange = { precipitation = it },
+                    label = { Text("Padavine") }
                 )
             }
 
@@ -1083,14 +1175,25 @@ fun UpdateDataScreen() {
 
                         when (selectedTable) {
                             "air-quality" -> {
-                                val aqiValue = aqi.toIntOrNull()
+                                val aqiValue = aqi.toDoubleOrNull()
+
                                 if (aqiValue == null) {
                                     message = "AQI mora biti številka."
                                     return@launch
                                 }
 
                                 endpoint = "air-quality"
-                                postData = "stationName=$stationName&aqi=$aqiValue"
+
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&pm10=$pm10" +
+                                            "&pm25=$pm25" +
+                                            "&o3=$o3" +
+                                            "&co=$co" +
+                                            "&so2=$so2" +
+                                            "&aqi=$aqiValue"
                             }
 
                             "meteo" -> {
@@ -1103,7 +1206,16 @@ fun UpdateDataScreen() {
                                 }
 
                                 endpoint = "meteo"
-                                postData = "stationName=$stationName&temperature=$tempValue&humidity=$humidityValue"
+
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&temperature=$tempValue" +
+                                            "&humidity=$humidityValue" +
+                                            "&windSpeed=$windSpeed" +
+                                            "&windDirection=$windDirection" +
+                                            "&precipitation=$precipitation"
                             }
 
                             else -> {
@@ -1113,7 +1225,14 @@ fun UpdateDataScreen() {
                                 }
 
                                 endpoint = "hydro"
-                                postData = "stationName=$stationName&riverName=$riverName&waterLevel=$waterLevel&waterFlow=$waterFlow"
+
+                                postData =
+                                    "stationName=$stationName" +
+                                            "&riverName=$riverName" +
+                                            "&latitude=$latitude" +
+                                            "&longitude=$longitude" +
+                                            "&waterLevel=$waterLevel" +
+                                            "&waterFlow=$waterFlow"
                             }
                         }
 

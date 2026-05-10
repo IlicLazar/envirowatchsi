@@ -132,30 +132,76 @@ object DatabaseRepository {
         }
     }
 
-    fun updateAirQualityRecord(id: Int, station: String, aqi: Int) {
+    fun updateAirQualityRecord(
+        id: Int,
+        station: String,
+        latitudeValue: Double,
+        longitudeValue: Double,
+        pm10Value: Double?,
+        pm25Value: Double?,
+        o3Value: Double?,
+        coValue: Double?,
+        so2Value: Double?,
+        aqi: Double?
+    ) {
         transaction {
             AirQualityStationsTable.update({ AirQualityStationsTable.id eq id }) {
                 it[stationName] = station
-                it[airQualityIndex] = aqi.toDouble()
+                it[latitude] = latitudeValue
+                it[longitude] = longitudeValue
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
+                it[pm10] = pm10Value
+                it[pm2_5] = pm25Value
+                it[o3] = o3Value
+                it[co] = coValue
+                it[so2] = so2Value
+                it[airQualityIndex] = aqi
             }
         }
     }
 
-    fun updateMeteoRecord(id: Int, station: String, temperature: Double, humidity: Double) {
+    fun updateMeteoRecord(
+        id: Int,
+        station: String,
+        latitudeValue: Double?,
+        longitudeValue: Double?,
+        temperatureValue: Double,
+        humidityValue: Double,
+        windSpeedValue: Double?,
+        windDirectionValue: String?,
+        precipitationValue: Double?
+    ) {
         transaction {
             MeteoStationsTable.update({ MeteoStationsTable.id eq id }) {
                 it[stationName] = station
-                it[MeteoStationsTable.temperature] = temperature
-                it[MeteoStationsTable.humidity] = humidity
+                it[latitude] = latitudeValue
+                it[longitude] = longitudeValue
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
+                it[temperature] = temperatureValue
+                it[humidity] = humidityValue
+                it[windSpeed] = windSpeedValue
+                it[windDirection] = windDirectionValue
+                it[precipitation] = precipitationValue
             }
         }
     }
 
-    fun updateHydroRecord(id: Int, station: String, river: String, level: Double?, flow: Double?) {
+    fun updateHydroRecord(
+        id: Int,
+        station: String,
+        river: String,
+        latitudeValue: Double?,
+        longitudeValue: Double?,
+        level: Double?,
+        flow: Double?
+    ) {
         transaction {
             HydroStationsTable.update({ HydroStationsTable.id eq id }) {
                 it[stationName] = station
                 it[riverName] = river
+                it[latitude] = latitudeValue
+                it[longitude] = longitudeValue
+                it[measuredAt] = java.time.LocalDateTime.now().toString()
                 it[waterLevel] = level
                 it[waterFlow] = flow
             }
