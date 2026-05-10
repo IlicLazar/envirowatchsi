@@ -22,7 +22,6 @@ import java.net.URL
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import kotlin.random.Random
-import java.time.LocalDateTime
 
 enum class Screen {
     DASHBOARD,
@@ -197,26 +196,6 @@ fun DashboardScreen(){
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(connectionStatus)
-    }
-}
-@Composable
-fun PlaceholderScreen(title: String) {
-    Column {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.h4
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Trenutno izbran zaslon: $title",
-            style = MaterialTheme.typography.h6
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Preklapljanje med zasloni poteka preko navigacijskega menija na levi strani aplikacije.")
     }
 }
 @Composable
@@ -1511,7 +1490,7 @@ fun MeteoScreen() {
                     try {
                         val parsed = withContext(Dispatchers.IO) {
                             val xml = fetchRawMeteoXml()
-                            parseMeteoData(xml).take(10)
+                            parseMeteoData(xml)
                         }
 
                         records = parsed
@@ -1650,7 +1629,7 @@ fun AirQualityScreen() {
                     try {
                         val parsed = withContext(Dispatchers.IO) {
                             val xml = fetchRawAirQualityXml()
-                            parseAirQualityData(xml).take(10)
+                            parseAirQualityData(xml)
                         }
 
                         records = parsed
@@ -1783,7 +1762,7 @@ fun HydroScreen() {
                     try {
                         val parsed = withContext(Dispatchers.IO) {
                             val xml = fetchRawXml()
-                            parseHydroData(xml).take(10)
+                            parseHydroData(xml)
                         }
 
                         records = parsed
@@ -1909,15 +1888,6 @@ fun GeneratorScreen() {
     var generatedRows by remember { mutableStateOf(emptyList<List<String>>()) }
     var selectedGeneratedRows by remember {
         mutableStateOf(setOf<Int>())
-    }
-    var generatedMeteoRecords by remember {
-        mutableStateOf(emptyList<String>())
-    }
-    var generatedHydroRecords by remember {
-        mutableStateOf(emptyList<String>())
-    }
-    var generatedAirQualityRecords by remember {
-        mutableStateOf(emptyList<String>())
     }
     var selectedGeneratorType by remember { mutableStateOf("meteo") }
 
@@ -2054,9 +2024,6 @@ fun GeneratorScreen() {
 
                         if (count == null || count <= 0) {
                             message = "Vnesi veljavno pozitivno število."
-                            generatedMeteoRecords = emptyList()
-                            generatedHydroRecords = emptyList()
-                            generatedAirQualityRecords = emptyList()
                             return@Button
                         }
                         val validationError = when (selectedGeneratorType) {
@@ -2158,11 +2125,6 @@ fun GeneratorScreen() {
                                     )
                                 }
                                 selectedGeneratedRows = generatedRows.indices.toSet()
-
-                                generatedMeteoRecords = emptyList()
-                                generatedHydroRecords = emptyList()
-                                generatedAirQualityRecords = emptyList()
-
                                 message = "Uspešno generiranih meteo zapisov: $count"
                             }
 
@@ -2192,10 +2154,6 @@ fun GeneratorScreen() {
                                     )
                                 }
                                 selectedGeneratedRows = generatedRows.indices.toSet()
-
-                                generatedMeteoRecords = emptyList()
-                                generatedHydroRecords = emptyList()
-                                generatedAirQualityRecords = emptyList()
 
                                 message = "Uspešno generiranih hidro zapisov: $count"
                             }
@@ -2229,10 +2187,6 @@ fun GeneratorScreen() {
                                     )
                                 }
                                 selectedGeneratedRows = generatedRows.indices.toSet()
-
-                                generatedMeteoRecords = emptyList()
-                                generatedHydroRecords = emptyList()
-                                generatedAirQualityRecords = emptyList()
 
                                 message = "Uspešno generiranih zapisov kakovosti zraka: $count"
                             }
@@ -2510,84 +2464,5 @@ fun RangeInputRow(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-    }
-}
-@Composable
-fun GeneratedDataTable(
-    headers: List<String>,
-    rows: List<List<String>>,
-    onDeleteRow: (Int) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            headers.forEach { header ->
-                Text(
-                    text = header,
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
-                        .padding(8.dp),
-                    style = MaterialTheme.typography.subtitle2
-                )
-            }
-
-            Text(
-                text = "Akcija",
-                modifier = Modifier
-                    .weight(1f)
-                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
-                    .padding(8.dp),
-                style = MaterialTheme.typography.subtitle2
-            )
-        }
-
-        Divider()
-
-        rows.forEachIndexed { index, row ->
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                row.forEach { cell ->
-                    Text(
-                        text = cell,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(8.dp),
-                        style = MaterialTheme.typography.body2
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        onDeleteRow(index)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp)
-                ) {
-                    Text("Odstrani")
-                }
-            }
-
-            Divider()
-        }
-    }
-}
-@Composable
-fun GeneratedRecordCard(record: String) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        elevation = 4.dp
-    ) {
-        Text(
-            text = record,
-            modifier = Modifier.padding(12.dp)
-        )
     }
 }
