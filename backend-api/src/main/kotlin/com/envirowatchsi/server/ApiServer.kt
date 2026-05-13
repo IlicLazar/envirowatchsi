@@ -20,7 +20,7 @@ object ApiServer {
             port = 8080,
             host = "0.0.0.0",
             module = Application::module
-        ).start(wait = false)
+        ).start(wait = true)
     }
 }
 
@@ -312,4 +312,8 @@ fun Application.module() {
         }
 
     }
+}
+
+fun main() {
+    ApiServer.start()
 }

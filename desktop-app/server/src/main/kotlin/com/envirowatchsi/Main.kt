@@ -3,6 +3,7 @@ package com.envirowatchsi
 import com.envirowatchsi.parser.parseMeteoData
 import com.envirowatchsi.parser.parseAirQualityData
 import com.envirowatchsi.parser.parseHydroData
+import com.envirowatchsi.api.ApiClient
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -443,10 +444,7 @@ fun SortDropdown(
 
 suspend fun fetchDatabaseRecords(table: String): String {
     return withContext(Dispatchers.IO) {
-        URL("http://localhost:8080/api/$table")
-            .openStream()
-            .bufferedReader(Charsets.UTF_8)
-            .readText()
+        ApiClient.getRaw("/api/$table")
     }
 }
 
@@ -911,10 +909,7 @@ fun UpdateDataScreen() {
 
                     recordsText = try {
                         withContext(Dispatchers.IO) {
-                            URL("http://localhost:8080/api/$selectedTable")
-                                .openStream()
-                                .bufferedReader(Charsets.UTF_8)
-                                .readText()
+                            ApiClient.getRaw("/api/$selectedTable")
                         }.let { response ->
                             if (response == "[]") {
                                 "Ni zapisov v izbrani tabeli."
@@ -1193,18 +1188,7 @@ fun UpdateDataScreen() {
                         }
 
                         withContext(Dispatchers.IO) {
-                            val connection = URL("http://localhost:8080/api/$endpoint/$id")
-                                .openConnection() as java.net.HttpURLConnection
-
-                            connection.requestMethod = "PUT"
-                            connection.doOutput = true
-                            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-
-                            connection.outputStream.use {
-                                it.write(postData.toByteArray())
-                            }
-
-                            connection.inputStream.bufferedReader().readText()
+                            ApiClient.putForm("/api/$endpoint/$id", postData)
                         }
 
                         "Spremembe so uspešno shranjene."
@@ -1336,14 +1320,7 @@ fun DeleteDataScreen() {
 
                             message = try {
                                 withContext(Dispatchers.IO) {
-                                    val connection = URL("http://localhost:8080/api/$selectedTable/$id")
-                                        .openConnection() as java.net.HttpURLConnection
-
-                                    connection.requestMethod = "DELETE"
-
-                                    connection.inputStream
-                                        .bufferedReader()
-                                        .readText()
+                                    ApiClient.delete("/api/$selectedTable/$id")
                                 }
 
                                 recordsText = withContext(Dispatchers.IO) {
@@ -1555,18 +1532,7 @@ fun MeteoScreen() {
                             )
 
                             withContext(Dispatchers.IO) {
-                                val connection = URL("http://localhost:8080/api/meteo")
-                                    .openConnection() as java.net.HttpURLConnection
-
-                                connection.requestMethod = "POST"
-                                connection.doOutput = true
-                                connection.setRequestProperty("Content-Type", "application/json")
-
-                                connection.outputStream.use {
-                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
-                                }
-
-                                connection.inputStream.bufferedReader().readText()
+                                ApiClient.postJson("/api/meteo", jsonBody)
                             }
 
                             "Izbran meteo zapis je shranjen v bazo."
@@ -1688,18 +1654,7 @@ fun AirQualityScreen() {
                             )
 
                             withContext(Dispatchers.IO) {
-                                val connection = URL("http://localhost:8080/api/air-quality")
-                                    .openConnection() as java.net.HttpURLConnection
-
-                                connection.requestMethod = "POST"
-                                connection.doOutput = true
-                                connection.setRequestProperty("Content-Type", "application/json")
-
-                                connection.outputStream.use {
-                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
-                                }
-
-                                connection.inputStream.bufferedReader().readText()
+                                ApiClient.postJson("/api/air-quality", jsonBody)
                             }
 
                             "Izbran zapis kakovosti zraka je shranjen v bazo."
@@ -1821,18 +1776,7 @@ fun HydroScreen() {
                             )
 
                             withContext(Dispatchers.IO) {
-                                val connection = URL("http://localhost:8080/api/hydro")
-                                    .openConnection() as java.net.HttpURLConnection
-
-                                connection.requestMethod = "POST"
-                                connection.doOutput = true
-                                connection.setRequestProperty("Content-Type", "application/json")
-
-                                connection.outputStream.use {
-                                    it.write(jsonBody.toByteArray(Charsets.UTF_8))
-                                }
-
-                                connection.inputStream.bufferedReader().readText()
+                                ApiClient.postJson("/api/hydro", jsonBody)
                             }
 
                             "Izbran hidro zapis je shranjen v bazo."
@@ -2277,25 +2221,7 @@ fun GeneratorScreen() {
                                 }
 
                                 withContext(Dispatchers.IO) {
-
-                                    val connection = URL("http://localhost:8080/api/$endpoint")
-                                        .openConnection() as java.net.HttpURLConnection
-
-                                    connection.requestMethod = "POST"
-                                    connection.doOutput = true
-
-                                    connection.setRequestProperty(
-                                        "Content-Type",
-                                        "application/json"
-                                    )
-
-                                    connection.outputStream.use {
-                                        it.write(jsonBody.toByteArray(Charsets.UTF_8))
-                                    }
-
-                                    connection.inputStream
-                                        .bufferedReader()
-                                        .readText()
+                                    ApiClient.postJson("/api/$endpoint", jsonBody)
                                 }
                             }
 

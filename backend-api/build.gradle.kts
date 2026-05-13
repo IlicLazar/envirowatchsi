@@ -1,9 +1,14 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
+    application
 }
 
 group = "com.envirowatchsi"
 version = "1.0.0"
+
+application {
+    mainClass.set("com.envirowatchsi.server.ApiServerKt")
+}
 
 repositories {
     google()
