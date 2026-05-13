@@ -31,4 +31,10 @@ dependencyResolutionManagement {
     }
 }
 
-include(":server")
+include(":backend-api")
+include(":desktop-app")
+include(":shared")
+
+project(":backend-api").projectDir = file("backend-api")
+project(":desktop-app").projectDir = file("desktop-app/server")
+project(":shared").projectDir = file("shared")
