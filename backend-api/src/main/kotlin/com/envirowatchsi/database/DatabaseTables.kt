@@ -16,7 +16,11 @@ object AirQualityStationsTable : Table("air_quality_stations") {
     val co = double("co").nullable()
     val so2 = double("so2").nullable()
     val airQualityIndex = double("air_quality_index").nullable()
-
+    init {
+        index(false, stationId)
+        index(false, measuredAt)
+        index(false, latitude, longitude)
+    }
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -33,7 +37,11 @@ object MeteoStationsTable : Table("meteo_stations") {
     val windSpeed = double("wind_speed").nullable()
     val windDirection = varchar("wind_direction", 50).nullable()
     val precipitation = double("precipitation").nullable()
-
+    init {
+        index(false, stationId)
+        index(false, measuredAt)
+        index(false, latitude, longitude)
+    }
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -48,6 +56,11 @@ object HydroStationsTable : Table("hydro_stations") {
 
     val waterLevel = double("water_level").nullable()
     val waterFlow = double("water_flow").nullable()
-
+    init {
+        index(false, stationId)
+        index(false, riverName)
+        index(false, measuredAt)
+        index(false, latitude, longitude)
+    }
     override val primaryKey = PrimaryKey(id)
 }
