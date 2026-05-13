@@ -151,8 +151,6 @@ fun SidebarButton(
 }
 @Composable
 fun DashboardScreen(){
-    val scope = rememberCoroutineScope()
-    var connectionStatus by remember { mutableStateOf("Povezava še ni testirana.") }
     Column {
         Text(
             text = "Digitalni dvojček okoljskega stanja v Sloveniji",
@@ -175,27 +173,6 @@ fun DashboardScreen(){
         Text("- Generator namišljenih podatkov")
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                scope.launch {
-                    connectionStatus = "Testiranje povezave..."
-
-                    connectionStatus = try {
-                        val xml = fetchRawMeteoXml()
-                        "Povezava uspešna. Prejeto znakov: ${xml.length}"
-                    } catch (e: Exception) {
-                        "Napaka pri povezavi: ${e.message}"
-                    }
-                }
-            }
-        ) {
-            Text("Test povezave s spletnim servisom")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(connectionStatus)
     }
 }
 @Composable
