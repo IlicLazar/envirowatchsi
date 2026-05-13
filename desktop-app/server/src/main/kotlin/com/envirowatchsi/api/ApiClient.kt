@@ -10,6 +10,7 @@ import java.net.URL
 
 object ApiClient {
     private const val BASE_URL = "http://localhost:8080"
+    private const val TIMEOUT_MS = 5000
     private val gson = Gson()
 
     fun getAirQualityStations(): List<AirQualityStation> {
@@ -31,40 +32,77 @@ object ApiClient {
     }
 
     fun getRaw(path: String): String {
-        val connection = URL("$BASE_URL$path").openConnection() as HttpURLConnection
-        connection.requestMethod = "GET"
-        return connection.inputStream.bufferedReader().use { it.readText() }
+        return request(
+            path = path,
+            method = "GET"
+        )
     }
 
     fun postJson(path: String, jsonBody: String): String {
-        val connection = URL("$BASE_URL$path").openConnection() as HttpURLConnection
-        connection.requestMethod = "POST"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/json")
-
-        connection.outputStream.use {
-            it.write(jsonBody.toByteArray(Charsets.UTF_8))
-        }
-
-        return connection.inputStream.bufferedReader().use { it.readText() }
+        return request(
+            path = path,
+            method = "POST",
+            body = jsonBody,
+            contentType = "application/json"
+        )
     }
 
     fun putForm(path: String, formBody: String): String {
-        val connection = URL("$BASE_URL$path").openConnection() as HttpURLConnection
-        connection.requestMethod = "PUT"
-        connection.doOutput = true
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-
-        connection.outputStream.use {
-            it.write(formBody.toByteArray(Charsets.UTF_8))
-        }
-
-        return connection.inputStream.bufferedReader().use { it.readText() }
+        return request(
+            path = path,
+            method = "PUT",
+            body = formBody,
+            contentType = "application/x-www-form-urlencoded"
+        )
     }
 
     fun delete(path: String): String {
+        return request(
+            path = path,
+            method = "DELETE"
+        )
+    }
+
+    private fun request(
+        path: String,
+        method: String,
+        body: String? = null,
+        contentType: String? = null
+    ): String {
         val connection = URL("$BASE_URL$path").openConnection() as HttpURLConnection
-        connection.requestMethod = "DELETE"
-        return connection.inputStream.bufferedReader().use { it.readText() }
+
+        connection.requestMethod = method
+        connection.connectTimeout = TIMEOUT_MS
+        connection.readTimeout = TIMEOUT_MS
+
+        if (body != null) {
+            connection.doOutput = true
+            if (contentType != null) {
+                connection.setRequestProperty("Content-Type", contentType)
+            }
+
+            connection.outputStream.use {
+                it.write(body.toByteArray(Charsets.UTF_8))
+            }
+        }
+
+        return try {
+            val responseCode = connection.responseCode
+            val responseText =
+                if (responseCode in 200..299) {
+                    connection.inputStream.bufferedReader().use { it.readText() }
+                } else {
+                    connection.errorStream?.bufferedReader()?.use { it.readText() }
+                        ?: "No error body"
+                }
+
+            if (responseCode !in 200..299) {
+                throw RuntimeException("HTTP $responseCode: $responseText")
+            }
+
+            responseText
+        } finally {
+            connection.disconnect()
+        }
     }
 }
