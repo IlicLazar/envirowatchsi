@@ -8,8 +8,10 @@ object DatabaseFactory {
 
     fun init() {
         Database.connect(
-            url = "jdbc:sqlite:envirowatchsi.db",
-            driver = "org.sqlite.JDBC"
+            url = "jdbc:postgresql://localhost:5433/envirowatchsi",
+            driver = "org.postgresql.Driver",
+            user = "envirowatch",
+            password = "envirowatch123"
         )
 
         transaction {
