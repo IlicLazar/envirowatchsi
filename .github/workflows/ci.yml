@@ -25,14 +25,14 @@ jobs:
           distribution: 'temurin'
 
       - name: Make gradlew executable
-        run: chmod +x ./EnviroWatchSI/gradlew
+        run: chmod +x ./gradlew
 
       - name: Run unit tests
-        run: ./EnviroWatchSI/gradlew :server:test -p ./EnviroWatchSI
+        run: ./gradlew test
 
       - name: Publish test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: EnviroWatchSI/server/build/reports/tests/test/
+          path: "**/build/reports/tests/test/"
