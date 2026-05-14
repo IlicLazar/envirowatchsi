@@ -13,6 +13,8 @@ import io.ktor.server.request.*
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import java.util.Date
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 
 object ApiServer {
 
@@ -42,6 +44,27 @@ fun generateJwtToken(username: String): String {
 
 fun Application.module() {
     val gson = Gson()
+    install(Authentication) {
+        jwt("auth-jwt") {
+            realm = "Access to API"
+
+            verifier(
+                JWT.require(Algorithm.HMAC256(JWT_SECRET))
+                    .withAudience(JWT_AUDIENCE)
+                    .withIssuer(JWT_ISSUER)
+                    .build()
+            )
+
+            validate { credential ->
+                if (credential.payload.getClaim("username").asString().isNotBlank()) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
     routing {
         get("/") {
             call.respondText("EnviroWatch SI API is running")
@@ -124,6 +147,7 @@ fun Application.module() {
                 ContentType.Application.Json
             )
         }
+        authenticate("auth-jwt") { 
         post("/api/air-quality") {
 
             val body = call.receiveText()
@@ -370,7 +394,7 @@ fun Application.module() {
 
             call.respondText("Hydro record deleted")
         }
-
+    }
     }
 }
 
