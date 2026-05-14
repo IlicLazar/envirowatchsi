@@ -63,6 +63,27 @@ fun Application.module() {
             DatabaseRepository.registerUser(username, password)
             call.respondText("User registered", status = HttpStatusCode.Created)
         }
+
+        post("/api/login") {
+            val body = call.receiveText()
+            val data = gson.fromJson(body, Map::class.java)
+
+            val username = data["username"] as? String
+            val password = data["password"] as? String
+
+            if (username.isNullOrBlank() || password.isNullOrBlank()) {
+                call.respondText("Username and password are required", status = HttpStatusCode.BadRequest)
+                return@post
+            }
+
+            val isValidUser = DatabaseRepository.validateUser(username, password)
+
+            if (!isValidUser) {
+                call.respondText("Invalid username or password", status = HttpStatusCode.Unauthorized)
+                return@post
+            }
+            call.respondText("Login successful")
+        }
         get("/api/air-quality") {
             call.respondText(
                 gson.toJson(DatabaseRepository.getAirQualityRecords()),

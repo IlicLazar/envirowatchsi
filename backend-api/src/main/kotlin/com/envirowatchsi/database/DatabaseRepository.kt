@@ -6,6 +6,8 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+
 object DatabaseRepository {
 
     fun getAirQualityRecords(): List<Map<String, Any?>> = transaction {
@@ -248,6 +250,20 @@ object DatabaseRepository {
         return transaction {
             UsersTable.selectAll()
                 .where { UsersTable.username eq username }
+                .count() > 0
+        }
+    }
+
+    fun validateUser(
+        username: String,
+        password: String
+    ): Boolean {
+        return transaction {
+            UsersTable.selectAll()
+                .where {
+                    (UsersTable.username eq username) and
+                            (UsersTable.password eq password)
+                }
                 .count() > 0
         }
     }
