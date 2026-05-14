@@ -232,4 +232,23 @@ object DatabaseRepository {
         }
     }
 
+    fun registerUser(
+        username: String,
+        password: String
+    ) {
+        transaction {
+            UsersTable.insert {
+                it[UsersTable.username] = username
+                it[UsersTable.password] = password
+            }
+        }
+    }
+
+    fun userExists(username: String): Boolean {
+        return transaction {
+            UsersTable.selectAll()
+                .where { UsersTable.username eq username }
+                .count() > 0
+        }
+    }
 }

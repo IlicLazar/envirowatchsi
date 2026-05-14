@@ -64,3 +64,10 @@ object HydroStationsTable : Table("hydro_stations") {
     }
     override val primaryKey = PrimaryKey(id)
 }
+
+object UsersTable : Table("users") {
+    val id = integer("id").autoIncrement()
+    val username = varchar("username", 100).uniqueIndex()
+    val password = varchar("password", 255)
+    override val primaryKey = PrimaryKey(id)
+}

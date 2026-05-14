@@ -18,7 +18,8 @@ object DatabaseFactory {
             SchemaUtils.create(
                 AirQualityStationsTable,
                 MeteoStationsTable,
-                HydroStationsTable
+                HydroStationsTable,
+                UsersTable,
             )
         }
     }

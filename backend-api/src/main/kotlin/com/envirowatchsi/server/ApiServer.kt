@@ -44,6 +44,25 @@ fun Application.module() {
             }
             call.respondText("API running, database: $databaseStatus")
         }
+
+        post("/api/register") {
+            val body = call.receiveText()
+            val data = gson.fromJson(body, Map::class.java)
+
+            val username = data["username"] as? String
+            val password = data["password"] as? String
+
+            if (username.isNullOrBlank() || password.isNullOrBlank()) {
+                call.respondText("Username and password are required", status = HttpStatusCode.BadRequest)
+                return@post
+            }
+            if (DatabaseRepository.userExists(username)) {
+                call.respondText("User already exists", status = HttpStatusCode.Conflict)
+                return@post
+            }
+            DatabaseRepository.registerUser(username, password)
+            call.respondText("User registered", status = HttpStatusCode.Created)
+        }
         get("/api/air-quality") {
             call.respondText(
                 gson.toJson(DatabaseRepository.getAirQualityRecords()),
