@@ -10,6 +10,9 @@ import com.envirowatchsi.database.DatabaseRepository
 import com.google.gson.Gson
 import io.ktor.http.*
 import io.ktor.server.request.*
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import java.util.Date
 
 object ApiServer {
 
@@ -22,6 +25,19 @@ object ApiServer {
             module = Application::module
         ).start(wait = true)
     }
+}
+
+private const val JWT_SECRET = "enviro-watch-secret"
+private const val JWT_ISSUER = "envirowatchsi"
+private const val JWT_AUDIENCE = "envirowatchsi-users"
+
+fun generateJwtToken(username: String): String {
+    return JWT.create()
+        .withAudience(JWT_AUDIENCE)
+        .withIssuer(JWT_ISSUER)
+        .withClaim("username", username)
+        .withExpiresAt(Date(System.currentTimeMillis() + 60 * 60 * 1000))
+        .sign(Algorithm.HMAC256(JWT_SECRET))
 }
 
 fun Application.module() {
@@ -82,7 +98,11 @@ fun Application.module() {
                 call.respondText("Invalid username or password", status = HttpStatusCode.Unauthorized)
                 return@post
             }
-            call.respondText("Login successful")
+            val token = generateJwtToken(username)
+            call.respondText(
+                gson.toJson(mapOf("token" to token)),
+                ContentType.Application.Json
+            )
         }
         get("/api/air-quality") {
             call.respondText(
