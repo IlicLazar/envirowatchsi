@@ -147,7 +147,7 @@ fun Application.module() {
                 ContentType.Application.Json
             )
         }
-        authenticate("auth-jwt") { 
+        authenticate("auth-jwt") {
         post("/api/air-quality") {
 
             val body = call.receiveText()
