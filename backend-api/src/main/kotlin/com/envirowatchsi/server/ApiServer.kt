@@ -147,6 +147,36 @@ fun Application.module() {
                 ContentType.Application.Json
             )
         }
+        get("/api/data") {
+            val type = call.request.queryParameters["type"]
+            when (type) {
+                "air-quality" -> {
+                    call.respondText(
+                        gson.toJson(DatabaseRepository.getAirQualityRecords()),
+                        ContentType.Application.Json
+                    )
+                }
+                "meteo" -> {
+                    call.respondText(
+                        gson.toJson(DatabaseRepository.getMeteoRecords()),
+                        ContentType.Application.Json
+                    )
+                }
+                "hydro" -> {
+                    call.respondText(
+                        gson.toJson(DatabaseRepository.getHydroRecords()),
+                        ContentType.Application.Json
+                    )
+                }
+                else -> {
+                    call.respondText(
+                        "Invalid or missing type. Use: air-quality, meteo, hydro",
+                        status = HttpStatusCode.BadRequest
+                    )
+                }
+            }
+        }
+
         authenticate("auth-jwt") {
         post("/api/air-quality") {
 
