@@ -453,6 +453,8 @@ fun Application.module() {
                 aqi
             )
 
+            broadcastWebSocketMessage("Air quality record updated: $id")
+
             call.respondText("Air quality record updated")
         }
 
@@ -486,6 +488,8 @@ fun Application.module() {
                 precipitation
             )
 
+            broadcastWebSocketMessage("Meteo record updated: $id")
+
             call.respondText("Meteo record updated")
         }
 
@@ -515,6 +519,8 @@ fun Application.module() {
                 waterFlow
             )
 
+            broadcastWebSocketMessage("Hydro record updated: $id")
+
             call.respondText("Hydro record updated")
         }
 
@@ -530,6 +536,8 @@ fun Application.module() {
             }
 
             DatabaseRepository.deleteAirQualityRecord(id)
+
+            broadcastWebSocketMessage("Air quality record deleted: $id")
 
             call.respondText("Air quality record deleted")
         }
@@ -547,6 +555,8 @@ fun Application.module() {
 
             DatabaseRepository.deleteMeteoRecord(id)
 
+            broadcastWebSocketMessage("Meteo record deleted: $id")
+
             call.respondText("Meteo record deleted")
         }
 
@@ -562,6 +572,8 @@ fun Application.module() {
             }
 
             DatabaseRepository.deleteHydroRecord(id)
+
+            broadcastWebSocketMessage("Hydro record deleted: $id")
 
             call.respondText("Hydro record deleted")
         }
