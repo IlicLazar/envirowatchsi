@@ -44,6 +44,8 @@ fun generateJwtToken(username: String): String {
         .sign(Algorithm.HMAC256(JWT_SECRET))
 }
 
+val websocketSessions = mutableListOf<DefaultWebSocketServerSession>()
+
 fun Application.module() {
     val gson = Gson()
     install(Authentication) {
@@ -551,14 +553,22 @@ fun Application.module() {
 
         webSocket("/ws") {
 
-            send("Connected to EnviroWatchSI WebSocket")
+            websocketSessions.add(this)
 
-            for (frame in incoming) {
-                frame as? Frame.Text ?: continue
+            try {
 
-                val receivedText = frame.readText()
+                send("Connected to EnviroWatchSI WebSocket")
 
-                send("Server received: $receivedText")
+                for (frame in incoming) {
+                    frame as? Frame.Text ?: continue
+
+                    val receivedText = frame.readText()
+
+                    send("Server received: $receivedText")
+                }
+
+            } finally {
+                websocketSessions.remove(this)
             }
         }
 
