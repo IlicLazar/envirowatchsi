@@ -180,7 +180,7 @@ fun Application.module() {
             val type = call.request.queryParameters["type"]
             val from = call.request.queryParameters["from"]
             val to = call.request.queryParameters["to"]
-            
+
             if (type.isNullOrBlank() || from.isNullOrBlank() || to.isNullOrBlank()) {
                 call.respondText(
                     "Missing parameters. Use: type, from, to",
@@ -204,6 +204,42 @@ fun Application.module() {
             val result = records.filter { record ->
                 val measuredAt = record["measuredAt"] as? String
                 measuredAt != null && measuredAt >= from && measuredAt <= to
+            }
+            call.respondText(
+                gson.toJson(result),
+                ContentType.Application.Json
+            )
+        }
+        get("/api/data/by-location") {
+            val type = call.request.queryParameters["type"]
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+
+            if (type.isNullOrBlank() || lat == null || lon == null) {
+                call.respondText(
+                    "Missing parameters. Use: type, lat, lon",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText(
+                        "Invalid type",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@get
+                }
+            }
+
+            val result = records.filter { record ->
+                val recordLat = record["latitude"] as? Double
+                val recordLon = record["longitude"] as? Double
+
+                recordLat != null && recordLon != null && kotlin.math.abs(recordLat - lat) <= 1.0 && kotlin.math.abs(recordLon - lon) <= 1.0
             }
             call.respondText(
                 gson.toJson(result),
