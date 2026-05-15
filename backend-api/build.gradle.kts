@@ -27,6 +27,6 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.46.1.0")
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("io.ktor:ktor-server-auth-jwt:2.3.12")
-
     implementation(project(":shared"))
+    implementation("io.ktor:ktor-server-websockets:2.3.12")
 }

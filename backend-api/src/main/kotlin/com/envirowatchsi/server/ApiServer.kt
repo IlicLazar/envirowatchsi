@@ -15,7 +15,9 @@ import com.auth0.jwt.algorithms.Algorithm
 import java.util.Date
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
+import java.time.Duration
 object ApiServer {
 
     fun start() {
@@ -63,6 +65,13 @@ fun Application.module() {
                 }
             }
         }
+    }
+
+    install(WebSockets) {
+        pingPeriod = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(15)
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
     }
 
     routing {
@@ -539,6 +548,20 @@ fun Application.module() {
             call.respondText("Hydro record deleted")
         }
     }
+
+        webSocket("/ws") {
+
+            send("Connected to EnviroWatchSI WebSocket")
+
+            for (frame in incoming) {
+                frame as? Frame.Text ?: continue
+
+                val receivedText = frame.readText()
+
+                send("Server received: $receivedText")
+            }
+        }
+
     }
 }
 
