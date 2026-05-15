@@ -360,6 +360,60 @@ fun Application.module() {
             )
         }
 
+        get("/api/geo/nearest") {
+
+            val type = call.request.queryParameters["type"]
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+
+            if (type.isNullOrBlank() || lat == null || lon == null) {
+                call.respondText(
+                    "Missing parameters. Use: type, lat, lon",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText(
+                        "Invalid type",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@get
+                }
+            }
+
+            val nearestRecord = records.minByOrNull { record ->
+
+                val recordLat = record["latitude"] as? Double ?: 0.0
+                val recordLon = record["longitude"] as? Double ?: 0.0
+
+                val latDiff = recordLat - lat
+                val lonDiff = recordLon - lon
+
+                kotlin.math.sqrt(
+                    latDiff * latDiff + lonDiff * lonDiff
+                )
+            }
+
+            if (nearestRecord == null) {
+                call.respondText(
+                    "No records found",
+                    status = HttpStatusCode.NotFound
+                )
+                return@get
+            }
+
+            call.respondText(
+                gson.toJson(nearestRecord),
+                ContentType.Application.Json
+            )
+        }
+
         authenticate("auth-jwt") {
         post("/api/air-quality") {
 
