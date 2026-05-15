@@ -176,6 +176,40 @@ fun Application.module() {
                 }
             }
         }
+        get("/api/data/by-date") {
+            val type = call.request.queryParameters["type"]
+            val from = call.request.queryParameters["from"]
+            val to = call.request.queryParameters["to"]
+            
+            if (type.isNullOrBlank() || from.isNullOrBlank() || to.isNullOrBlank()) {
+                call.respondText(
+                    "Missing parameters. Use: type, from, to",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText(
+                        "Invalid type. Use: air-quality, meteo, hydro",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@get
+                }
+            }
+
+            val result = records.filter { record ->
+                val measuredAt = record["measuredAt"] as? String
+                measuredAt != null && measuredAt >= from && measuredAt <= to
+            }
+            call.respondText(
+                gson.toJson(result),
+                ContentType.Application.Json
+            )
+        }
 
         authenticate("auth-jwt") {
         post("/api/air-quality") {
