@@ -246,6 +246,50 @@ fun Application.module() {
                 ContentType.Application.Json
             )
         }
+        get("/api/data/filter") {
+            val type = call.request.queryParameters["type"]
+            val from = call.request.queryParameters["from"]
+            val to = call.request.queryParameters["to"]
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+
+            if (type.isNullOrBlank()) {
+                call.respondText(
+                    "Missing parameter: type",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText(
+                        "Invalid type. Use: air-quality, meteo, hydro",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@get
+                }
+            }
+            val result = records.filter { record ->
+                val measuredAt = record["measuredAt"] as? String
+                val recordLat = record["latitude"] as? Double
+                val recordLon = record["longitude"] as? Double
+
+                val matchesDate = (from.isNullOrBlank() || measuredAt != null && measuredAt >= from) && (to.isNullOrBlank() || measuredAt != null && measuredAt <= to)
+
+                val matchesLocation = (lat == null || lon == null) ||
+                            ( recordLat != null && recordLon != null && kotlin.math.abs(recordLat - lat) <= 1.0 && kotlin.math.abs(recordLon - lon) <= 1.0)
+
+                matchesDate && matchesLocation
+            }
+            
+            call.respondText(
+                gson.toJson(result),
+                ContentType.Application.Json
+            )
+        }
 
         authenticate("auth-jwt") {
         post("/api/air-quality") {
