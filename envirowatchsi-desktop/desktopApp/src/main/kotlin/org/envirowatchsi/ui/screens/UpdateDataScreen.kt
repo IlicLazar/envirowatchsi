@@ -113,7 +113,7 @@ fun UpdateDataScreen() {
 
         Button(
             onClick = {
-                message = if (selectedId.toIntOrNull() == null) {
+                message = if (selectedId.trim().isBlank()) {
                     "Vnesi veljaven ID zapisa."
                 } else {
                     "Izbran zapis z ID: $selectedId"
@@ -276,9 +276,9 @@ fun UpdateDataScreen() {
 
         Button(
             onClick = {
-                val id = selectedId.toIntOrNull()
+                val id = selectedId.trim()
 
-                if (id == null) {
+                if (id.isBlank()) {
                     message = "Vnesi veljaven ID zapisa."
                     return@Button
                 }

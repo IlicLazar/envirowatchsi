@@ -85,9 +85,9 @@ fun DeleteDataScreen() {
 
         Button(
             onClick = {
-                val id = selectedId.toIntOrNull()
+                val id = selectedId.trim()
 
-                if (id == null) {
+                if (id.isBlank()) {
                     message = "Vnesi veljaven ID."
                 } else {
                     showConfirmation = true
@@ -111,9 +111,9 @@ fun DeleteDataScreen() {
             Row {
                 Button(
                     onClick = {
-                        val id = selectedId.toIntOrNull()
+                        val id = selectedId.trim()
 
-                        if (id == null) {
+                        if (id.isBlank()) {
                             message = "Vnesi veljaven ID."
                             showConfirmation = false
                             return@Button
