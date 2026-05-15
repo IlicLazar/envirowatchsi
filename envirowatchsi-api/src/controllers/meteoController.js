@@ -3,7 +3,13 @@ const Meteo = require("../models/Meteo");
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
 }
+function isValidLatitude(value) {
+  return value == null || (!isNaN(value) && value >= -90 && value <= 90);
+}
 
+function isValidLongitude(value) {
+  return value == null || (!isNaN(value) && value >= -180 && value <= 180);
+}
 exports.getAllMeteo = async (req, res) => {
   const records = await Meteo.find().sort({ createdAt: -1 });
   res.json(records);
@@ -38,6 +44,14 @@ exports.createMeteo = async (req, res) => {
       return res.status(400).json({
         message: "Humidity must be a valid number",
       });
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await Meteo.create({
@@ -94,6 +108,14 @@ exports.updateMeteo = async (req, res) => {
     if (stationName) {
       updateData.stationName = stationName.trim();
       updateData.stationId = createStationId(stationName);
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await Meteo.findByIdAndUpdate(

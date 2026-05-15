@@ -3,7 +3,13 @@ const Hydro = require("../models/Hydro");
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
 }
+function isValidLatitude(value) {
+  return value == null || (!isNaN(value) && value >= -90 && value <= 90);
+}
 
+function isValidLongitude(value) {
+  return value == null || (!isNaN(value) && value >= -180 && value <= 180);
+}
 exports.getAllHydro = async (req, res) => {
   const records = await Hydro.find().sort({ createdAt: -1 });
   res.json(records);
@@ -30,6 +36,14 @@ exports.createHydro = async (req, res) => {
       return res.status(400).json({
         message: "River name is required",
       });
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await Hydro.create({
@@ -80,6 +94,14 @@ exports.updateHydro = async (req, res) => {
 
     if (riverName) {
       updateData.riverName = riverName.trim();
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await Hydro.findByIdAndUpdate(

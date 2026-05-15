@@ -3,7 +3,13 @@ const AirQuality = require("../models/AirQuality");
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
 }
+function isValidLatitude(value) {
+  return value == null || (!isNaN(value) && value >= -90 && value <= 90);
+}
 
+function isValidLongitude(value) {
+  return value == null || (!isNaN(value) && value >= -180 && value <= 180);
+}
 exports.getAllAirQuality = async (req, res) => {
   const records = await AirQuality.find().sort({ createdAt: -1 });
   res.json(records);
@@ -36,6 +42,14 @@ exports.createAirQuality = async (req, res) => {
       return res.status(400).json({
         message: "Air quality index must be a valid number",
       });
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await AirQuality.create({
@@ -90,6 +104,14 @@ exports.updateAirQuality = async (req, res) => {
     if (finalAqi != null) {
       updateData.airQualityIndex = finalAqi;
       delete updateData.aqi;
+    }
+
+    if (!isValidLatitude(latitude)) {
+      return res.status(400).json({ message: "Latitude must be between -90 and 90" });
+    }
+    
+    if (!isValidLongitude(longitude)) {
+      return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
 
     const record = await AirQuality.findByIdAndUpdate(
