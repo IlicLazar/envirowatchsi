@@ -414,6 +414,60 @@ fun Application.module() {
             )
         }
 
+        get("/api/geo/area") {
+
+            val type = call.request.queryParameters["type"]
+
+            val minLat = call.request.queryParameters["minLat"]?.toDoubleOrNull()
+            val maxLat = call.request.queryParameters["maxLat"]?.toDoubleOrNull()
+
+            val minLon = call.request.queryParameters["minLon"]?.toDoubleOrNull()
+            val maxLon = call.request.queryParameters["maxLon"]?.toDoubleOrNull()
+
+            if (
+                type.isNullOrBlank() ||
+                minLat == null ||
+                maxLat == null ||
+                minLon == null ||
+                maxLon == null
+            ) {
+                call.respondText(
+                    "Missing parameters",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText(
+                        "Invalid type",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@get
+                }
+            }
+
+            val result = records.filter { record ->
+
+                val lat = record["latitude"] as? Double
+                val lon = record["longitude"] as? Double
+
+                lat != null &&
+                        lon != null &&
+                        lat in minLat..maxLat &&
+                        lon in minLon..maxLon
+            }
+
+            call.respondText(
+                gson.toJson(result),
+                ContentType.Application.Json
+            )
+        }
+
         authenticate("auth-jwt") {
         post("/api/air-quality") {
 
