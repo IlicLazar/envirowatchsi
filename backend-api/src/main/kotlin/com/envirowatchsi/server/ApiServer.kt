@@ -312,6 +312,54 @@ fun Application.module() {
             )
         }
 
+        get("/api/geo/radius") {
+            val type = call.request.queryParameters["type"]
+            val lat = call.request.queryParameters["lat"]?.toDoubleOrNull()
+            val lon = call.request.queryParameters["lon"]?.toDoubleOrNull()
+            val radius = call.request.queryParameters["radius"]?.toDoubleOrNull()
+
+            if (type.isNullOrBlank() || lat == null || lon == null || radius == null) {
+                call.respondText(
+                    "Missing parameters. Use: type, lat, lon, radius",
+                    status = HttpStatusCode.BadRequest
+                )
+                return@get
+            }
+
+            val records = when (type) {
+                "air-quality" -> DatabaseRepository.getAirQualityRecords()
+                "meteo" -> DatabaseRepository.getMeteoRecords()
+                "hydro" -> DatabaseRepository.getHydroRecords()
+                else -> {
+                    call.respondText("Invalid type", status = HttpStatusCode.BadRequest)
+                    return@get
+                }
+            }
+
+            val result = records.filter { record ->
+                val recordLat = record["latitude"] as? Double
+                val recordLon = record["longitude"] as? Double
+
+                if (recordLat == null || recordLon == null) {
+                    false
+                } else {
+                    val latDiff = recordLat - lat
+                    val lonDiff = recordLon - lon
+
+                    val distance = kotlin.math.sqrt(
+                        latDiff * latDiff + lonDiff * lonDiff
+                    )
+
+                    distance <= radius
+                }
+            }
+
+            call.respondText(
+                gson.toJson(result),
+                ContentType.Application.Json
+            )
+        }
+
         authenticate("auth-jwt") {
         post("/api/air-quality") {
 
