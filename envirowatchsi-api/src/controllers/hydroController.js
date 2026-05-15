@@ -10,34 +10,100 @@ exports.getAllHydro = async (req, res) => {
 };
 
 exports.createHydro = async (req, res) => {
-  const { stationName, riverName, latitude, longitude, waterLevel, waterFlow } = req.body;
+  try {
+    const {
+      stationName,
+      riverName,
+      latitude,
+      longitude,
+      waterLevel,
+      waterFlow,
+    } = req.body;
 
-  if (!stationName || !riverName) {
-    return res.status(400).json({ message: "Invalid hydro input" });
+    if (!stationName || stationName.trim() === "") {
+      return res.status(400).json({
+        message: "Station name is required",
+      });
+    }
+
+    if (!riverName || riverName.trim() === "") {
+      return res.status(400).json({
+        message: "River name is required",
+      });
+    }
+
+    const record = await Hydro.create({
+      stationId: createStationId(stationName),
+      stationName: stationName.trim(),
+      riverName: riverName.trim(),
+      latitude,
+      longitude,
+      waterLevel,
+      waterFlow,
+    });
+
+    res.status(201).json(record);
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Failed to create hydro record",
+      error: err.message,
+    });
   }
-
-  const record = await Hydro.create({
-    stationId: createStationId(stationName),
-    stationName,
-    riverName,
-    latitude,
-    longitude,
-    waterLevel,
-    waterFlow,
-  });
-
-  res.status(201).json(record);
 };
 
 exports.updateHydro = async (req, res) => {
-  const record = await Hydro.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  try {
+    const { stationName, riverName } = req.body;
 
-  if (!record) return res.status(404).json({ message: "Hydro record not found" });
+    if (stationName != null && stationName.trim() === "") {
+      return res.status(400).json({
+        message: "Station name cannot be empty",
+      });
+    }
 
-  res.json(record);
+    if (riverName != null && riverName.trim() === "") {
+      return res.status(400).json({
+        message: "River name cannot be empty",
+      });
+    }
+
+    const updateData = {
+      ...req.body,
+    };
+
+    if (stationName) {
+      updateData.stationName = stationName.trim();
+      updateData.stationId = createStationId(stationName);
+    }
+
+    if (riverName) {
+      updateData.riverName = riverName.trim();
+    }
+
+    const record = await Hydro.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Hydro record not found",
+      });
+    }
+
+    res.json(record);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to update hydro record",
+      error: err.message,
+    });
+  }
 };
 
 exports.deleteHydro = async (req, res) => {

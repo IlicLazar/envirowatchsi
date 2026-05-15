@@ -10,37 +10,105 @@ exports.getAllAirQuality = async (req, res) => {
 };
 
 exports.createAirQuality = async (req, res) => {
-  const { stationName, latitude, longitude, aqi, airQualityIndex, pm10, pm2_5, o3, co, so2 } = req.body;
+  try {
+    const {
+      stationName,
+      latitude,
+      longitude,
+      aqi,
+      airQualityIndex,
+      pm10,
+      pm2_5,
+      o3,
+      co,
+      so2,
+    } = req.body;
 
-  if (!stationName || (aqi == null && airQualityIndex == null)) {
-    return res.status(400).json({ message: "Invalid air quality input" });
+    if (!stationName || stationName.trim() === "") {
+      return res.status(400).json({
+        message: "Station name is required",
+      });
+    }
+
+    const finalAqi = airQualityIndex ?? aqi;
+
+    if (finalAqi == null || isNaN(finalAqi)) {
+      return res.status(400).json({
+        message: "Air quality index must be a valid number",
+      });
+    }
+
+    const record = await AirQuality.create({
+      stationId: createStationId(stationName),
+      stationName: stationName.trim(),
+      latitude,
+      longitude,
+      pm10,
+      pm2_5,
+      o3,
+      co,
+      so2,
+      airQualityIndex: finalAqi,
+    });
+
+    res.status(201).json(record);
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Failed to create air quality record",
+      error: err.message,
+    });
   }
-
-  const record = await AirQuality.create({
-    stationId: createStationId(stationName),
-    stationName,
-    latitude,
-    longitude,
-    pm10,
-    pm2_5,
-    o3,
-    co,
-    so2,
-    airQualityIndex: airQualityIndex ?? aqi,
-  });
-
-  res.status(201).json(record);
 };
 
 exports.updateAirQuality = async (req, res) => {
-  const record = await AirQuality.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  try {
+    const { stationName, aqi, airQualityIndex } = req.body;
 
-  if (!record) return res.status(404).json({ message: "Air quality record not found" });
+    if (stationName != null && stationName.trim() === "") {
+      return res.status(400).json({ message: "Station name cannot be empty" });
+    }
 
-  res.json(record);
+    const finalAqi = airQualityIndex ?? aqi;
+
+    if (finalAqi != null && isNaN(finalAqi)) {
+      return res.status(400).json({
+        message: "Air quality index must be a valid number",
+      });
+    }
+
+    const updateData = {
+      ...req.body,
+    };
+
+    if (stationName) {
+      updateData.stationName = stationName.trim();
+      updateData.stationId = createStationId(stationName);
+    }
+
+    if (finalAqi != null) {
+      updateData.airQualityIndex = finalAqi;
+      delete updateData.aqi;
+    }
+
+    const record = await AirQuality.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!record) {
+      return res.status(404).json({ message: "Air quality record not found" });
+    }
+
+    res.json(record);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to update air quality record",
+      error: err.message,
+    });
+  }
 };
 
 exports.deleteAirQuality = async (req, res) => {

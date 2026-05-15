@@ -10,36 +10,116 @@ exports.getAllMeteo = async (req, res) => {
 };
 
 exports.createMeteo = async (req, res) => {
-  const { stationName, latitude, longitude, temperature, humidity, windSpeed, windDirection, precipitation } = req.body;
+  try {
+    const {
+      stationName,
+      latitude,
+      longitude,
+      temperature,
+      humidity,
+      windSpeed,
+      windDirection,
+      precipitation,
+    } = req.body;
 
-  if (!stationName || temperature == null || humidity == null) {
-    return res.status(400).json({ message: "Invalid meteo input" });
+    if (!stationName || stationName.trim() === "") {
+      return res.status(400).json({
+        message: "Station name is required",
+      });
+    }
+
+    if (temperature == null || isNaN(temperature)) {
+      return res.status(400).json({
+        message: "Temperature must be a valid number",
+      });
+    }
+
+    if (humidity == null || isNaN(humidity)) {
+      return res.status(400).json({
+        message: "Humidity must be a valid number",
+      });
+    }
+
+    const record = await Meteo.create({
+      stationId: createStationId(stationName),
+      stationName: stationName.trim(),
+      latitude,
+      longitude,
+      temperature,
+      humidity,
+      windSpeed,
+      windDirection,
+      precipitation,
+    });
+
+    res.status(201).json(record);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to create meteo record",
+      error: err.message,
+    });
   }
-
-  const record = await Meteo.create({
-    stationId: createStationId(stationName),
-    stationName,
-    latitude,
-    longitude,
-    temperature,
-    humidity,
-    windSpeed,
-    windDirection,
-    precipitation,
-  });
-
-  res.status(201).json(record);
 };
 
 exports.updateMeteo = async (req, res) => {
-  const record = await Meteo.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  try {
+    const {
+      stationName,
+      temperature,
+      humidity,
+    } = req.body;
 
-  if (!record) return res.status(404).json({ message: "Meteo record not found" });
+    if (stationName != null && stationName.trim() === "") {
+      return res.status(400).json({
+        message: "Station name cannot be empty",
+      });
+    }
 
-  res.json(record);
+    if (temperature != null && isNaN(temperature)) {
+      return res.status(400).json({
+        message: "Temperature must be a valid number",
+      });
+    }
+
+    if (humidity != null && isNaN(humidity)) {
+      return res.status(400).json({
+        message: "Humidity must be a valid number",
+      });
+    }
+
+    const updateData = {
+      ...req.body,
+    };
+
+    if (stationName) {
+      updateData.stationName = stationName.trim();
+      updateData.stationId = createStationId(stationName);
+    }
+
+    const record = await Meteo.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Meteo record not found",
+      });
+    }
+
+    res.json(record);
+
+  } catch (err) {
+
+    res.status(500).json({
+      message: "Failed to update meteo record",
+      error: err.message,
+    });
+  }
 };
 
 exports.deleteMeteo = async (req, res) => {
