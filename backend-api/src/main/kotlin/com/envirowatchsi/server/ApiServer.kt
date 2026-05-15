@@ -46,6 +46,16 @@ fun generateJwtToken(username: String): String {
 
 val websocketSessions = mutableListOf<DefaultWebSocketServerSession>()
 
+suspend fun broadcastWebSocketMessage(message: String) {
+    websocketSessions.toList().forEach { session ->
+        try {
+            session.send(message)
+        } catch (e: Exception) {
+            websocketSessions.remove(session)
+        }
+    }
+}
+
 fun Application.module() {
     val gson = Gson()
     install(Authentication) {
@@ -332,6 +342,8 @@ fun Application.module() {
                 aqi.toInt()
             )
 
+            broadcastWebSocketMessage("New air quality record saved: $stationName")
+
             call.respondText(
                 "Air quality record saved",
                 status = HttpStatusCode.Created
@@ -370,6 +382,8 @@ fun Application.module() {
                 precipitation
             )
 
+            broadcastWebSocketMessage("New meteo record saved: $stationName")
+
             call.respondText("Meteo record saved", status = HttpStatusCode.Created)
         }
 
@@ -401,6 +415,8 @@ fun Application.module() {
                 waterLevel,
                 waterFlow
             )
+
+            broadcastWebSocketMessage("New hydro record saved: $stationName")
 
             call.respondText("Hydro record saved", status = HttpStatusCode.Created)
         }
