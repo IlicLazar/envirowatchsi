@@ -1,3 +1,4 @@
+const { authenticate, requireAdmin } = require("../middleware/authMiddleware");
 const express = require("express");
 const router = express.Router();
 
@@ -32,7 +33,12 @@ router.get("/", getAllHydro);
  *       201:
  *         description: Hydro record created
  */
-router.post("/", createHydro);
+router.post(
+  "/",
+  authenticate,
+  requireAdmin,
+  createHydro
+);
 
 /**
  * @swagger
@@ -50,7 +56,12 @@ router.post("/", createHydro);
  *       200:
  *         description: Hydro record updated
  */
-router.put("/:id", updateHydro);
+router.put(
+  "/:id",
+  authenticate,
+  requireAdmin,
+  updateHydro
+);
 
 /**
  * @swagger
@@ -68,6 +79,11 @@ router.put("/:id", updateHydro);
  *       200:
  *         description: Hydro record deleted
  */
-router.delete("/:id", deleteHydro);
+router.delete(
+  "/:id",
+  authenticate,
+  requireAdmin,
+  deleteHydro
+);
 
 module.exports = router;

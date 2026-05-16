@@ -1,3 +1,4 @@
+const { authenticate, requireAdmin } = require("../middleware/authMiddleware");
 const express = require("express");
 const router = express.Router();
 
@@ -32,7 +33,7 @@ router.get("/", getAllMeteo);
  *       201:
  *         description: Meteo record created
  */
-router.post("/", createMeteo);
+router.post("/", authenticate, requireAdmin, createMeteo);
 
 /**
  * @swagger
@@ -50,7 +51,7 @@ router.post("/", createMeteo);
  *       200:
  *         description: Meteo record updated
  */
-router.put("/:id", updateMeteo);
+router.put("/:id", authenticate, requireAdmin, updateMeteo);
 
 /**
  * @swagger
@@ -68,6 +69,6 @@ router.put("/:id", updateMeteo);
  *       200:
  *         description: Meteo record deleted
  */
-router.delete("/:id", deleteMeteo);
+router.delete("/:id", authenticate, requireAdmin, deleteMeteo);
 
 module.exports = router;

@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 const app = require("./src/app");
 const connectMongo = require("./src/db/mongo");
-
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 
