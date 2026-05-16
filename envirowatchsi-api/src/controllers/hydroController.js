@@ -1,4 +1,5 @@
 const Hydro = require("../models/Hydro");
+const { broadcastEvent } = require("../websocket/websocketServer");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -64,6 +65,7 @@ if (latitude !== undefined && longitude !== undefined) {
       waterFlow,
     });
 
+    broadcastEvent({ type: "HYDRO_CREATED", data: record });
     res.status(201).json(record);
 
   } catch (err) {
@@ -132,6 +134,7 @@ if (latitude !== undefined && longitude !== undefined) {
       });
     }
 
+    broadcastEvent({ type: "HYDRO_UPDATED", data: record });
     res.json(record);
   } catch (err) {
     res.status(500).json({
@@ -178,6 +181,6 @@ exports.deleteHydro = async (req, res) => {
   const record = await Hydro.findByIdAndDelete(req.params.id);
 
   if (!record) return res.status(404).json({ message: "Hydro record not found" });
-
+broadcastEvent({ type: "HYDRO_DELETED", data: record });
   res.json({ message: "Hydro record deleted" });
 };

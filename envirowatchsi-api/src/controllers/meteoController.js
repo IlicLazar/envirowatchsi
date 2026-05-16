@@ -1,4 +1,5 @@
 const Meteo = require("../models/Meteo");
+const { broadcastEvent } = require("../websocket/websocketServer");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -72,6 +73,10 @@ exports.createMeteo = async (req, res) => {
       precipitation,
     });
 
+  broadcastEvent({
+  type: "METEO_CREATED",
+  data: record,
+});
     res.status(201).json(record);
   } catch (err) {
     res.status(500).json({
@@ -145,9 +150,12 @@ exports.updateMeteo = async (req, res) => {
         message: "Meteo record not found",
       });
     }
-
+    broadcastEvent({
+  type: "METEO_UPDATED",
+  data: record,
+});
     res.json(record);
-
+    
   } catch (err) {
 
     res.status(500).json({
@@ -194,6 +202,9 @@ exports.deleteMeteo = async (req, res) => {
   const record = await Meteo.findByIdAndDelete(req.params.id);
 
   if (!record) return res.status(404).json({ message: "Meteo record not found" });
-
+broadcastEvent({
+  type: "METEO_DELETED",
+  data: record,
+});
   res.json({ message: "Meteo record deleted" });
 };

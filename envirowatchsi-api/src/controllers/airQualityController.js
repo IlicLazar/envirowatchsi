@@ -1,4 +1,5 @@
 const AirQuality = require("../models/AirQuality");
+const { broadcastEvent } = require("../websocket/websocketServer");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -73,6 +74,7 @@ if (latitude !== undefined && longitude !== undefined) {
       airQualityIndex: finalAqi,
     });
 
+    broadcastEvent({ type: "AIR_QUALITY_CREATED", data: record });
     res.status(201).json(record);
 
   } catch (err) {
@@ -137,6 +139,7 @@ if (latitude !== undefined && longitude !== undefined) {
       return res.status(404).json({ message: "Air quality record not found" });
     }
 
+    broadcastEvent({ type: "AIR_QUALITY_UPDATED", data: record });
     res.json(record);
   } catch (err) {
     res.status(500).json({
@@ -183,6 +186,6 @@ exports.deleteAirQuality = async (req, res) => {
   const record = await AirQuality.findByIdAndDelete(req.params.id);
 
   if (!record) return res.status(404).json({ message: "Air quality record not found" });
-
+  broadcastEvent({ type: "AIR_QUALITY_DELETED", data: record });
   res.json({ message: "Air quality record deleted" });
 };
