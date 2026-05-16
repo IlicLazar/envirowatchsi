@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getHydroData } from "../api/services/hydroService";
+import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import HydroTable from "../components/tables/HydroTable";
+import HydroChart from "../components/charts/HydroChart";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
@@ -64,6 +66,8 @@ function HydroPage() {
         data={filteredData}
         onSelectRecord={setSelectedRecord}
       />
+
+      <HydroChart data={filteredData} />
 
       {selectedRecord && (
         <div
