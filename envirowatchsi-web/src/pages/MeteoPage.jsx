@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { getMeteoData } from "../api/services/meteoService";
-import MeteoTable from "../components/tables/MeteoTable";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
+import MeteoTable from "../components/tables/MeteoTable";
+import MeteoChart from "../components/charts/MeteoChart";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
@@ -22,7 +23,7 @@ function MeteoPage() {
       if (message.type === "METEO_CREATED") {
         setMeteoData((prevData) => [message.data, ...prevData]);
       }
-  
+
       if (message.type === "METEO_UPDATED") {
         setMeteoData((prevData) =>
           prevData.map((item) =>
@@ -30,14 +31,14 @@ function MeteoPage() {
           )
         );
       }
-  
+
       if (message.type === "METEO_DELETED") {
         setMeteoData((prevData) =>
           prevData.filter((item) => item._id !== message.data._id)
         );
       }
     });
-  
+
     return () => {
       socket.close();
     };
@@ -64,6 +65,8 @@ function MeteoPage() {
       />
 
       <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
+
+      <MeteoChart data={filteredData} />
 
       {selectedRecord && (
         <div style={{ marginTop: "20px", padding: "15px", border: "1px solid #ccc" }}>
