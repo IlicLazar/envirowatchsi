@@ -3,6 +3,7 @@ import { getHydroData } from "../api/services/hydroService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import HydroTable from "../components/tables/HydroTable";
 import HydroChart from "../components/charts/HydroChart";
+import StatsCard from "../components/stats/StatsCard";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
@@ -46,6 +47,22 @@ function HydroPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const averageWaterLevel =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.waterLevel || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
+  const averageWaterFlow =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.waterFlow || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>Hydro Data</h1>
@@ -61,6 +78,11 @@ function HydroPage() {
           marginBottom: "20px",
         }}
       />
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        <StatsCard title="Total stations" value={filteredData.length} />
+        <StatsCard title="Average water level" value={averageWaterLevel} />
+        <StatsCard title="Average water flow" value={averageWaterFlow} />
+      </div>
 
       <HydroTable
         data={filteredData}

@@ -3,6 +3,7 @@ import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import { getAirQualityData } from "../api/services/airQualityService";
 import AirQualityTable from "../components/tables/AirQualityTable";
 import AirQualityChart from "../components/charts/AirQualityChart";
+import StatsCard from "../components/stats/StatsCard";
 
 function AirQualityPage() {
   const [airQualityData, setAirQualityData] = useState([]);
@@ -46,6 +47,19 @@ function AirQualityPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const averageAqi =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.airQualityIndex || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
+  const maxPm10 =
+    filteredData.length > 0
+      ? Math.max(...filteredData.map((item) => Number(item.pm10 || 0)))
+      : "N/A";
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>Air Quality Data</h1>
@@ -61,6 +75,12 @@ function AirQualityPage() {
           marginBottom: "20px",
         }}
       />
+
+    <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+      <StatsCard title="Total stations" value={filteredData.length} />
+      <StatsCard title="Average AQI" value={averageAqi} />
+      <StatsCard title="Max PM10" value={maxPm10} />
+    </div>
 
       <AirQualityTable
         data={filteredData}

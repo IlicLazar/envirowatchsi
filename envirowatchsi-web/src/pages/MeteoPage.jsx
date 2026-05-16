@@ -3,6 +3,7 @@ import { getMeteoData } from "../api/services/meteoService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import MeteoTable from "../components/tables/MeteoTable";
 import MeteoChart from "../components/charts/MeteoChart";
+import StatsCard from "../components/stats/StatsCard";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
@@ -48,6 +49,22 @@ function MeteoPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const averageTemperature =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.temperature || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
+  const averageHumidity =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.humidity || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>Meteo Data</h1>
@@ -63,6 +80,11 @@ function MeteoPage() {
           marginBottom: "20px",
         }}
       />
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        <StatsCard title="Total stations" value={filteredData.length} />
+        <StatsCard title="Average temperature" value={`${averageTemperature} °C`} />
+        <StatsCard title="Average humidity" value={`${averageHumidity} %`} />
+      </div>
 
       <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
 
