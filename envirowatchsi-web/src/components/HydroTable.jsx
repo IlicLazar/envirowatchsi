@@ -1,4 +1,4 @@
-function HydroTable({ data }) {
+function HydroTable({ data, onSelectRecord }) {
     return (
       <table
         border="1"
@@ -15,6 +15,7 @@ function HydroTable({ data }) {
             <th>River</th>
             <th>Water Level</th>
             <th>Water Flow</th>
+            <th>Details</th>
           </tr>
         </thead>
   
@@ -25,6 +26,12 @@ function HydroTable({ data }) {
               <td>{item.riverName}</td>
               <td>{item.waterLevel ?? "N/A"}</td>
               <td>{item.waterFlow ?? "N/A"}</td>
+  
+              <td>
+                <button onClick={() => onSelectRecord(item)}>
+                  View Details
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

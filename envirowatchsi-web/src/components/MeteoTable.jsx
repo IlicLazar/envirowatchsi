@@ -1,4 +1,4 @@
-function MeteoTable({ data }) {
+function MeteoTable({ data, onSelectRecord }) {
     return (
       <table
         border="1"
@@ -15,6 +15,7 @@ function MeteoTable({ data }) {
             <th>Temperature</th>
             <th>Humidity</th>
             <th>Wind Speed</th>
+            <th>Details</th>
           </tr>
         </thead>
   
@@ -25,6 +26,12 @@ function MeteoTable({ data }) {
               <td>{item.temperature} °C</td>
               <td>{item.humidity} %</td>
               <td>{item.windSpeed ?? "N/A"}</td>
+  
+              <td>
+                <button onClick={() => onSelectRecord(item)}>
+                  View Details
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
