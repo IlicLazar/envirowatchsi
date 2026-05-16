@@ -3,7 +3,7 @@ import HomePage from "./pages/HomePage";
 import MeteoPage from "./pages/MeteoPage";
 import AirQualityPage from "./pages/AirQualityPage";
 import HydroPage from "./pages/HydroPage";
-import Navbar from "./components/Navbar";
+import Navbar from "./components/layout/Navbar";
 
 function App() {
   return (

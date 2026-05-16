@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllEnvironmentalData } from "../api/dataService";
+import { getAllEnvironmentalData } from "../api/services/dataService";
 
 function HomePage() {
   const [data, setData] = useState(null);

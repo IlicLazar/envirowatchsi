@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import { getMeteoData } from "../api/meteoService";
-import MeteoTable from "../components/MeteoTable";
-import { createWebSocketConnection } from "../api/websocketClient";
+import { getMeteoData } from "../api/services/meteoService";
+import { createWebSocketConnection } from "../api/websocket/websocketClient";
+import MeteoTable from "../components/tables/MeteoTable";
+import MeteoChart from "../components/charts/MeteoChart";
+import StatsCard from "../components/stats/StatsCard";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
@@ -22,7 +24,7 @@ function MeteoPage() {
       if (message.type === "METEO_CREATED") {
         setMeteoData((prevData) => [message.data, ...prevData]);
       }
-  
+
       if (message.type === "METEO_UPDATED") {
         setMeteoData((prevData) =>
           prevData.map((item) =>
@@ -30,14 +32,14 @@ function MeteoPage() {
           )
         );
       }
-  
+
       if (message.type === "METEO_DELETED") {
         setMeteoData((prevData) =>
           prevData.filter((item) => item._id !== message.data._id)
         );
       }
     });
-  
+
     return () => {
       socket.close();
     };
@@ -46,6 +48,22 @@ function MeteoPage() {
   const filteredData = meteoData.filter((item) =>
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const averageTemperature =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.temperature || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
+
+  const averageHumidity =
+  filteredData.length > 0
+    ? (
+        filteredData.reduce((sum, item) => sum + Number(item.humidity || 0), 0) /
+        filteredData.length
+      ).toFixed(1)
+    : "N/A";
 
   return (
     <div style={{ padding: "20px" }}>
@@ -62,8 +80,15 @@ function MeteoPage() {
           marginBottom: "20px",
         }}
       />
+      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
+        <StatsCard title="Total stations" value={filteredData.length} />
+        <StatsCard title="Average temperature" value={`${averageTemperature} °C`} />
+        <StatsCard title="Average humidity" value={`${averageHumidity} %`} />
+      </div>
 
       <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
+
+      <MeteoChart data={filteredData} />
 
       {selectedRecord && (
         <div style={{ marginTop: "20px", padding: "15px", border: "1px solid #ccc" }}>
