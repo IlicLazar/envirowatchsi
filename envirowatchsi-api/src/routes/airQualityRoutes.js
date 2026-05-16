@@ -1,3 +1,4 @@
+const { authenticate, requireAdmin } = require("../middleware/authMiddleware");
 const express = require("express");
 const router = express.Router();
 
@@ -5,9 +6,10 @@ const {
   getAllAirQuality,
   createAirQuality,
   updateAirQuality,
+  getNearbyAirQuality,
   deleteAirQuality,
 } = require("../controllers/airQualityController");
-
+console.log("Air quality routes loaded with /near");
 /**
  * @swagger
  * /api/air-quality:
@@ -18,6 +20,7 @@ const {
  *       200:
  *         description: List of air quality records
  */
+router.get("/near", getNearbyAirQuality);
 router.get("/", getAllAirQuality);
 
 /**
@@ -32,7 +35,12 @@ router.get("/", getAllAirQuality);
  *       201:
  *         description: Air quality record created
  */
-router.post("/", createAirQuality);
+router.post(
+  "/",
+  authenticate,
+  requireAdmin,
+  createAirQuality
+);
 
 /**
  * @swagger
@@ -50,7 +58,12 @@ router.post("/", createAirQuality);
  *       200:
  *         description: Air quality record updated
  */
-router.put("/:id", updateAirQuality);
+router.put(
+  "/:id",
+  authenticate,
+  requireAdmin,
+  updateAirQuality
+);
 
 /**
  * @swagger
@@ -68,6 +81,11 @@ router.put("/:id", updateAirQuality);
  *       200:
  *         description: Air quality record deleted
  */
-router.delete("/:id", deleteAirQuality);
+router.delete(
+  "/:id",
+  authenticate,
+  requireAdmin,
+  deleteAirQuality
+);
 
 module.exports = router;

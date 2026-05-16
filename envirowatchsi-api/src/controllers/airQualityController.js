@@ -1,4 +1,5 @@
 const AirQuality = require("../models/AirQuality");
+const { broadcastEvent } = require("../websocket/websocketServer");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -51,12 +52,20 @@ exports.createAirQuality = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
+let location;
 
+if (latitude !== undefined && longitude !== undefined) {
+  location = {
+    type: "Point",
+    coordinates: [longitude, latitude],
+  };
+}
     const record = await AirQuality.create({
       stationId: createStationId(stationName),
       stationName: stationName.trim(),
       latitude,
       longitude,
+      location,
       pm10,
       pm2_5,
       o3,
@@ -65,6 +74,7 @@ exports.createAirQuality = async (req, res) => {
       airQualityIndex: finalAqi,
     });
 
+    broadcastEvent({ type: "AIR_QUALITY_CREATED", data: record });
     res.status(201).json(record);
 
   } catch (err) {
@@ -78,7 +88,7 @@ exports.createAirQuality = async (req, res) => {
 
 exports.updateAirQuality = async (req, res) => {
   try {
-    const { stationName, aqi, airQualityIndex } = req.body;
+    const { stationName, latitude, longitude, aqi, airQualityIndex } = req.body;
 
     if (stationName != null && stationName.trim() === "") {
       return res.status(400).json({ message: "Station name cannot be empty" });
@@ -113,7 +123,12 @@ exports.updateAirQuality = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
-
+if (latitude !== undefined && longitude !== undefined) {
+  updateData.location = {
+    type: "Point",
+    coordinates: [longitude, latitude],
+  };
+}
     const record = await AirQuality.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -124,6 +139,7 @@ exports.updateAirQuality = async (req, res) => {
       return res.status(404).json({ message: "Air quality record not found" });
     }
 
+    broadcastEvent({ type: "AIR_QUALITY_UPDATED", data: record });
     res.json(record);
   } catch (err) {
     res.status(500).json({
@@ -132,11 +148,44 @@ exports.updateAirQuality = async (req, res) => {
     });
   }
 };
+exports.getNearbyAirQuality = async (req, res) => {
+  try {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const radius = Number(req.query.radius) || 10000;
 
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      return res.status(400).json({ message: "Valid lat query parameter is required" });
+    }
+
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      return res.status(400).json({ message: "Valid lng query parameter is required" });
+    }
+
+    const records = await AirQuality.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          $maxDistance: radius,
+        },
+      },
+    });
+
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to find nearby air quality records",
+      error: err.message,
+    });
+  }
+};
 exports.deleteAirQuality = async (req, res) => {
   const record = await AirQuality.findByIdAndDelete(req.params.id);
 
   if (!record) return res.status(404).json({ message: "Air quality record not found" });
-
+  broadcastEvent({ type: "AIR_QUALITY_DELETED", data: record });
   res.json({ message: "Air quality record deleted" });
 };

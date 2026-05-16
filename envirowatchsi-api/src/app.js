@@ -4,6 +4,7 @@ const cors = require("cors");
 const airQualityRoutes = require("./routes/airQualityRoutes");
 const meteoRoutes = require("./routes/meteoRoutes");
 const hydroRoutes = require("./routes/hydroRoutes");
+const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.get("/health", (req, res) => {
 app.use("/api/air-quality", airQualityRoutes);
 app.use("/api/meteo", meteoRoutes);
 app.use("/api/hydro", hydroRoutes);
-
+app.use("/api/auth", authRoutes);
+console.log("Loaded routes: /api/auth");
 module.exports = app;

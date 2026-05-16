@@ -1,8 +1,10 @@
+require("dotenv").config();
+
 const app = require("./src/app");
 const connectMongo = require("./src/db/mongo");
-
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
+const { initWebSocket } = require("./src/websocket/websocketServer");
 
 const PORT = 3000;
 
@@ -33,8 +35,10 @@ connectMongo().then(() => {
     swaggerUi.setup(swaggerSpec)
   );
 
-  app.listen(PORT, () => {
-    console.log(`EnviroWatchSI API running on port ${PORT}`);
-  });
+  const server = app.listen(PORT, () => {
+  console.log(`EnviroWatchSI API running on port ${PORT}`);
+});
+
+initWebSocket(server);
 
 });

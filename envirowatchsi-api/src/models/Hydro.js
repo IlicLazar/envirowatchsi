@@ -6,6 +6,18 @@ const hydroSchema = new mongoose.Schema(
     stationName: { type: String, required: true },
     latitude: Number,
     longitude: Number,
+
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+      },
+    },
+
     riverName: { type: String, required: true },
     measuredAt: { type: Date, default: Date.now },
 
@@ -15,4 +27,7 @@ const hydroSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Hydro", hydroSchema);
+hydroSchema.index({ location: "2dsphere" });
+const Hydro = mongoose.model("Hydro", hydroSchema);
+Hydro.syncIndexes();
+module.exports = Hydro;

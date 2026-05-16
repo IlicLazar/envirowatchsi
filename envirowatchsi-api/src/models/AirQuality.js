@@ -3,10 +3,30 @@ const mongoose = require("mongoose");
 const airQualitySchema = new mongoose.Schema(
   {
     stationId: String,
-    stationName: { type: String, required: true },
+
+    stationName: {
+      type: String,
+      required: true,
+    },
+
     latitude: Number,
     longitude: Number,
-    measuredAt: { type: Date, default: Date.now },
+
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+      },
+    },
+
+    measuredAt: {
+      type: Date,
+      default: Date.now,
+    },
 
     pm10: Number,
     pm2_5: Number,
@@ -15,7 +35,11 @@ const airQualitySchema = new mongoose.Schema(
     so2: Number,
     airQualityIndex: Number,
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
+
+airQualitySchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model("AirQuality", airQualitySchema);

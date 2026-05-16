@@ -1,4 +1,5 @@
 const Meteo = require("../models/Meteo");
+const { broadcastEvent } = require("../websocket/websocketServer");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -53,12 +54,18 @@ exports.createMeteo = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
-
+    if (latitude !== undefined && longitude !== undefined) {
+      req.body.location = {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      };
+    }
     const record = await Meteo.create({
       stationId: createStationId(stationName),
       stationName: stationName.trim(),
       latitude,
       longitude,
+      location: req.body.location,
       temperature,
       humidity,
       windSpeed,
@@ -66,6 +73,10 @@ exports.createMeteo = async (req, res) => {
       precipitation,
     });
 
+  broadcastEvent({
+  type: "METEO_CREATED",
+  data: record,
+});
     res.status(201).json(record);
   } catch (err) {
     res.status(500).json({
@@ -80,6 +91,8 @@ exports.updateMeteo = async (req, res) => {
     const {
       stationName,
       temperature,
+      latitude,
+      longitude,
       humidity,
     } = req.body;
 
@@ -117,7 +130,12 @@ exports.updateMeteo = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
-
+    if (req.body.latitude !== undefined && req.body.longitude !== undefined) {
+      updateData.location = {
+        type: "Point",
+        coordinates: [req.body.longitude, req.body.latitude],
+      };
+    }
     const record = await Meteo.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -132,9 +150,12 @@ exports.updateMeteo = async (req, res) => {
         message: "Meteo record not found",
       });
     }
-
+    broadcastEvent({
+  type: "METEO_UPDATED",
+  data: record,
+});
     res.json(record);
-
+    
   } catch (err) {
 
     res.status(500).json({
@@ -143,11 +164,47 @@ exports.updateMeteo = async (req, res) => {
     });
   }
 };
+exports.getNearbyMeteo = async (req, res) => {
+  try {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const radius = Number(req.query.radius) || 10000;
 
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      return res.status(400).json({ message: "Valid lat query parameter is required" });
+    }
+
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      return res.status(400).json({ message: "Valid lng query parameter is required" });
+    }
+
+    const records = await Meteo.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          $maxDistance: radius,
+        },
+      },
+    });
+
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to find nearby meteo records",
+      error: err.message,
+    });
+  }
+};
 exports.deleteMeteo = async (req, res) => {
   const record = await Meteo.findByIdAndDelete(req.params.id);
 
   if (!record) return res.status(404).json({ message: "Meteo record not found" });
-
+broadcastEvent({
+  type: "METEO_DELETED",
+  data: record,
+});
   res.json({ message: "Meteo record deleted" });
 };
