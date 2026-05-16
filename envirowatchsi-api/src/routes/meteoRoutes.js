@@ -6,9 +6,10 @@ const {
   getAllMeteo,
   createMeteo,
   updateMeteo,
+  getNearbyMeteo,
   deleteMeteo,
 } = require("../controllers/meteoController");
-
+console.log("Meteo routes loaded with /near");
 /**
  * @swagger
  * /api/meteo:
@@ -19,6 +20,7 @@ const {
  *       200:
  *         description: List of meteo records
  */
+router.get("/near", getNearbyMeteo);
 router.get("/", getAllMeteo);
 
 /**

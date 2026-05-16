@@ -45,13 +45,21 @@ exports.createHydro = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
+let location;
 
+if (latitude !== undefined && longitude !== undefined) {
+  location = {
+    type: "Point",
+    coordinates: [longitude, latitude],
+  };
+}
     const record = await Hydro.create({
       stationId: createStationId(stationName),
       stationName: stationName.trim(),
       riverName: riverName.trim(),
       latitude,
       longitude,
+      location,
       waterLevel,
       waterFlow,
     });
@@ -69,7 +77,7 @@ exports.createHydro = async (req, res) => {
 
 exports.updateHydro = async (req, res) => {
   try {
-    const { stationName, riverName } = req.body;
+    const { stationName, riverName, latitude, longitude } = req.body;
 
     if (stationName != null && stationName.trim() === "") {
       return res.status(400).json({
@@ -103,7 +111,12 @@ exports.updateHydro = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
-
+if (latitude !== undefined && longitude !== undefined) {
+  updateData.location = {
+    type: "Point",
+    coordinates: [longitude, latitude],
+  };
+}
     const record = await Hydro.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -127,7 +140,40 @@ exports.updateHydro = async (req, res) => {
     });
   }
 };
+exports.getNearbyHydro = async (req, res) => {
+  try {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const radius = Number(req.query.radius) || 10000;
 
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      return res.status(400).json({ message: "Valid lat query parameter is required" });
+    }
+
+    if (isNaN(lng) || lng < -180 || lng > 180) {
+      return res.status(400).json({ message: "Valid lng query parameter is required" });
+    }
+
+    const records = await Hydro.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          $maxDistance: radius,
+        },
+      },
+    });
+
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to find nearby hydro records",
+      error: err.message,
+    });
+  }
+};
 exports.deleteHydro = async (req, res) => {
   const record = await Hydro.findByIdAndDelete(req.params.id);
 

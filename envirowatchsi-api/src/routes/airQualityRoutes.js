@@ -6,9 +6,10 @@ const {
   getAllAirQuality,
   createAirQuality,
   updateAirQuality,
+  getNearbyAirQuality,
   deleteAirQuality,
 } = require("../controllers/airQualityController");
-
+console.log("Air quality routes loaded with /near");
 /**
  * @swagger
  * /api/air-quality:
@@ -19,6 +20,7 @@ const {
  *       200:
  *         description: List of air quality records
  */
+router.get("/near", getNearbyAirQuality);
 router.get("/", getAllAirQuality);
 
 /**

@@ -6,9 +6,11 @@ const {
   getAllHydro,
   createHydro,
   updateHydro,
+  getNearbyHydro,
   deleteHydro,
 } = require("../controllers/hydroController");
 
+console.log("Hydro routes loaded with /near")
 /**
  * @swagger
  * /api/hydro:
@@ -19,6 +21,7 @@ const {
  *       200:
  *         description: List of hydro records
  */
+router.get("/near", getNearbyHydro);
 router.get("/", getAllHydro);
 
 /**
