@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { getHydroData } from "../api/hydroService";
+import HydroTable from "../components/HydroTable";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -13,18 +16,89 @@ function HydroPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const socket = createWebSocketConnection((message) => {
+      if (message.type === "HYDRO_CREATED") {
+        setHydroData((prevData) => [message.data, ...prevData]);
+      }
+  
+      if (message.type === "HYDRO_UPDATED") {
+        setHydroData((prevData) =>
+          prevData.map((item) =>
+            item._id === message.data._id ? message.data : item
+          )
+        );
+      }
+  
+      if (message.type === "HYDRO_DELETED") {
+        setHydroData((prevData) =>
+          prevData.filter((item) => item._id !== message.data._id)
+        );
+      }
+    });
+  
+    return () => socket.close();
+  }, []);
+
+  const filteredData = hydroData.filter((item) =>
+    item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Hydro Page</h1>
+      <h1>Hydro Data</h1>
 
-      {hydroData.map((item) => (
-        <div key={item._id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-          <h3>{item.stationName}</h3>
-          <p>River: {item.riverName}</p>
-          <p>Water level: {item.waterLevel ?? "N/A"}</p>
-          <p>Water flow: {item.waterFlow ?? "N/A"}</p>
+      <input
+        type="text"
+        placeholder="Search by station name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{
+          padding: "10px",
+          width: "300px",
+          marginBottom: "20px",
+        }}
+      />
+
+      <HydroTable
+        data={filteredData}
+        onSelectRecord={setSelectedRecord}
+      />
+
+      {selectedRecord && (
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "15px",
+            border: "1px solid #ccc",
+          }}
+        >
+          <h2>Record Details</h2>
+
+          <p>
+            <strong>Station:</strong> {selectedRecord.stationName}
+          </p>
+
+          <p>
+            <strong>River:</strong> {selectedRecord.riverName}
+          </p>
+
+          <p>
+            <strong>Water Level:</strong>{" "}
+            {selectedRecord.waterLevel ?? "N/A"}
+          </p>
+
+          <p>
+            <strong>Water Flow:</strong>{" "}
+            {selectedRecord.waterFlow ?? "N/A"}
+          </p>
+
+          <p>
+            <strong>Measured At:</strong>{" "}
+            {selectedRecord.measuredAt ?? "N/A"}
+          </p>
         </div>
-      ))}
+      )}
     </div>
   );
 }
