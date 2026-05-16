@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getHydroData } from "../api/hydroService";
+import HydroTable from "../components/HydroTable";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
@@ -15,16 +16,8 @@ function HydroPage() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Hydro Page</h1>
-
-      {hydroData.map((item) => (
-        <div key={item._id} style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-          <h3>{item.stationName}</h3>
-          <p>River: {item.riverName}</p>
-          <p>Water level: {item.waterLevel ?? "N/A"}</p>
-          <p>Water flow: {item.waterFlow ?? "N/A"}</p>
-        </div>
-      ))}
+      <h1>Hydro Data</h1>
+      <HydroTable data={hydroData} />
     </div>
   );
 }
