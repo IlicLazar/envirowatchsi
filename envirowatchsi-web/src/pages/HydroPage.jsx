@@ -5,6 +5,7 @@ import HydroTable from "../components/HydroTable";
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     async function fetchData() {
@@ -15,12 +16,28 @@ function HydroPage() {
     fetchData();
   }, []);
 
+  const filteredData = hydroData.filter((item) =>
+    item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div style={{ padding: "20px" }}>
       <h1>Hydro Data</h1>
 
+      <input
+        type="text"
+        placeholder="Search by station name..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        style={{
+          padding: "10px",
+          width: "300px",
+          marginBottom: "20px",
+        }}
+      />
+
       <HydroTable
-        data={hydroData}
+        data={filteredData}
         onSelectRecord={setSelectedRecord}
       />
 
