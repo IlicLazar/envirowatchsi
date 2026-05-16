@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getMeteoData } from "../api/meteoService";
-import MeteoTable from "../components/MeteoTable";
-import { createWebSocketConnection } from "../api/websocketClient";
+import { getMeteoData } from "../api/services/meteoService";
+import MeteoTable from "../components/tables/MeteoTable";
+import { createWebSocketConnection } from "../api/websocket/websocketClient";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);

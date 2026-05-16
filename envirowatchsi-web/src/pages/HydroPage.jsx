@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { getHydroData } from "../api/hydroService";
-import HydroTable from "../components/HydroTable";
+import { getHydroData } from "../api/services/hydroService";
+import HydroTable from "../components/tables/HydroTable";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);

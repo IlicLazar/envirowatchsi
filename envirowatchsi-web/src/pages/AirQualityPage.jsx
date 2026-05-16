@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { getAirQualityData } from "../api/airQualityService";
-import AirQualityTable from "../components/AirQualityTable";
+import { createWebSocketConnection } from "../api/websocket/websocketClient";
+import { getAirQualityData } from "../api/services/airQualityService";
+import AirQualityTable from "../components/tables/AirQualityTable";
+import AirQualityChart from "../components/charts/AirQualityChart";
 
 function AirQualityPage() {
   const [airQualityData, setAirQualityData] = useState([]);
@@ -64,6 +66,8 @@ function AirQualityPage() {
         data={filteredData}
         onSelectRecord={setSelectedRecord}
       />
+
+      <AirQualityChart data={filteredData} />
 
       {selectedRecord && (
         <div

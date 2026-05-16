@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import apiClient from "../client/apiClient";
 
 export async function getAirQualityData() {
   const response = await apiClient.get("/air-quality");
