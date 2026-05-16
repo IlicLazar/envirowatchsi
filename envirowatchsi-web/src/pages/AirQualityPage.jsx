@@ -16,6 +16,30 @@ function AirQualityPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const socket = createWebSocketConnection((message) => {
+      if (message.type === "AIR_QUALITY_CREATED") {
+        setAirQualityData((prevData) => [message.data, ...prevData]);
+      }
+  
+      if (message.type === "AIR_QUALITY_UPDATED") {
+        setAirQualityData((prevData) =>
+          prevData.map((item) =>
+            item._id === message.data._id ? message.data : item
+          )
+        );
+      }
+  
+      if (message.type === "AIR_QUALITY_DELETED") {
+        setAirQualityData((prevData) =>
+          prevData.filter((item) => item._id !== message.data._id)
+        );
+      }
+    });
+  
+    return () => socket.close();
+  }, []);
+
   const filteredData = airQualityData.filter((item) =>
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );

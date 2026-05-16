@@ -16,6 +16,30 @@ function HydroPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const socket = createWebSocketConnection((message) => {
+      if (message.type === "HYDRO_CREATED") {
+        setHydroData((prevData) => [message.data, ...prevData]);
+      }
+  
+      if (message.type === "HYDRO_UPDATED") {
+        setHydroData((prevData) =>
+          prevData.map((item) =>
+            item._id === message.data._id ? message.data : item
+          )
+        );
+      }
+  
+      if (message.type === "HYDRO_DELETED") {
+        setHydroData((prevData) =>
+          prevData.filter((item) => item._id !== message.data._id)
+        );
+      }
+    });
+  
+    return () => socket.close();
+  }, []);
+
   const filteredData = hydroData.filter((item) =>
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getMeteoData } from "../api/meteoService";
 import MeteoTable from "../components/MeteoTable";
+import { createWebSocketConnection } from "../api/websocketClient";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
@@ -14,6 +15,32 @@ function MeteoPage() {
     }
 
     fetchData();
+  }, []);
+
+  useEffect(() => {
+    const socket = createWebSocketConnection((message) => {
+      if (message.type === "METEO_CREATED") {
+        setMeteoData((prevData) => [message.data, ...prevData]);
+      }
+  
+      if (message.type === "METEO_UPDATED") {
+        setMeteoData((prevData) =>
+          prevData.map((item) =>
+            item._id === message.data._id ? message.data : item
+          )
+        );
+      }
+  
+      if (message.type === "METEO_DELETED") {
+        setMeteoData((prevData) =>
+          prevData.filter((item) => item._id !== message.data._id)
+        );
+      }
+    });
+  
+    return () => {
+      socket.close();
+    };
   }, []);
 
   const filteredData = meteoData.filter((item) =>
