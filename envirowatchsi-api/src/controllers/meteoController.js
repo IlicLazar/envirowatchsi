@@ -11,9 +11,16 @@ function isValidLatitude(value) {
 function isValidLongitude(value) {
   return value == null || (!isNaN(value) && value >= -180 && value <= 180);
 }
+const { buildFilterQuery } = require("../utils/filterUtils");
+
 exports.getAllMeteo = async (req, res) => {
-  const records = await Meteo.find().sort({ createdAt: -1 });
-  res.json(records);
+  try {
+    const query = buildFilterQuery(req.query);
+    const records = await Meteo.find(query).sort({ createdAt: -1 });
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to get meteo records", error: err.message });
+  }
 };
 
 exports.createMeteo = async (req, res) => {
