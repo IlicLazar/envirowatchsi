@@ -5,6 +5,7 @@ import MeteoTable from "../components/tables/MeteoTable";
 import MeteoChart from "../components/charts/MeteoChart";
 import StatsCard from "../components/stats/StatsCard";
 import Filters from "../components/filters/Filters";
+import StationMap from "../components/maps/StationMap";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
@@ -93,6 +94,8 @@ function MeteoPage() {
       <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
 
       <MeteoChart data={filteredData} />
+
+      <StationMap data={filteredData} />
 
       {selectedRecord && (
         <div style={{ marginTop: "20px", padding: "15px", border: "1px solid #ccc" }}>
