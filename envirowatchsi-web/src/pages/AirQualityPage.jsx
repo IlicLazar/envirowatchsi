@@ -4,20 +4,22 @@ import { getAirQualityData } from "../api/services/airQualityService";
 import AirQualityTable from "../components/tables/AirQualityTable";
 import AirQualityChart from "../components/charts/AirQualityChart";
 import StatsCard from "../components/stats/StatsCard";
+import Filters from "../components/filters/Filters";
 
 function AirQualityPage() {
   const [airQualityData, setAirQualityData] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({});
 
   useEffect(() => {
     async function fetchData() {
-      const data = await getAirQualityData();
+      const data = await getAirQualityData(filters);
       setAirQualityData(data);
     }
 
     fetchData();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const socket = createWebSocketConnection((message) => {
@@ -75,6 +77,8 @@ function AirQualityPage() {
           marginBottom: "20px",
         }}
       />
+
+      <Filters filters={filters} onFilterChange={setFilters} />
 
     <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
       <StatsCard title="Total stations" value={filteredData.length} />

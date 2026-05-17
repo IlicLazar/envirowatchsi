@@ -4,20 +4,22 @@ import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import MeteoTable from "../components/tables/MeteoTable";
 import MeteoChart from "../components/charts/MeteoChart";
 import StatsCard from "../components/stats/StatsCard";
+import Filters from "../components/filters/Filters";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({});
 
   useEffect(() => {
     async function fetchData() {
-      const data = await getMeteoData();
+      const data = await getMeteoData(filters);
       setMeteoData(data);
     }
 
     fetchData();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const socket = createWebSocketConnection((message) => {
@@ -80,6 +82,8 @@ function MeteoPage() {
           marginBottom: "20px",
         }}
       />
+      <Filters filters={filters} onFilterChange={setFilters} />
+
       <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
         <StatsCard title="Total stations" value={filteredData.length} />
         <StatsCard title="Average temperature" value={`${averageTemperature} °C`} />

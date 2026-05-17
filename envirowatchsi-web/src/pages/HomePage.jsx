@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import { getAllEnvironmentalData } from "../api/services/dataService";
+import Filters from "../components/filters/Filters";
 
 function HomePage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState({});
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
 
-        const result = await getAllEnvironmentalData();
+        const result = await getAllEnvironmentalData(filters);
 
         setData(result);
       } catch (err) {
@@ -23,7 +25,7 @@ function HomePage() {
     }
 
     loadData();
-  }, []);
+  }, [filters]);
 
   if (loading) {
     return <h2>Loading environmental data...</h2>;
@@ -34,8 +36,9 @@ function HomePage() {
   }
 
   return (
-    <div>
+    <div style={{ padding: "20px" }}>
       <h1>EnviroWatchSI Dashboard</h1>
+      <Filters filters={filters} onFilterChange={setFilters} />
 
       <p>Meteo records: {data.meteo.length}</p>
       <p>Air quality records: {data.airQuality.length}</p>
