@@ -5,6 +5,7 @@ import AirQualityTable from "../components/tables/AirQualityTable";
 import AirQualityChart from "../components/charts/AirQualityChart";
 import StatsCard from "../components/stats/StatsCard";
 import Filters from "../components/filters/Filters";
+import StationMap from "../components/maps/StationMap";
 
 function AirQualityPage() {
   const [airQualityData, setAirQualityData] = useState([]);
@@ -92,6 +93,8 @@ function AirQualityPage() {
       />
 
       <AirQualityChart data={filteredData} />
+
+      <StationMap data={filteredData} />
 
       {selectedRecord && (
         <div

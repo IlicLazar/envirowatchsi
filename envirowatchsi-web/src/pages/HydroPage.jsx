@@ -5,6 +5,7 @@ import HydroTable from "../components/tables/HydroTable";
 import HydroChart from "../components/charts/HydroChart";
 import StatsCard from "../components/stats/StatsCard";
 import Filters from "../components/filters/Filters";
+import StationMap from "../components/maps/StationMap";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
@@ -93,6 +94,8 @@ function HydroPage() {
       />
 
       <HydroChart data={filteredData} />
+
+      <StationMap data={filteredData} />
 
       {selectedRecord && (
         <div
