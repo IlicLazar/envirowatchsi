@@ -438,7 +438,10 @@ fun GeneratorScreen() {
                                             stationName = row[0],
                                             latitude = Random.nextDouble(45.4, 46.9).toString(),
                                             longitude = Random.nextDouble(13.4, 16.6).toString(),
-                                            aqi = row[4].toDoubleOrNull()?.toInt()?.toString() ?: "0"
+                                            aqi = row[4].toDoubleOrNull()?.toInt()?.toString() ?: "0",
+                                            pm10 = row[1],
+                                            pm2_5 = row[2],
+                                            o3 = row[3]
                                         )
                                     }
                                 }

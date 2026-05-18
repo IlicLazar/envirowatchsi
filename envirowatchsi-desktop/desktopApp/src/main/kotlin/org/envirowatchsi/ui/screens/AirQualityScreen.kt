@@ -118,7 +118,12 @@ fun AirQualityScreen() {
                                 record.stationName,
                                 record.latitude.toString(),
                                 record.longitude.toString(),
-                                record.airQualityIndex?.toInt()?.toString() ?: "0"
+                                record.airQualityIndex?.toInt()?.toString() ?: "0",
+                                pm10 = record.pm10?.toString(),
+                                pm2_5 = record.pm2_5?.toString(),
+                                o3 = record.o3?.toString(),
+                                co = record.co?.toString(),
+                                so2 = record.so2?.toString()
                             )
 
                             withContext(Dispatchers.IO) {

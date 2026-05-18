@@ -1,26 +1,33 @@
 function StatsCard({ title, value }) {
-    return (
-      <div
-        style={{
-          border: "1px solid #ccc",
-          padding: "20px",
-          borderRadius: "10px",
-          minWidth: "200px",
-          backgroundColor: "#f8f8f8",
-        }}
-      >
-        <h3>{title}</h3>
+  const lowerTitle = title.toLowerCase();
+  let typeClass = "";
   
-        <p
-          style={{
-            fontSize: "24px",
-            fontWeight: "bold",
-          }}
-        >
-          {value}
-        </p>
-      </div>
-    );
+  if (
+    lowerTitle.includes("temp") ||
+    lowerTitle.includes("humid") ||
+    window.location.pathname.includes("meteo")
+  ) {
+    typeClass = "meteo";
+  } else if (
+    lowerTitle.includes("aqi") ||
+    lowerTitle.includes("pm") ||
+    window.location.pathname.includes("air-quality")
+  ) {
+    typeClass = "air-quality";
+  } else if (
+    lowerTitle.includes("water") ||
+    lowerTitle.includes("flow") ||
+    window.location.pathname.includes("hydro")
+  ) {
+    typeClass = "hydro";
   }
-  
-  export default StatsCard;
+
+  return (
+    <div className={`stats-card ${typeClass}`}>
+      <span className="stats-card-title">{title}</span>
+      <span className="stats-card-value">{value}</span>
+    </div>
+  );
+}
+
+export default StatsCard;

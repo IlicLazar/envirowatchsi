@@ -24,6 +24,11 @@ fun DataEntryScreen() {
     var longitude by remember { mutableStateOf("") }
 
     var aqi by remember { mutableStateOf("") }
+    var pm10 by remember { mutableStateOf("") }
+    var pm25 by remember { mutableStateOf("") }
+    var o3 by remember { mutableStateOf("") }
+    var co by remember { mutableStateOf("") }
+    var so2 by remember { mutableStateOf("") }
 
     var temperature by remember { mutableStateOf("") }
     var humidity by remember { mutableStateOf("") }
@@ -92,6 +97,46 @@ fun DataEntryScreen() {
 
         when (selectedType) {
             EntryType.AIR_QUALITY -> {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = pm10,
+                    onValueChange = { pm10 = it },
+                    label = { Text("PM10") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = pm25,
+                    onValueChange = { pm25 = it },
+                    label = { Text("PM2.5") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = o3,
+                    onValueChange = { o3 = it },
+                    label = { Text("O3") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = co,
+                    onValueChange = { co = it },
+                    label = { Text("CO") }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = so2,
+                    onValueChange = { so2 = it },
+                    label = { Text("SO2") }
+                )
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
@@ -193,7 +238,12 @@ fun DataEntryScreen() {
                                     stationName,
                                     latitude,
                                     longitude,
-                                    aqi
+                                    aqi,
+                                    pm10 = pm10,
+                                    pm2_5 = pm25,
+                                    o3 = o3,
+                                    co = co,
+                                    so2 = so2
                                 )
                             }
 
@@ -246,6 +296,11 @@ fun DataEntryScreen() {
                         latitude = ""
                         longitude = ""
                         aqi = ""
+                        pm10 = ""
+                        pm25 = ""
+                        o3 = ""
+                        co = ""
+                        so2 = ""
                         temperature = ""
                         humidity = ""
                         windSpeed = ""
@@ -273,16 +328,25 @@ fun buildAirQualityJson(
     stationName: String,
     latitude: String,
     longitude: String,
-    aqi: String
+    aqi: String,
+    pm10: String? = null,
+    pm2_5: String? = null,
+    o3: String? = null,
+    co: String? = null,
+    so2: String? = null
 ): String {
-    return com.google.gson.Gson().toJson(
-        mapOf(
-            "stationName" to stationName,
-            "latitude" to latitude.toDoubleOrNull(),
-            "longitude" to longitude.toDoubleOrNull(),
-            "aqi" to aqi.toIntOrNull()
-        )
+    val body = mutableMapOf<String, Any?>(
+        "stationName" to stationName,
+        "latitude" to latitude.toDoubleOrNull(),
+        "longitude" to longitude.toDoubleOrNull(),
+        "aqi" to aqi.toIntOrNull()
     )
+    pm10?.toDoubleOrNull()?.let { body["pm10"] = it }
+    pm2_5?.toDoubleOrNull()?.let { body["pm2_5"] = it }
+    o3?.toDoubleOrNull()?.let { body["o3"] = it }
+    co?.toDoubleOrNull()?.let { body["co"] = it }
+    so2?.toDoubleOrNull()?.let { body["so2"] = it }
+    return com.google.gson.Gson().toJson(body)
 }
 
 fun buildMeteoJson(

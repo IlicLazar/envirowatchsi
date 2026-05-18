@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getHydroData } from "../api/services/hydroService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import HydroTable from "../components/tables/HydroTable";
@@ -12,6 +12,13 @@ function HydroPage() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
+  const detailsRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedRecord && detailsRef.current) {
+      detailsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedRecord]);
 
   useEffect(() => {
     async function fetchData() {
@@ -67,25 +74,38 @@ function HydroPage() {
     : "N/A";
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Hydro Data</h1>
+    <div className="dashboard-container">
+      <h1>Hidrološki Podatki (Vode)</h1>
 
-      <input
-        type="text"
-        placeholder="Search by station name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          padding: "10px",
-          width: "300px",
-          marginBottom: "20px",
-        }}
-      />
-      <Filters filters={filters} onFilterChange={setFilters} />
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-        <StatsCard title="Total stations" value={filteredData.length} />
-        <StatsCard title="Average water level" value={averageWaterLevel} />
-        <StatsCard title="Average water flow" value={averageWaterFlow} />
+      <div className="glass-panel">
+        <div className="search-container">
+          <label className="filter-label">Iskanje po imenu postaje</label>
+          <input
+            type="text"
+            placeholder="Vpišite ime postaje..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input-field search-field"
+          />
+        </div>
+        <Filters filters={filters} onFilterChange={setFilters} />
+      </div>
+
+      <div className="stats-grid">
+        <StatsCard title="Skupno postaj" value={filteredData.length} />
+        <StatsCard title="Povprečni vodostaj" value={averageWaterLevel != null ? `${averageWaterLevel} cm` : "N/A"} />
+        <StatsCard title="Povprečni pretok" value={averageWaterFlow != null ? `${averageWaterFlow} m³/s` : "N/A"} />
+      </div>
+
+      <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
+        <h2>Zemljevid Merilnih Postaj</h2>
+        <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
+          <StationMap data={filteredData} />
+        </div>
+      </div>
+
+      <div className="glass-panel" style={{ marginBottom: "40px" }}>
+        <HydroChart data={filteredData} />
       </div>
 
       <HydroTable
@@ -93,42 +113,39 @@ function HydroPage() {
         onSelectRecord={setSelectedRecord}
       />
 
-      <HydroChart data={filteredData} />
-
-      <StationMap data={filteredData} />
-
       {selectedRecord && (
-        <div
-          style={{
-            marginTop: "20px",
-            padding: "15px",
-            border: "1px solid #ccc",
-          }}
-        >
-          <h2>Record Details</h2>
-
-          <p>
-            <strong>Station:</strong> {selectedRecord.stationName}
-          </p>
-
-          <p>
-            <strong>River:</strong> {selectedRecord.riverName}
-          </p>
-
-          <p>
-            <strong>Water Level:</strong>{" "}
-            {selectedRecord.waterLevel ?? "N/A"}
-          </p>
-
-          <p>
-            <strong>Water Flow:</strong>{" "}
-            {selectedRecord.waterFlow ?? "N/A"}
-          </p>
-
-          <p>
-            <strong>Measured At:</strong>{" "}
-            {selectedRecord.measuredAt ?? "N/A"}
-          </p>
+        <div ref={detailsRef} className="details-panel">
+          <h2>Podrobnosti o zapisu</h2>
+          <div className="details-grid">
+            <div className="detail-item">
+              <div className="detail-label">Merilna Postaja</div>
+              <div className="detail-value">{selectedRecord.stationName}</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Reka</div>
+              <div className="detail-value">{selectedRecord.riverName}</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Vodni Vodostaj</div>
+              <div className="detail-value">
+                {selectedRecord.waterLevel != null ? `${selectedRecord.waterLevel} cm` : "N/A"}
+              </div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Pretok Vode</div>
+              <div className="detail-value">
+                {selectedRecord.waterFlow != null ? `${selectedRecord.waterFlow} m³/s` : "N/A"}
+              </div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Čas Meritve</div>
+              <div className="detail-value">
+                {selectedRecord.measuredAt
+                  ? new Date(selectedRecord.measuredAt).toLocaleString("sl-SI")
+                  : "N/A"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

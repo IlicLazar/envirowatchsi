@@ -23,38 +23,54 @@ function LoginPage() {
   }
 
   return (
-    <div style={{ padding: "20px", maxWidth: "400px" }}>
-      <h1>Admin Login</h1>
+    <div className="auth-container">
+      <h1>Admin Prijava</h1>
+      <p style={{ color: "var(--text-secondary)", marginBottom: "24px", fontSize: "0.95rem" }}>
+        Za dostop do administrativne nadzorne plošče
+      </p>
 
       <form onSubmit={handleSubmit}>
-        <div style={{ marginBottom: "15px" }}>
-          <label>Email</label>
-          <br />
+        <div className="auth-form-group">
+          <label className="filter-label">E-poštni naslov</label>
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            style={{ width: "100%", padding: "10px" }}
+            className="input-field"
+            placeholder="vnesite e-pošto..."
           />
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <label>Password</label>
-          <br />
+        <div className="auth-form-group" style={{ marginBottom: "24px" }}>
+          <label className="filter-label">Geslo</label>
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
-            style={{ width: "100%", padding: "10px" }}
+            className="input-field"
+            placeholder="vnesite geslo..."
           />
         </div>
 
-        <button type="submit">Login</button>
+        <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "12px" }}>
+          Prijava
+        </button>
       </form>
 
-      {message && <p>{message}</p>}
+      {message && (
+        <p
+          style={{
+            marginTop: "20px",
+            color: message.includes("successful") ? "var(--accent-emerald)" : "var(--accent-red)",
+            fontWeight: "500",
+            fontSize: "0.95rem",
+          }}
+        >
+          {message}
+        </p>
+      )}
     </div>
   );
 }
