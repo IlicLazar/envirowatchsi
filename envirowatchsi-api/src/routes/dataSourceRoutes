@@ -3,8 +3,11 @@ const router = express.Router();
 
 const {
   getAllDataSources,
+  createDataSource,
 } = require("../controllers/dataSourceController");
 
 router.get("/", getAllDataSources);
+
+router.post("/", createDataSource);
 
 module.exports = router;
