@@ -15,3 +15,11 @@ export async function getDataSources() {
 
   return response.data;
 }
+
+export async function createDataSource(dataSource) {
+  const response = await apiClient.post("/data-sources", dataSource, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+}
