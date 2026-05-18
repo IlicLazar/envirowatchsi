@@ -23,3 +23,11 @@ export async function createDataSource(dataSource) {
 
   return response.data;
 }
+
+export async function updateDataSource(id, dataSource) {
+  const response = await apiClient.put(`/data-sources/${id}`, dataSource, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+}
