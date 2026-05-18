@@ -5,11 +5,13 @@ const airQualityRoutes = require("./routes/airQualityRoutes");
 const meteoRoutes = require("./routes/meteoRoutes");
 const hydroRoutes = require("./routes/hydroRoutes");
 const authRoutes = require("./routes/auth");
+const dataSourceRoutes = require("./routes/dataSourceRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/data-sources", dataSourceRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "EnviroWatchSI API is running" });
