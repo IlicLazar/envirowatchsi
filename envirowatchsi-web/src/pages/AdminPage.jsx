@@ -3,6 +3,7 @@ import {
   getDataSources,
   createDataSource,
   updateDataSource,
+  deleteDataSource,
 } from "../api/services/dataSourceService";
 
 function AdminPage() {
@@ -87,6 +88,22 @@ function AdminPage() {
     setEditingId(null);
     setFormData(emptyForm);
   }
+
+  async function handleDelete(id) {
+  const confirmed = window.confirm("Are you sure you want to delete this data source?");
+
+  if (!confirmed) return;
+
+  try {
+    await deleteDataSource(id);
+
+    setDataSources(dataSources.filter((source) => source._id !== id));
+    setMessage("Data source deleted successfully.");
+  } catch (error) {
+    setMessage("Failed to delete data source.");
+    console.error(error);
+  }
+}
 
   return (
     <div style={{ padding: "20px" }}>
@@ -173,6 +190,7 @@ function AdminPage() {
               <td>{source.refreshIntervalMinutes} min</td>
               <td>
                 <button onClick={() => handleEdit(source)}>Edit</button>
+                <button onClick={() => handleDelete(source._id)}>Delete</button>
               </td>
             </tr>
           ))}

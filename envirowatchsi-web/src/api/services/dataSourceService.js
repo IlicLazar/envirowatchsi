@@ -31,3 +31,11 @@ export async function updateDataSource(id, dataSource) {
 
   return response.data;
 }
+
+export async function deleteDataSource(id) {
+  const response = await apiClient.delete(`/data-sources/${id}`, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+}
