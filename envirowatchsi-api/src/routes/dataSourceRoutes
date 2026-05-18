@@ -5,6 +5,7 @@ const {
   getAllDataSources,
   createDataSource,
   updateDataSource,
+  deleteDataSource,
 } = require("../controllers/dataSourceController");
 
 router.get("/", getAllDataSources);
@@ -12,5 +13,7 @@ router.get("/", getAllDataSources);
 router.post("/", createDataSource);
 
 router.put("/:id", updateDataSource);
+
+router.delete("/:id", deleteDataSource);
 
 module.exports = router;

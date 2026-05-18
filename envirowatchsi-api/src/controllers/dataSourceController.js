@@ -67,3 +67,25 @@ exports.updateDataSource = async (req, res) => {
     });
   }
 };
+
+exports.deleteDataSource = async (req, res) => {
+  try {
+    const deletedDataSource = await DataSource.findByIdAndDelete(req.params.id);
+
+    if (!deletedDataSource) {
+      return res.status(404).json({
+        message: "Data source not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Data source deleted successfully",
+      data: deletedDataSource,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete data source",
+      error: error.message,
+    });
+  }
+};
