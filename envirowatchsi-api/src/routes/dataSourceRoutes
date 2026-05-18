@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { authenticate, requireAdmin } = require("../middleware/authMiddleware");
 
 const {
   getAllDataSources,
@@ -8,12 +9,12 @@ const {
   deleteDataSource,
 } = require("../controllers/dataSourceController");
 
-router.get("/", getAllDataSources);
+router.get("/", authenticate, requireAdmin, getAllDataSources);
 
-router.post("/", createDataSource);
+router.post("/", authenticate, requireAdmin, createDataSource);
 
-router.put("/:id", updateDataSource);
+router.put("/:id", authenticate, requireAdmin, updateDataSource);
 
-router.delete("/:id", deleteDataSource);
+router.delete("/:id", authenticate, requireAdmin, deleteDataSource);
 
 module.exports = router;
