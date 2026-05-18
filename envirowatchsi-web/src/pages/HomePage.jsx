@@ -27,12 +27,20 @@ function HomePage() {
     loadData();
   }, [filters]);
 
-  if (loading) {
-    return <h2>Loading environmental data...</h2>;
+  if (loading && !data) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+        <h2 style={{ color: "var(--text-secondary)" }}>Nalagam okoljske podatke...</h2>
+      </div>
+    );
   }
 
-  if (error) {
-    return <h2>{error}</h2>;
+  if (error && !data) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
+        <h2 style={{ color: "#ef4444" }}>{error}</h2>
+      </div>
+    );
   }
 
   return (
