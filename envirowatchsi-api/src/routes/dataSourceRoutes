@@ -4,10 +4,13 @@ const router = express.Router();
 const {
   getAllDataSources,
   createDataSource,
+  updateDataSource,
 } = require("../controllers/dataSourceController");
 
 router.get("/", getAllDataSources);
 
 router.post("/", createDataSource);
+
+router.put("/:id", updateDataSource);
 
 module.exports = router;
