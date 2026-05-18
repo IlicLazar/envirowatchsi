@@ -1,16 +1,25 @@
 import { useState } from "react";
+import { login } from "../api/services/authService";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    console.log("Login form submitted:", {
-      email,
-      password,
-    });
+    try {
+      const data = await login(email, password);
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      setMessage(`Login successful. Role: ${data.user.role}`);
+    } catch (error) {
+      setMessage("Login failed. Check email and password.");
+      console.error(error);
+    }
   }
 
   return (
@@ -44,6 +53,8 @@ function LoginPage() {
 
         <button type="submit">Login</button>
       </form>
+
+      {message && <p>{message}</p>}
     </div>
   );
 }
