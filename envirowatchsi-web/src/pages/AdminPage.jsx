@@ -5,12 +5,15 @@ import {
   createDataSource,
   updateDataSource,
   deleteDataSource,
+  syncDataSource,
 } from "../api/services/dataSourceService";
+import { createWebSocketConnection } from "../api/websocket/websocketClient";
 
 function AdminPage() {
   const [dataSources, setDataSources] = useState([]);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [syncingId, setSyncingId] = useState(null);
   const navigate = useNavigate();
 
   const emptyForm = {
@@ -35,6 +38,24 @@ function AdminPage() {
     }
 
     loadDataSources();
+
+    let ws;
+    try {
+      ws = createWebSocketConnection((message) => {
+        if (message.type === "DATA_SOURCE_UPDATED") {
+          const updated = message.data;
+          setDataSources((prev) =>
+            prev.map((source) => (source._id === updated._id ? updated : source))
+          );
+        }
+      });
+    } catch (err) {
+      console.error("Failed to connect to WS:", err);
+    }
+
+    return () => {
+      if (ws) ws.close();
+    };
   }, []);
 
   function handleChange(event) {
@@ -92,20 +113,34 @@ function AdminPage() {
   }
 
   async function handleDelete(id) {
-  const confirmed = window.confirm("Are you sure you want to delete this data source?");
+    const confirmed = window.confirm("Are you sure you want to delete this data source?");
 
-  if (!confirmed) return;
+    if (!confirmed) return;
 
-  try {
-    await deleteDataSource(id);
+    try {
+      await deleteDataSource(id);
 
-    setDataSources(dataSources.filter((source) => source._id !== id));
-    setMessage("Data source deleted successfully.");
-  } catch (error) {
-    setMessage("Failed to delete data source.");
-    console.error(error);
+      setDataSources(dataSources.filter((source) => source._id !== id));
+      setMessage("Data source deleted successfully.");
+    } catch (error) {
+      setMessage("Failed to delete data source.");
+      console.error(error);
+    }
   }
-}
+
+  async function handleSync(id) {
+    setSyncingId(id);
+    setMessage("");
+    try {
+      const res = await syncDataSource(id);
+      setMessage(`Sinhronizacija uspešna! Dodano novih meritev: ${res.newRecordsCount}`);
+    } catch (error) {
+      setMessage("Sinhronizacija ni uspela: " + (error.response?.data?.error || error.message));
+      console.error(error);
+    } finally {
+      setSyncingId(null);
+    }
+  }
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -206,9 +241,9 @@ function AdminPage() {
             margin: "20px 0",
             padding: "12px",
             borderRadius: "8px",
-            background: message.includes("successfully") ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
-            border: message.includes("successfully") ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
-            color: message.includes("successfully") ? "var(--accent-emerald)" : "var(--accent-red)",
+            background: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+            border: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
+            color: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "var(--accent-emerald)" : "var(--accent-red)",
             fontWeight: "500",
             maxWidth: "800px"
           }}
@@ -227,6 +262,8 @@ function AdminPage() {
               <th>URL naslov</th>
               <th>Aktivno</th>
               <th>Interval</th>
+              <th>Zadnji Refreš</th>
+              <th>Status</th>
               <th>Dejanja</th>
             </tr>
           </thead>
@@ -259,8 +296,73 @@ function AdminPage() {
                   </span>
                 </td>
                 <td>{source.refreshIntervalMinutes} min</td>
+                <td style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                  {source.lastRefreshed
+                    ? new Date(source.lastRefreshed).toLocaleString("sl-SI", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Nikoli"}
+                </td>
+                <td>
+                  {source.lastStatus === "success" ? (
+                    <span style={{
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      fontSize: "0.8rem",
+                      fontWeight: "600",
+                      background: "rgba(16, 185, 129, 0.15)",
+                      color: "var(--accent-emerald)"
+                    }}>
+                      USPEŠNO
+                    </span>
+                  ) : source.lastStatus === "error" ? (
+                    <span
+                      title={source.lastError || "Neznana napaka"}
+                      style={{
+                        padding: "4px 8px",
+                        borderRadius: "4px",
+                        fontSize: "0.8rem",
+                        fontWeight: "600",
+                        background: "rgba(239, 68, 68, 0.15)",
+                        color: "var(--accent-red)",
+                        cursor: "help"
+                      }}
+                    >
+                      NAPAKA ⚠️
+                    </span>
+                  ) : (
+                    <span style={{
+                      padding: "4px 8px",
+                      borderRadius: "4px",
+                      fontSize: "0.8rem",
+                      fontWeight: "600",
+                      background: "rgba(156, 163, 175, 0.15)",
+                      color: "var(--text-secondary)"
+                    }}>
+                      BREZ
+                    </span>
+                  )}
+                </td>
                 <td>
                   <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => handleSync(source._id)}
+                      disabled={syncingId === source._id}
+                      className="btn"
+                      style={{
+                        padding: "6px 12px",
+                        fontSize: "0.85rem",
+                        background: "var(--accent-cyan)",
+                        color: "var(--background-dark)",
+                        fontWeight: "600"
+                      }}
+                    >
+                      {syncingId === source._id ? "Sinhronizacija..." : "Sinhroniziraj"}
+                    </button>
                     <button
                       onClick={() => handleEdit(source)}
                       className="btn btn-primary"

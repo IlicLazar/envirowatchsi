@@ -161,7 +161,7 @@ function parseHydroData(xmlText) {
 
     const datum = getTagText("datum");
     const ura = getTagText("ura");
-    const measuredAtStr = datum && ura ? `${datum} ${ura}` : "";
+    const measuredAtStr = datum + (ura ? ` ${ura}` : "");
     const measuredAt = parseDate(measuredAtStr);
 
     const riverName = getTagText("reka") || "Neznano";
