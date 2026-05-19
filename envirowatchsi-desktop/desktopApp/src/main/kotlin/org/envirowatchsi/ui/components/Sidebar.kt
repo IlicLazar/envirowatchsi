@@ -12,8 +12,10 @@ import org.envirowatchsi.ui.Screen
 @Composable
 fun Sidebar(
     selectedScreen: Screen,
-    onScreenSelected: (Screen)->Unit
-){
+    loggedInUser: String?,
+    onScreenSelected: (Screen) -> Unit,
+    onLogout: () -> Unit
+) {
     Column(
         modifier = Modifier
             .width(240.dp)
@@ -35,10 +37,11 @@ fun Sidebar(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        SidebarButton("Nadzorna plošča", Screen.DASHBOARD, selectedScreen, onScreenSelected)
+        SidebarButton("Login", Screen.LOGIN, selectedScreen, onScreenSelected)
+        SidebarButton("Nadzorna plosca", Screen.DASHBOARD, selectedScreen, onScreenSelected)
         SidebarButton("Kakovost zraka", Screen.AIR_QUALITY, selectedScreen, onScreenSelected)
-        SidebarButton("Meteorološki podatki", Screen.METEO, selectedScreen, onScreenSelected)
-        SidebarButton("Hidrološki podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
+        SidebarButton("Meteoroloski podatki", Screen.METEO, selectedScreen, onScreenSelected)
+        SidebarButton("Hidroloski podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
         SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
@@ -46,31 +49,45 @@ fun Sidebar(
         SidebarButton("Brisanje podatkov", Screen.DELETE, selectedScreen, onScreenSelected)
         Spacer(modifier = Modifier.weight(1f))
 
+        if (!loggedInUser.isNullOrBlank()) {
+            Text(
+                text = "Prijavljen: $loggedInUser",
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Logout")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         Text(
             text = "Projektna naloga 2",
             style = MaterialTheme.typography.bodySmall
         )
     }
 }
+
 @Composable
 fun SidebarButton(
     text: String,
     screen: Screen,
     selectedScreen: Screen,
     onScreenSelected: (Screen) -> Unit
-){
+) {
     Button(
-        onClick = {onScreenSelected(screen)},
+        onClick = { onScreenSelected(screen) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        colors = ButtonDefaults.buttonColors(
-//            backgroundColor = if (screen == selectedScreen)
-//                MaterialTheme.colors.primary
-//            else
-//                MaterialTheme.colors.surface
-        )
-    ){
+        colors = ButtonDefaults.buttonColors()
+    ) {
         Text(text)
     }
 }
