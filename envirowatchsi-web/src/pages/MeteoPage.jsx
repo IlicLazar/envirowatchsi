@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getMeteoData } from "../api/services/meteoService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import MeteoTable from "../components/tables/MeteoTable";
@@ -12,6 +12,13 @@ function MeteoPage() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
+  const detailsRef = useRef(null);
+
+  useEffect(() => {
+    if (selectedRecord && detailsRef.current) {
+      detailsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedRecord]);
 
   useEffect(() => {
     async function fetchData() {
@@ -69,46 +76,79 @@ function MeteoPage() {
     : "N/A";
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Meteo Data</h1>
+    <div className="dashboard-container">
+      <h1>Meteorološki Podatki</h1>
 
-      <input
-        type="text"
-        placeholder="Search by station name..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          padding: "10px",
-          width: "300px",
-          marginBottom: "20px",
-        }}
-      />
-      <Filters filters={filters} onFilterChange={setFilters} />
+      <div className="glass-panel">
+        <div className="search-container">
+          <label className="filter-label">Iskanje po imenu postaje</label>
+          <input
+            type="text"
+            placeholder="Vpišite ime postaje..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="input-field search-field"
+          />
+        </div>
+        <Filters filters={filters} onFilterChange={setFilters} />
+      </div>
 
-      <div style={{ display: "flex", gap: "20px", marginBottom: "20px" }}>
-        <StatsCard title="Total stations" value={filteredData.length} />
-        <StatsCard title="Average temperature" value={`${averageTemperature} °C`} />
-        <StatsCard title="Average humidity" value={`${averageHumidity} %`} />
+      <div className="stats-grid">
+        <StatsCard title="Skupno postaj" value={filteredData.length} />
+        <StatsCard title="Povprečna temperatura" value={`${averageTemperature} °C`} />
+        <StatsCard title="Povprečna vlažnost" value={`${averageHumidity} %`} />
+      </div>
+
+      <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
+        <h2>Zemljevid Merilnih Postaj</h2>
+        <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
+          <StationMap data={filteredData} />
+        </div>
+      </div>
+
+      <div className="glass-panel" style={{ marginBottom: "40px" }}>
+        <MeteoChart data={filteredData} />
       </div>
 
       <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
 
-      <MeteoChart data={filteredData} />
-
-      <StationMap data={filteredData} />
-
       {selectedRecord && (
-        <div style={{ marginTop: "20px", padding: "15px", border: "1px solid #ccc" }}>
-          <h2>Record Details</h2>
-          <p><strong>Station:</strong> {selectedRecord.stationName}</p>
-          <p><strong>Temperature:</strong> {selectedRecord.temperature} °C</p>
-          <p><strong>Humidity:</strong> {selectedRecord.humidity} %</p>
-          <p><strong>Wind speed:</strong> {selectedRecord.windSpeed ?? "N/A"}</p>
-          <p><strong>Wind direction:</strong> {selectedRecord.windDirection ?? "N/A"}</p>
+        <div ref={detailsRef} className="details-panel">
+          <h2>Podrobnosti o zapisu</h2>
+          <div className="details-grid">
+            <div className="detail-item">
+              <div className="detail-label">Merilna Postaja</div>
+              <div className="detail-value">{selectedRecord.stationName}</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Temperatura</div>
+              <div className="detail-value">{selectedRecord.temperature} °C</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Vlažnost</div>
+              <div className="detail-value">{selectedRecord.humidity} %</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Hitrost Vetra</div>
+              <div className="detail-value">
+                {selectedRecord.windSpeed != null ? `${selectedRecord.windSpeed} km/h` : "N/A"}
+              </div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Smer Vetra</div>
+              <div className="detail-value">{selectedRecord.windDirection ?? "N/A"}</div>
+            </div>
+            <div className="detail-item">
+              <div className="detail-label">Padavine</div>
+              <div className="detail-value">
+                {selectedRecord.precipitation != null ? `${selectedRecord.precipitation} mm` : "N/A"}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-export default MeteoPage;
+export default MeteoPage;

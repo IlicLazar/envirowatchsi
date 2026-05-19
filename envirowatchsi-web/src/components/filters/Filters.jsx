@@ -7,85 +7,81 @@ function Filters({ filters, onFilterChange }) {
   };
 
   return (
-    <div style={{ marginBottom: "20px", padding: "15px", border: "1px solid #ddd", borderRadius: "8px" }}>
-      <h3>Filters</h3>
+    <div className="glass-panel">
+      <div className="filter-header-row">
+        <h3>Filtri podatkov</h3>
+        <button
+          onClick={() => onFilterChange({})}
+          className="btn btn-danger"
+          style={{ padding: "6px 14px", fontSize: "0.85rem" }}
+        >
+          Ponastavi filtre
+        </button>
+      </div>
       
-      <div style={{ display: "flex", gap: "20px", marginBottom: "15px", flexWrap: "wrap" }}>
+      <div className="filters-grid">
         <div>
-          <label style={{ display: "block", marginBottom: "5px" }}>Start Date</label>
+          <label className="filter-label">Začetni datum</label>
           <input
             type="date"
             name="startDate"
             value={filters.startDate || ""}
             onChange={handleChange}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+            className="input-field"
           />
         </div>
         <div>
-          <label style={{ display: "block", marginBottom: "5px" }}>End Date</label>
+          <label className="filter-label">Končni datum</label>
           <input
             type="date"
             name="endDate"
             value={filters.endDate || ""}
             onChange={handleChange}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}
+            className="input-field"
           />
         </div>
 
         <div>
-          <label style={{ display: "block", marginBottom: "5px" }}>Latitude</label>
+          <label className="filter-label">Širina (Latitude)</label>
           <input
             type="number"
             step="any"
             name="lat"
-            placeholder="e.g. 46.05"
+            placeholder="npr. 46.05"
             value={filters.lat || ""}
             onChange={handleChange}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "120px" }}
+            className="input-field"
           />
         </div>
 
         <div>
-          <label style={{ display: "block", marginBottom: "5px" }}>Longitude</label>
+          <label className="filter-label">Dolžina (Longitude)</label>
           <input
             type="number"
             step="any"
             name="lng"
-            placeholder="e.g. 14.50"
+            placeholder="npr. 14.50"
             value={filters.lng || ""}
             onChange={handleChange}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "120px" }}
+            className="input-field"
           />
         </div>
 
         <div>
-          <label style={{ display: "block", marginBottom: "5px" }}>Radius (km)</label>
+          <label className="filter-label">Radij (km)</label>
           <input
             type="number"
             name="radius"
-            placeholder="e.g. 50"
+            placeholder="npr. 50"
             value={filters.radius || ""}
             onChange={handleChange}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", width: "100px" }}
+            className="input-field"
           />
         </div>
       </div>
-      
-      <button
-        onClick={() => onFilterChange({})}
-        style={{
-          padding: "8px 16px",
-          backgroundColor: "#f44336",
-          color: "white",
-          border: "none",
-          borderRadius: "4px",
-          cursor: "pointer",
-        }}
-      >
-        Reset Filters
-      </button>
     </div>
   );
 }
 
 export default Filters;
+

@@ -1,42 +1,40 @@
 function MeteoTable({ data, onSelectRecord }) {
-    return (
-      <table
-        border="1"
-        cellPadding="10"
-        style={{
-          borderCollapse: "collapse",
-          width: "100%",
-          marginTop: "20px",
-        }}
-      >
+  return (
+    <div className="table-container">
+      <table className="custom-table">
         <thead>
           <tr>
-            <th>Station</th>
-            <th>Temperature</th>
-            <th>Humidity</th>
-            <th>Wind Speed</th>
-            <th>Details</th>
+            <th>Postaja</th>
+            <th>Temperatura</th>
+            <th>Vlažnost</th>
+            <th>Hitrost Vetra</th>
+            <th>Dejanja</th>
           </tr>
         </thead>
   
         <tbody>
           {data.map((item) => (
             <tr key={item._id}>
-              <td>{item.stationName}</td>
+              <td style={{ fontWeight: "600" }}>{item.stationName}</td>
               <td>{item.temperature} °C</td>
               <td>{item.humidity} %</td>
-              <td>{item.windSpeed ?? "N/A"}</td>
+              <td>{item.windSpeed != null ? `${item.windSpeed} km/h` : "N/A"}</td>
   
               <td>
-                <button onClick={() => onSelectRecord(item)}>
-                  View Details
+                <button
+                  onClick={() => onSelectRecord(item)}
+                  className="btn btn-primary"
+                  style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                >
+                  Podrobnosti
                 </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-    );
-  }
-  
-  export default MeteoTable;
+    </div>
+  );
+}
+
+export default MeteoTable;

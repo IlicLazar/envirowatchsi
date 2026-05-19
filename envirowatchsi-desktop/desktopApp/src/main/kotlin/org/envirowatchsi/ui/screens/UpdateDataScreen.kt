@@ -310,7 +310,12 @@ fun UpdateDataScreen() {
                                     stationName = stationName,
                                     latitude = latitude,
                                     longitude = longitude,
-                                    aqi = aqi
+                                    aqi = aqi,
+                                    pm10 = pm10,
+                                    pm2_5 = pm25,
+                                    o3 = o3,
+                                    co = co,
+                                    so2 = so2
                                 )
                             }
 
