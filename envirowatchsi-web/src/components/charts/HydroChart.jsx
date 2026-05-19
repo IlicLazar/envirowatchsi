@@ -103,20 +103,20 @@ function HydroChart({ data }) {
               </linearGradient>
             </defs>
             
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
 
             <XAxis
               dataKey="time"
               tick={{ fontSize: 11, fill: "var(--text-secondary)" }}
               interval="preserveStartEnd"
-              stroke="rgba(255,255,255,0.1)"
+              stroke="#cbd5e1"
             />
 
-            <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 11 }} stroke="rgba(255,255,255,0.1)" />
+            <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 11 }} stroke="#cbd5e1" />
 
             <Tooltip
               labelFormatter={(label) => `Čas: ${label}`}
-              contentStyle={{ background: "#1e293b", borderColor: "rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc" }}
+              contentStyle={{ background: "#ffffff", borderColor: "#cbd5e1", borderRadius: "8px", color: "#0f172a", boxShadow: "0 4px 10px rgba(15, 23, 42, 0.05)" }}
             />
 
             <Legend wrapperStyle={{ paddingTop: "10px" }} />

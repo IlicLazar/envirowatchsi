@@ -278,10 +278,22 @@ function AdminPage() {
                     borderRadius: "4px",
                     fontSize: "0.8rem",
                     fontWeight: "600",
-                    background: source.type === "meteo" ? "rgba(6, 182, 212, 0.15)" : source.type === "air-quality" ? "rgba(249, 115, 22, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                    color: source.type === "meteo" ? "var(--accent-cyan)" : source.type === "air-quality" ? "var(--accent-coral)" : "var(--accent-emerald)"
+                    background: source.type === "meteo"
+                      ? "rgba(217, 119, 6, 0.08)"
+                      : source.type === "air-quality"
+                      ? "rgba(22, 163, 74, 0.08)"
+                      : "rgba(2, 132, 199, 0.08)",
+                    color: source.type === "meteo"
+                      ? "var(--accent-coral)"
+                      : source.type === "air-quality"
+                      ? "var(--accent-emerald)"
+                      : "var(--accent-cyan)"
                   }}>
-                    {source.type.toUpperCase()}
+                    {source.type === "meteo"
+                      ? "METEOROLOGIJA"
+                      : source.type === "air-quality"
+                      ? "KAKOVOST ZRAKA"
+                      : "HIDROLOGIJA"}
                   </span>
                 </td>
                 <td style={{ fontSize: "0.85rem", color: "var(--text-secondary)", maxWidth: "250px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -352,28 +364,20 @@ function AdminPage() {
                     <button
                       onClick={() => handleSync(source._id)}
                       disabled={syncingId === source._id}
-                      className="btn"
-                      style={{
-                        padding: "6px 12px",
-                        fontSize: "0.85rem",
-                        background: "var(--accent-cyan)",
-                        color: "var(--background-dark)",
-                        fontWeight: "600"
-                      }}
+                      className={`btn-details ${syncingId === source._id ? "active" : ""}`}
+                      style={{ minWidth: "125px" }}
                     >
-                      {syncingId === source._id ? "Sinhronizacija..." : "Sinhroniziraj"}
+                      {syncingId === source._id ? "Sinhroniziram..." : "Sinhroniziraj"}
                     </button>
                     <button
                       onClick={() => handleEdit(source)}
-                      className="btn btn-primary"
-                      style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                      className="btn-edit"
                     >
                       Uredi
                     </button>
                     <button
                       onClick={() => handleDelete(source._id)}
-                      className="btn btn-danger"
-                      style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                      className="btn-delete"
                     >
                       Briši
                     </button>

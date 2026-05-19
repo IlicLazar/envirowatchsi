@@ -79,7 +79,7 @@ function AirQualityPage() {
   return (
     <div className="dashboard-container">
       {/* Search Header and Filters */}
-      <h1>Kakovost Zraka (Air Quality)</h1>
+      <h1>Kakovost Zraka</h1>
 
       <div className="glass-panel">
         <div className="search-container">

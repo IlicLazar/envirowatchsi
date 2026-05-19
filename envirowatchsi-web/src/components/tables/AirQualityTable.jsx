@@ -33,16 +33,7 @@ function AirQualityTable({ data }) {
                 <td>
                 <button
                   onClick={() => handleToggle(item._id)}
-                  className="btn btn-primary"
-                  style={{
-                    padding: "6px 12px",
-                    fontSize: "0.85rem",
-                    background: expandedId === item._id ? "var(--accent-coral)" : "var(--accent-cyan)",
-                    color: "var(--background-dark)",
-                    fontWeight: "600",
-                    minWidth: "110px",
-                    textAlign: "center"
-                  }}
+                  className={`btn-details ${expandedId === item._id ? "active" : ""}`}
                 >
                   {expandedId === item._id ? "Zapri" : "Podrobnosti"}
                 </button>

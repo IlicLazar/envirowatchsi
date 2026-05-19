@@ -82,7 +82,7 @@ function HydroPage() {
   return (
     <div className="dashboard-container">
       {/* Search Header and Filters */}
-      <h1>Hidrološki Podatki (Vode)</h1>
+      <h1>Hidrološki Podatki</h1>
 
       <div className="glass-panel">
         <div className="search-container">

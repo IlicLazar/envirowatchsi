@@ -70,13 +70,24 @@ function HomePage() {
     <div className="dashboard-container">
       {/* Hero Banner Section */}
       <div className="glass-panel" style={{
-        background: "linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%)",
-        borderColor: "rgba(99, 102, 241, 0.2)",
+        background: "linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(22, 163, 74, 0.08) 50%, rgba(217, 119, 6, 0.08) 100%)", /* Sky blue, organic green, sun gold */
+        borderColor: "rgba(22, 163, 74, 0.15)",
         textAlign: "center",
         padding: "48px 24px",
         marginBottom: "40px"
       }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "16px" }}>EnviroWatchSI</h1>
+        <h1 style={{ 
+          fontSize: "3.5rem", 
+          fontWeight: "800",
+          marginBottom: "16px",
+          background: "linear-gradient(135deg, var(--accent-emerald) 0%, var(--accent-cyan) 100%)", /* Logo Forest Green to River Blue transition! */
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          display: "inline-block",
+          letterSpacing: "-0.03em"
+        }}>
+          EnviroWatchSI
+        </h1>
         <p style={{ color: "var(--text-secondary)", fontSize: "1.2rem", maxWidth: "700px", margin: "0 auto 24px auto" }}>
           Napredni sistem za spremljanje in analizo okoljskih parametrov v realnem času. Pregledujte vremenske pogoje, kakovost zraka in hidrološko stanje po celotni Sloveniji.
         </p>

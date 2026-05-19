@@ -24,13 +24,13 @@ function Navbar() {
           Domov
         </NavLink>
         <NavLink to="/meteo" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
-          Meteo
+          Meteorologija
         </NavLink>
         <NavLink to="/air-quality" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Kakovost Zraka
         </NavLink>
         <NavLink to="/hydro" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
-          Vode (Hydro)
+          Hidrologija
         </NavLink>
         <NavLink to="/map" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Zemljevid
