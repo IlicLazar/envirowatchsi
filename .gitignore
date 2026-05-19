@@ -3,4 +3,5 @@ node_modules
 dist
 .vite
 .DS_Store
+envirowatchsi-desktop/admin-token.txt
 

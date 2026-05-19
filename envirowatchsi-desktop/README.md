@@ -17,6 +17,14 @@ Use the run configurations provided by the run widget in your IDE's toolbar. You
   - Hot reload: `./gradlew :desktopApp:hotRun --auto`
   - Standard run: `./gradlew :desktopApp:run`
 
+### Login and database writes
+
+Creating, updating, and deleting records requires an admin JWT from the API. Use the `Login` screen in the desktop app with an admin user's email and password. The desktop app stores the returned token in memory and automatically sends it with database write requests.
+
+For demos without logging in through the desktop UI, you can still copy `admin-token.example.txt` to `admin-token.txt` and paste an admin JWT there.
+
+`admin-token.txt` is ignored by git, so secrets are not committed. You can also provide the same token through the `ENVIROWATCHSI_ADMIN_TOKEN` environment variable.
+
 ### Running tests
 
 Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
