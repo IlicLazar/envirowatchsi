@@ -289,7 +289,7 @@ h3 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); /* Premium bouncy micro-animation */
+  transition: all 0.2s ease-in-out; /* Sleek, professional flat transitions */
   font-size: 0.95rem;
   text-decoration: none; /* Strip out all default underlines */
 }
@@ -297,12 +297,12 @@ h3 {
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-emerald) 0%, var(--accent-cyan) 100%); /* Forest Green to River Blue */
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.18), 0 2px 4px rgba(2, 132, 199, 0.1);
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.1);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.25), 0 4px 8px rgba(2, 132, 199, 0.15);
-  transform: translateY(-3px) scale(1.05); /* Interactive pop-up zoom! */
+  opacity: 0.93; /* Simple, elegant light-dimming effect */
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.15);
 }
 
 .btn-danger {
@@ -521,7 +521,7 @@ select.input-field option {
   color: var(--accent-cyan) !important;
   min-width: 110px;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease-in-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -532,8 +532,6 @@ select.input-field option {
   background: var(--accent-cyan);
   color: #ffffff !important;
   border-color: var(--accent-cyan);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
 }
 
 .btn-details.active {
@@ -546,7 +544,6 @@ select.input-field option {
   background: var(--accent-coral);
   color: #ffffff !important;
   border-color: var(--accent-coral);
-  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
 }
 
 /* Premium edit action pill button */
@@ -560,7 +557,7 @@ select.input-field option {
   color: var(--accent-emerald) !important;
   min-width: 80px;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease-in-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -572,8 +569,6 @@ select.input-field option {
   background: var(--accent-emerald);
   color: #ffffff !important;
   border-color: var(--accent-emerald);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
 }
 
 /* Premium delete action pill button */
@@ -587,7 +582,7 @@ select.input-field option {
   color: var(--accent-red) !important;
   min-width: 80px;
   text-align: center;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease-in-out;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -599,8 +594,6 @@ select.input-field option {
   background: var(--accent-red);
   color: #ffffff !important;
   border-color: var(--accent-red);
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
 }
 
 

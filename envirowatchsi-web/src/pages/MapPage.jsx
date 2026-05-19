@@ -76,55 +76,61 @@ function MapPage() {
   return (
     <div className="dashboard-container">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "16px" }}>
-        <h1 style={{ margin: 0 }}>🌍 Interaktivni Okoljski Zemljevid</h1>
+        <h1 style={{ margin: 0 }}>Interaktivni Okoljski Zemljevid</h1>
         <div style={{
           display: "inline-flex",
-          background: "rgba(255, 255, 255, 0.03)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          borderRadius: "12px",
+          background: "#f1f5f9",
+          border: "1px solid #e2e8f0",
+          borderRadius: "10px",
           padding: "4px"
         }}>
           <button
             onClick={() => handleTabChange("meteo")}
-            className={`btn ${activeTab === "meteo" ? "btn-primary" : ""}`}
             style={{
-              background: activeTab === "meteo" ? "" : "transparent",
-              color: activeTab === "meteo" ? "" : "var(--text-secondary)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              fontSize: "0.9rem"
+              background: activeTab === "meteo" ? "rgba(22, 163, 74, 0.08)" : "transparent",
+              color: activeTab === "meteo" ? "var(--accent-emerald)" : "var(--text-secondary)",
+              border: activeTab === "meteo" ? "1px solid rgba(22, 163, 74, 0.15)" : "1px solid transparent",
+              borderRadius: "6px",
+              padding: "7px 15px",
+              fontSize: "0.875rem",
+              fontWeight: activeTab === "meteo" ? "600" : "500",
+              cursor: "pointer",
+              transition: "all 0.2s ease"
             }}
           >
-            🌦️ Meteo
+            🌦️ Meteorologija
           </button>
           <button
             onClick={() => handleTabChange("air-quality")}
-            className={`btn ${activeTab === "air-quality" ? "btn-primary" : ""}`}
             style={{
-              background: activeTab === "air-quality" ? "" : "transparent",
-              color: activeTab === "air-quality" ? "" : "var(--text-secondary)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              fontSize: "0.9rem"
+              background: activeTab === "air-quality" ? "rgba(22, 163, 74, 0.08)" : "transparent",
+              color: activeTab === "air-quality" ? "var(--accent-emerald)" : "var(--text-secondary)",
+              border: activeTab === "air-quality" ? "1px solid rgba(22, 163, 74, 0.15)" : "1px solid transparent",
+              borderRadius: "6px",
+              padding: "7px 15px",
+              fontSize: "0.875rem",
+              fontWeight: activeTab === "air-quality" ? "600" : "500",
+              cursor: "pointer",
+              transition: "all 0.2s ease"
             }}
           >
             💨 Kakovost Zraka
           </button>
           <button
             onClick={() => handleTabChange("hydro")}
-            className={`btn ${activeTab === "hydro" ? "btn-primary" : ""}`}
             style={{
-              background: activeTab === "hydro" ? "" : "transparent",
-              color: activeTab === "hydro" ? "" : "var(--text-secondary)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "8px 16px",
-              fontSize: "0.9rem"
+              background: activeTab === "hydro" ? "rgba(22, 163, 74, 0.08)" : "transparent",
+              color: activeTab === "hydro" ? "var(--accent-emerald)" : "var(--text-secondary)",
+              border: activeTab === "hydro" ? "1px solid rgba(22, 163, 74, 0.15)" : "1px solid transparent",
+              borderRadius: "6px",
+              padding: "7px 15px",
+              fontSize: "0.875rem",
+              fontWeight: activeTab === "hydro" ? "600" : "500",
+              cursor: "pointer",
+              transition: "all 0.2s ease"
             }}
           >
-            🌊 Vode (Hydro)
+            🌊 Hidrologija
           </button>
         </div>
       </div>
@@ -156,7 +162,7 @@ function MapPage() {
         gap: "8px"
       }}>
         ℹ️ Na zemljevidu prikazujem <strong>{formatSlovenianPoints(filteredStations.length)}</strong> s trenutno zadnjimi podatki za tip{" "}
-        <strong>{activeTab === "meteo" ? "Meteorologija" : activeTab === "air-quality" ? "Kakovost Zraka" : "Vode (Hydro)"}</strong>.
+        <strong>{activeTab === "meteo" ? "Meteorologija" : activeTab === "air-quality" ? "Kakovost Zraka" : "Hidrologija"}</strong>.
       </div>
 
       {loading ? (

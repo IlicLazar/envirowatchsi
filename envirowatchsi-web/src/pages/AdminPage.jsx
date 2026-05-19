@@ -150,9 +150,9 @@ function AdminPage() {
 
   return (
     <div className="dashboard-container">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1>Administracija Virov Podatkov</h1>
-        <button onClick={handleLogout} className="btn btn-danger" style={{ padding: "8px 16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+        <h1 style={{ margin: 0 }}>Administracija Virov Podatkov</h1>
+        <button onClick={handleLogout} className="btn-delete" style={{ padding: "8px 16px" }}>
           Odjava
         </button>
       </div>
@@ -222,12 +222,12 @@ function AdminPage() {
           </div>
 
           <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="btn-edit" style={{ minWidth: "120px" }}>
               {editingId ? "Posodobi Vir" : "Dodaj Vir"}
             </button>
             
             {editingId && (
-              <button type="button" onClick={handleCancelEdit} className="btn btn-danger">
+              <button type="button" onClick={handleCancelEdit} className="btn-delete" style={{ minWidth: "100px" }}>
                 Prekliči
               </button>
             )}
