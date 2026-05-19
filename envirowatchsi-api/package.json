@@ -6,10 +6,12 @@
     "dev": "node --watch index.js"
   },
   "dependencies": {
+    "@xmldom/xmldom": "^0.9.10",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "fast-xml-parser": "^5.8.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
     "swagger-jsdoc": "^6.2.8",

@@ -5,6 +5,7 @@ const connectMongo = require("./src/db/mongo");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 const { initWebSocket } = require("./src/websocket/websocketServer");
+const { startScheduler } = require("./src/services/schedulerService");
 
 const PORT = 3000;
 
@@ -36,9 +37,10 @@ connectMongo().then(() => {
   );
 
   const server = app.listen(PORT, () => {
-  console.log(`EnviroWatchSI API running on port ${PORT}`);
-});
+    console.log(`EnviroWatchSI API running on port ${PORT}`);
+  });
 
-initWebSocket(server);
+  initWebSocket(server);
+  startScheduler();
 
 });

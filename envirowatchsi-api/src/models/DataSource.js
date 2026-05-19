@@ -29,6 +29,20 @@ const dataSourceSchema = new mongoose.Schema(
       type: Number,
       default: 60,
     },
+
+    lastRefreshed: {
+      type: Date,
+    },
+
+    lastStatus: {
+      type: String,
+      enum: ["success", "error", "none"],
+      default: "none",
+    },
+
+    lastError: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

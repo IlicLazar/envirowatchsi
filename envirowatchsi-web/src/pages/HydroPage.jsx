@@ -34,7 +34,7 @@ function HydroPage() {
       if (message.type === "HYDRO_CREATED") {
         setHydroData((prevData) => [message.data, ...prevData]);
       }
-  
+
       if (message.type === "HYDRO_UPDATED") {
         setHydroData((prevData) =>
           prevData.map((item) =>
@@ -42,14 +42,14 @@ function HydroPage() {
           )
         );
       }
-  
+
       if (message.type === "HYDRO_DELETED") {
         setHydroData((prevData) =>
           prevData.filter((item) => item._id !== message.data._id)
         );
       }
     });
-  
+
     return () => socket.close();
   }, []);
 
@@ -58,20 +58,20 @@ function HydroPage() {
   );
 
   const averageWaterLevel =
-  filteredData.length > 0
-    ? (
+    filteredData.length > 0
+      ? (
         filteredData.reduce((sum, item) => sum + Number(item.waterLevel || 0), 0) /
         filteredData.length
       ).toFixed(1)
-    : "N/A";
+      : "N/A";
 
   const averageWaterFlow =
-  filteredData.length > 0
-    ? (
+    filteredData.length > 0
+      ? (
         filteredData.reduce((sum, item) => sum + Number(item.waterFlow || 0), 0) /
         filteredData.length
       ).toFixed(1)
-    : "N/A";
+      : "N/A";
 
   return (
     <div className="dashboard-container">
