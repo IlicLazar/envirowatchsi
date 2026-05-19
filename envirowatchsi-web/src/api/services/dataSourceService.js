@@ -39,3 +39,11 @@ export async function deleteDataSource(id) {
 
   return response.data;
 }
+
+export async function syncDataSource(id) {
+  const response = await apiClient.post(`/data-sources/${id}/sync`, {}, {
+    headers: getAuthHeaders(),
+  });
+
+  return response.data;
+}

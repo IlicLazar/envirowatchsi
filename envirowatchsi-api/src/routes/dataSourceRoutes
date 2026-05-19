@@ -7,6 +7,7 @@ const {
   createDataSource,
   updateDataSource,
   deleteDataSource,
+  syncDataSource,
 } = require("../controllers/dataSourceController");
 
 router.get("/", authenticate, requireAdmin, getAllDataSources);
@@ -16,5 +17,7 @@ router.post("/", authenticate, requireAdmin, createDataSource);
 router.put("/:id", authenticate, requireAdmin, updateDataSource);
 
 router.delete("/:id", authenticate, requireAdmin, deleteDataSource);
+
+router.post("/:id/sync", authenticate, requireAdmin, syncDataSource);
 
 module.exports = router;
