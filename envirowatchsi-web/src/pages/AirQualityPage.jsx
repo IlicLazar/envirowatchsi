@@ -34,7 +34,7 @@ function AirQualityPage() {
       if (message.type === "AIR_QUALITY_CREATED") {
         setAirQualityData((prevData) => [message.data, ...prevData]);
       }
-  
+
       if (message.type === "AIR_QUALITY_UPDATED") {
         setAirQualityData((prevData) =>
           prevData.map((item) =>
@@ -42,14 +42,14 @@ function AirQualityPage() {
           )
         );
       }
-  
+
       if (message.type === "AIR_QUALITY_DELETED") {
         setAirQualityData((prevData) =>
           prevData.filter((item) => item._id !== message.data._id)
         );
       }
     });
-  
+
     return () => socket.close();
   }, []);
 
@@ -58,12 +58,12 @@ function AirQualityPage() {
   );
 
   const averageAqi =
-  filteredData.length > 0
-    ? (
+    filteredData.length > 0
+      ? (
         filteredData.reduce((sum, item) => sum + Number(item.airQualityIndex || 0), 0) /
         filteredData.length
       ).toFixed(1)
-    : "N/A";
+      : "N/A";
 
   const maxPm10 =
     filteredData.length > 0
@@ -161,4 +161,4 @@ function AirQualityPage() {
   );
 }
 
-export default AirQualityPage;
+export default AirQualityPage;

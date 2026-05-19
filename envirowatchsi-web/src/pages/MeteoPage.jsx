@@ -60,20 +60,20 @@ function MeteoPage() {
   );
 
   const averageTemperature =
-  filteredData.length > 0
-    ? (
+    filteredData.length > 0
+      ? (
         filteredData.reduce((sum, item) => sum + Number(item.temperature || 0), 0) /
         filteredData.length
       ).toFixed(1)
-    : "N/A";
+      : "N/A";
 
   const averageHumidity =
-  filteredData.length > 0
-    ? (
+    filteredData.length > 0
+      ? (
         filteredData.reduce((sum, item) => sum + Number(item.humidity || 0), 0) /
         filteredData.length
       ).toFixed(1)
-    : "N/A";
+      : "N/A";
 
   return (
     <div className="dashboard-container">
@@ -151,4 +151,4 @@ function MeteoPage() {
   );
 }
 
-export default MeteoPage;
+export default MeteoPage;

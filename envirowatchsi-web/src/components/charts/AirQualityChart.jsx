@@ -23,6 +23,9 @@ function formatTime(dateStr) {
 
 function AirQualityChart({ data }) {
   const [limit, setLimit] = useState(30);
+  const [selectedStation, setSelectedStation] = useState("all");
+
+  const uniqueStations = [...new Set(data.map(item => item.stationName).filter(Boolean))].sort();
 
   const sorted = [...data]
     .filter((item) => item.measuredAt)
@@ -32,14 +35,39 @@ function AirQualityChart({ data }) {
       time: formatTime(item.measuredAt),
     }));
 
-  const displayedData = limit === "all" ? sorted : sorted.slice(-limit);
+  const filteredByStation = selectedStation === "all" 
+    ? sorted 
+    : sorted.filter((item) => item.stationName === selectedStation);
+
+  const displayedData = limit === "all" ? filteredByStation : filteredByStation.slice(-limit);
 
   return (
     <div style={{ width: "100%" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <h2>Zgodovina Meritev</h2>
-        <div>
-          <label style={{ marginRight: "8px", fontSize: "14px", color: "var(--text-secondary)" }}>Prikaz zadnjih:</label>
+        <div style={{ display: "flex", gap: "16px" }}>
+          <div>
+            <label style={{ marginRight: "8px", fontSize: "14px", color: "var(--text-secondary)" }}>Postaja:</label>
+            <select
+              value={selectedStation}
+              onChange={(e) => setSelectedStation(e.target.value)}
+              className="input-field"
+              style={{
+                padding: "5px 10px",
+                width: "180px",
+                fontSize: "14px",
+                cursor: "pointer",
+                display: "inline-block"
+              }}
+            >
+              <option value="all">Vse postaje</option>
+              {uniqueStations.map(station => (
+                <option key={station} value={station}>{station}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label style={{ marginRight: "8px", fontSize: "14px", color: "var(--text-secondary)" }}>Prikaz zadnjih:</label>
           <select
             value={limit}
             onChange={(e) => setLimit(e.target.value === "all" ? "all" : Number(e.target.value))}
@@ -58,6 +86,7 @@ function AirQualityChart({ data }) {
             <option value="all">Vsi zapisi</option>
           </select>
         </div>
+      </div>
       </div>
 
       <div style={{ width: "100%", height: "350px" }}>

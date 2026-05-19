@@ -10,7 +10,7 @@ import AdminPage from "./pages/AdminPage";
 function App() {
   return (
     <BrowserRouter>
-    <Navbar />
+      <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/meteo" element={<MeteoPage />} />
