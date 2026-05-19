@@ -157,13 +157,13 @@ function AdminPage() {
         </button>
       </div>
 
-      <div className="glass-panel" style={{ maxWidth: "800px" }}>
-        <h2>{editingId ? "Uredi Vir Podatkov" : "Dodaj Vir Podatkov"}</h2>
+      <div className="glass-panel" style={{ marginBottom: "40px" }}>
+        <h2>{editingId ? "Uredi vir podatkov" : "Dodaj vir podatkov"}</h2>
         
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", marginTop: "20px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             <div>
-              <label className="filter-label">Ime Vira</label>
+              <label className="filter-label">Ime vira</label>
               <input
                 name="name"
                 placeholder="npr. Agencija za okolje"
@@ -174,17 +174,17 @@ function AdminPage() {
               />
             </div>
             <div>
-              <label className="filter-label">Tip Podatkov</label>
+              <label className="filter-label">Tip podatkov</label>
               <select name="type" value={formData.type} onChange={handleChange} className="input-field">
-                <option value="meteo">Meteorološki (Meteo)</option>
-                <option value="air-quality">Kakovost Zraka</option>
-                <option value="hydro">Hidrološki (Hydro)</option>
+                <option value="meteo">Meteorološki</option>
+                <option value="air-quality">Kakovost zraka</option>
+                <option value="hydro">Hidrološki</option>
               </select>
             </div>
           </div>
 
           <div>
-            <label className="filter-label">URL Naslov Vira</label>
+            <label className="filter-label">URL naslov vira</label>
             <input
               name="url"
               placeholder="https://api.example.com/data"
@@ -197,7 +197,7 @@ function AdminPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", alignItems: "center" }}>
             <div>
-              <label className="filter-label">Interval Osveževanja (minute)</label>
+              <label className="filter-label">Interval osveževanja (minute)</label>
               <input
                 name="refreshIntervalMinutes"
                 type="number"
@@ -223,7 +223,7 @@ function AdminPage() {
 
           <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
             <button type="submit" className="btn-edit" style={{ minWidth: "120px" }}>
-              {editingId ? "Posodobi Vir" : "Dodaj Vir"}
+              {editingId ? "Posodobi vir" : "Dodaj vir"}
             </button>
             
             {editingId && (
@@ -244,15 +244,14 @@ function AdminPage() {
             background: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
             border: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
             color: (message.toLowerCase().includes("successfully") || message.toLowerCase().includes("uspešna") || message.toLowerCase().includes("uspešno")) ? "var(--accent-emerald)" : "var(--accent-red)",
-            fontWeight: "500",
-            maxWidth: "800px"
+            fontWeight: "500"
           }}
         >
           {message}
         </p>
       )}
 
-      <h2 style={{ marginTop: "40px", marginBottom: "20px" }}>Seznam Virov Podatkov</h2>
+      <h2 style={{ marginTop: "40px", marginBottom: "20px" }}>Seznam virov podatkov</h2>
       <div className="table-container">
         <table className="custom-table">
           <thead>
@@ -262,7 +261,7 @@ function AdminPage() {
               <th>URL naslov</th>
               <th>Aktivno</th>
               <th>Interval</th>
-              <th>Zadnji Refreš</th>
+              <th>Zadnja osvežitev</th>
               <th>Status</th>
               <th>Dejanja</th>
             </tr>
@@ -278,6 +277,7 @@ function AdminPage() {
                     borderRadius: "4px",
                     fontSize: "0.8rem",
                     fontWeight: "600",
+                    whiteSpace: "nowrap",
                     background: source.type === "meteo"
                       ? "rgba(217, 119, 6, 0.08)"
                       : source.type === "air-quality"
@@ -304,7 +304,7 @@ function AdminPage() {
                     fontWeight: "600",
                     color: source.isActive ? "var(--accent-emerald)" : "var(--accent-red)"
                   }}>
-                    {source.isActive ? "DA" : "NE"}
+                    {source.isActive ? "Da" : "Ne"}
                   </span>
                 </td>
                 <td>{source.refreshIntervalMinutes} min</td>
@@ -329,7 +329,7 @@ function AdminPage() {
                       background: "rgba(16, 185, 129, 0.15)",
                       color: "var(--accent-emerald)"
                     }}>
-                      USPEŠNO
+                      Uspešno
                     </span>
                   ) : source.lastStatus === "error" ? (
                     <span
@@ -344,7 +344,7 @@ function AdminPage() {
                         cursor: "help"
                       }}
                     >
-                      NAPAKA ⚠️
+                      Napaka ⚠️
                     </span>
                   ) : (
                     <span style={{
@@ -355,7 +355,7 @@ function AdminPage() {
                       background: "rgba(156, 163, 175, 0.15)",
                       color: "var(--text-secondary)"
                     }}>
-                      BREZ
+                      Brez
                     </span>
                   )}
                 </td>

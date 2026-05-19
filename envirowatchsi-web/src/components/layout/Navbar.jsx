@@ -11,10 +11,10 @@ function Navbar() {
           src="/logo.png" 
           alt="EnviroWatchSI" 
           style={{ 
-            height: "115px", 
+            height: "140px", 
             width: "auto", 
-            marginTop: "-22px", 
-            marginBottom: "-38px", 
+            marginTop: "-30px", 
+            marginBottom: "-48px", 
             display: "block"
           }} 
         />
@@ -27,7 +27,7 @@ function Navbar() {
           Meteorologija
         </NavLink>
         <NavLink to="/air-quality" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
-          Kakovost Zraka
+          Kakovost zraka
         </NavLink>
         <NavLink to="/hydro" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Hidrologija
@@ -41,7 +41,7 @@ function Navbar() {
           </NavLink>
         ) : (
           <NavLink to="/login" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
-            Login
+            Prijava
           </NavLink>
         )}
       </div>

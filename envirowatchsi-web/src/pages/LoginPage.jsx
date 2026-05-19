@@ -23,10 +23,10 @@ function LoginPage() {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      setMessage(`Login successful. Role: ${data.user.role}`);
+      setMessage("Prijava uspešna!");
       navigate("/admin");
     } catch (error) {
-      setMessage("Login failed. Check email and password.");
+      setMessage("Prijava ni uspela. Preverite e-pošto in geslo.");
       console.error(error);
     }
   }
@@ -63,7 +63,7 @@ function LoginPage() {
           />
         </div>
 
-        <button type="submit" className="btn btn-primary" style={{ width: "100%", padding: "12px" }}>
+        <button type="submit" className="btn-edit" style={{ width: "100%", padding: "12px" }}>
           Prijava
         </button>
       </form>
@@ -72,7 +72,7 @@ function LoginPage() {
         <p
           style={{
             marginTop: "20px",
-            color: message.includes("successful") ? "var(--accent-emerald)" : "var(--accent-red)",
+            color: message.includes("uspešna") ? "var(--accent-emerald)" : "var(--accent-red)",
             fontWeight: "500",
             fontSize: "0.95rem",
           }}
