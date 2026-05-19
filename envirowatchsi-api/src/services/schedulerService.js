@@ -5,9 +5,6 @@ const Hydro = require("../models/Hydro");
 const { parseAirQualityData, parseMeteoData, parseHydroData } = require("../utils/xmlParser");
 const { broadcastEvent } = require("../websocket/websocketServer");
 
-/**
- * Synchronizes a single data source instantly
- */
 async function syncSource(source) {
   console.log(`[Scheduler] Syncing data source: ${source.name} (${source.type}) from ${source.url}`);
   try {
@@ -41,7 +38,6 @@ async function syncSource(source) {
 
     let newRecordsCount = 0;
     for (const record of stations) {
-      // Robust duplicate prevention: same stationId (or stationName if ID absent) and same measuredAt timestamp
       const query = {
         measuredAt: record.measuredAt
       };
@@ -55,7 +51,6 @@ async function syncSource(source) {
       if (!exists) {
         const createdRecord = await Model.create(record);
         newRecordsCount++;
-        // Broadcast in real-time to updating page charts/tables
         broadcastEvent({ type: eventType, data: createdRecord });
       }
     }
@@ -67,7 +62,6 @@ async function syncSource(source) {
     source.lastError = null;
     await source.save();
 
-    // Broadcast updated data source status to admin panels
     broadcastEvent({ type: "DATA_SOURCE_UPDATED", data: source });
     
     return { success: true, newRecordsCount };
@@ -79,16 +73,12 @@ async function syncSource(source) {
     source.lastError = error.message;
     await source.save();
 
-    // Broadcast the failure status
     broadcastEvent({ type: "DATA_SOURCE_UPDATED", data: source });
     
     return { success: false, error: error.message };
   }
 }
 
-/**
- * Checks all active data sources and synchronizes those that are due
- */
 async function checkAndSyncSources() {
   try {
     const activeSources = await DataSource.find({ isActive: true });
@@ -99,7 +89,6 @@ async function checkAndSyncSources() {
       const lastTime = source.lastRefreshed ? new Date(source.lastRefreshed).getTime() : 0;
 
       if (!source.lastRefreshed || (now.getTime() - lastTime) >= intervalMs) {
-        // Run sync asynchronously so other sources don't block
         syncSource(source);
       }
     }
@@ -108,16 +97,9 @@ async function checkAndSyncSources() {
   }
 }
 
-/**
- * Initializes the background scheduler
- */
 function startScheduler() {
   console.log("[Scheduler] Background data ingestion scheduler initialized.");
-  
-  // Run an initial sync immediately on startup
   checkAndSyncSources();
-  
-  // Tick every 1 minute to check for due data sources
   setInterval(checkAndSyncSources, 60 * 1000);
 }
 
