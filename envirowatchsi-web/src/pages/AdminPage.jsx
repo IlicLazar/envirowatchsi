@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   getDataSources,
   createDataSource,
@@ -10,6 +11,7 @@ function AdminPage() {
   const [dataSources, setDataSources] = useState([]);
   const [message, setMessage] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const navigate = useNavigate();
 
   const emptyForm = {
     name: "",
@@ -105,9 +107,20 @@ function AdminPage() {
   }
 }
 
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/login");
+  }
+
   return (
     <div className="dashboard-container">
-      <h1>Administracija Virov Podatkov</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Administracija Virov Podatkov</h1>
+        <button onClick={handleLogout} className="btn btn-danger" style={{ padding: "8px 16px" }}>
+          Odjava
+        </button>
+      </div>
 
       <div className="glass-panel" style={{ maxWidth: "800px" }}>
         <h2>{editingId ? "Uredi Vir Podatkov" : "Dodaj Vir Podatkov"}</h2>

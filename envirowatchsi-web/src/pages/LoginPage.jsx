@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { login } from "../api/services/authService";
+import { useNavigate } from "react-router-dom";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      navigate("/admin");
+    }
+  }, [navigate]);
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -16,6 +24,7 @@ function LoginPage() {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       setMessage(`Login successful. Role: ${data.user.role}`);
+      navigate("/admin");
     } catch (error) {
       setMessage("Login failed. Check email and password.");
       console.error(error);
