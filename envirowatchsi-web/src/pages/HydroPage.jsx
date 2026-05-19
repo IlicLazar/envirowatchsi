@@ -49,24 +49,40 @@ function HydroPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getLatestMeasurements = (records) => {
+    if (!records || !Array.isArray(records)) return [];
+    const map = new Map();
+    const sorted = [...records].sort((a, b) => new Date(b.measuredAt || b.createdAt) - new Date(a.measuredAt || a.createdAt));
+    for (const record of sorted) {
+      const key = record.stationId || record.stationName;
+      if (!map.has(key)) {
+        map.set(key, record);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const latestHydroData = getLatestMeasurements(filteredData);
+
   const averageWaterLevel =
-    filteredData.length > 0
+    latestHydroData.length > 0
       ? (
-        filteredData.reduce((sum, item) => sum + Number(item.waterLevel || 0), 0) /
-        filteredData.length
+        latestHydroData.reduce((sum, item) => sum + Number(item.waterLevel || 0), 0) /
+        latestHydroData.length
       ).toFixed(1)
       : "N/A";
 
   const averageWaterFlow =
-    filteredData.length > 0
+    latestHydroData.length > 0
       ? (
-        filteredData.reduce((sum, item) => sum + Number(item.waterFlow || 0), 0) /
-        filteredData.length
+        latestHydroData.reduce((sum, item) => sum + Number(item.waterFlow || 0), 0) /
+        latestHydroData.length
       ).toFixed(1)
       : "N/A";
 
   return (
     <div className="dashboard-container">
+      {/* Search Header and Filters */}
       <h1>Hidrološki Podatki (Vode)</h1>
 
       <div className="glass-panel">
@@ -84,7 +100,7 @@ function HydroPage() {
       </div>
 
       <div className="stats-grid">
-        <StatsCard title="Skupno postaj" value={filteredData.length} />
+        <StatsCard title="Skupno postaj" value={latestHydroData.length} />
         <StatsCard title="Povprečni vodostaj" value={averageWaterLevel != null ? `${averageWaterLevel} cm` : "N/A"} />
         <StatsCard title="Povprečni pretok" value={averageWaterFlow != null ? `${averageWaterFlow} m³/s` : "N/A"} />
       </div>
@@ -92,7 +108,7 @@ function HydroPage() {
       <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
         <h2>Zemljevid Merilnih Postaj</h2>
         <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
-          <StationMap data={filteredData} />
+          <StationMap data={latestHydroData} />
         </div>
       </div>
 
@@ -101,7 +117,7 @@ function HydroPage() {
       </div>
 
       <HydroTable
-        data={filteredData}
+        data={latestHydroData}
       />
     </div>
   );

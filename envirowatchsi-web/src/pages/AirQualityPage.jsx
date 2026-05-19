@@ -49,21 +49,37 @@ function AirQualityPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getLatestMeasurements = (records) => {
+    if (!records || !Array.isArray(records)) return [];
+    const map = new Map();
+    const sorted = [...records].sort((a, b) => new Date(b.measuredAt || b.createdAt) - new Date(a.measuredAt || a.createdAt));
+    for (const record of sorted) {
+      const key = record.stationId || record.stationName;
+      if (!map.has(key)) {
+        map.set(key, record);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const latestAirQualityData = getLatestMeasurements(filteredData);
+
   const averageAqi =
-    filteredData.length > 0
+    latestAirQualityData.length > 0
       ? (
-        filteredData.reduce((sum, item) => sum + Number(item.airQualityIndex || 0), 0) /
-        filteredData.length
+        latestAirQualityData.reduce((sum, item) => sum + Number(item.airQualityIndex || 0), 0) /
+        latestAirQualityData.length
       ).toFixed(1)
       : "N/A";
 
   const maxPm10 =
-    filteredData.length > 0
-      ? Math.max(...filteredData.map((item) => Number(item.pm10 || 0)))
+    latestAirQualityData.length > 0
+      ? Math.max(...latestAirQualityData.map((item) => Number(item.pm10 || 0)))
       : "N/A";
 
   return (
     <div className="dashboard-container">
+      {/* Search Header and Filters */}
       <h1>Kakovost Zraka (Air Quality)</h1>
 
       <div className="glass-panel">
@@ -81,7 +97,7 @@ function AirQualityPage() {
       </div>
 
       <div className="stats-grid">
-        <StatsCard title="Skupno postaj" value={filteredData.length} />
+        <StatsCard title="Skupno postaj" value={latestAirQualityData.length} />
         <StatsCard title="Povprečni AQI" value={averageAqi} />
         <StatsCard title="Maksimalni PM10" value={maxPm10 != null ? `${maxPm10} µg/m³` : "N/A"} />
       </div>
@@ -89,7 +105,7 @@ function AirQualityPage() {
       <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
         <h2>Zemljevid Merilnih Postaj</h2>
         <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
-          <StationMap data={filteredData} />
+          <StationMap data={latestAirQualityData} />
         </div>
       </div>
 
@@ -98,7 +114,7 @@ function AirQualityPage() {
       </div>
 
       <AirQualityTable
-        data={filteredData}
+        data={latestAirQualityData}
       />
     </div>
   );

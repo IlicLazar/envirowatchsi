@@ -51,24 +51,40 @@ function MeteoPage() {
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const getLatestMeasurements = (records) => {
+    if (!records || !Array.isArray(records)) return [];
+    const map = new Map();
+    const sorted = [...records].sort((a, b) => new Date(b.measuredAt || b.createdAt) - new Date(a.measuredAt || a.createdAt));
+    for (const record of sorted) {
+      const key = record.stationId || record.stationName;
+      if (!map.has(key)) {
+        map.set(key, record);
+      }
+    }
+    return Array.from(map.values());
+  };
+
+  const latestMeteoData = getLatestMeasurements(filteredData);
+
   const averageTemperature =
-    filteredData.length > 0
+    latestMeteoData.length > 0
       ? (
-        filteredData.reduce((sum, item) => sum + Number(item.temperature || 0), 0) /
-        filteredData.length
+        latestMeteoData.reduce((sum, item) => sum + Number(item.temperature || 0), 0) /
+        latestMeteoData.length
       ).toFixed(1)
       : "N/A";
 
   const averageHumidity =
-    filteredData.length > 0
+    latestMeteoData.length > 0
       ? (
-        filteredData.reduce((sum, item) => sum + Number(item.humidity || 0), 0) /
-        filteredData.length
+        latestMeteoData.reduce((sum, item) => sum + Number(item.humidity || 0), 0) /
+        latestMeteoData.length
       ).toFixed(1)
       : "N/A";
 
   return (
     <div className="dashboard-container">
+      {/* Search Header and Filters */}
       <h1>Meteorološki Podatki</h1>
 
       <div className="glass-panel">
@@ -86,7 +102,7 @@ function MeteoPage() {
       </div>
 
       <div className="stats-grid">
-        <StatsCard title="Skupno postaj" value={filteredData.length} />
+        <StatsCard title="Skupno postaj" value={latestMeteoData.length} />
         <StatsCard title="Povprečna temperatura" value={`${averageTemperature} °C`} />
         <StatsCard title="Povprečna vlažnost" value={`${averageHumidity} %`} />
       </div>
@@ -94,7 +110,7 @@ function MeteoPage() {
       <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
         <h2>Zemljevid Merilnih Postaj</h2>
         <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
-          <StationMap data={filteredData} />
+          <StationMap data={latestMeteoData} />
         </div>
       </div>
 
@@ -102,7 +118,7 @@ function MeteoPage() {
         <MeteoChart data={filteredData} />
       </div>
 
-      <MeteoTable data={filteredData} />
+      <MeteoTable data={latestMeteoData} />
     </div>
   );
 }
