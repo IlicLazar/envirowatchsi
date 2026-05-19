@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { getMeteoData } from "../api/services/meteoService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import MeteoTable from "../components/tables/MeteoTable";
@@ -9,16 +9,8 @@ import StationMap from "../components/maps/StationMap";
 
 function MeteoPage() {
   const [meteoData, setMeteoData] = useState([]);
-  const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
-  const detailsRef = useRef(null);
-
-  useEffect(() => {
-    if (selectedRecord && detailsRef.current) {
-      detailsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [selectedRecord]);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,43 +102,7 @@ function MeteoPage() {
         <MeteoChart data={filteredData} />
       </div>
 
-      <MeteoTable data={filteredData} onSelectRecord={setSelectedRecord} />
-
-      {selectedRecord && (
-        <div ref={detailsRef} className="details-panel">
-          <h2>Podrobnosti o zapisu</h2>
-          <div className="details-grid">
-            <div className="detail-item">
-              <div className="detail-label">Merilna Postaja</div>
-              <div className="detail-value">{selectedRecord.stationName}</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Temperatura</div>
-              <div className="detail-value">{selectedRecord.temperature} °C</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Vlažnost</div>
-              <div className="detail-value">{selectedRecord.humidity} %</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Hitrost Vetra</div>
-              <div className="detail-value">
-                {selectedRecord.windSpeed != null ? `${selectedRecord.windSpeed} km/h` : "N/A"}
-              </div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Smer Vetra</div>
-              <div className="detail-value">{selectedRecord.windDirection ?? "N/A"}</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Padavine</div>
-              <div className="detail-value">
-                {selectedRecord.precipitation != null ? `${selectedRecord.precipitation} mm` : "N/A"}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <MeteoTable data={filteredData} />
     </div>
   );
 }

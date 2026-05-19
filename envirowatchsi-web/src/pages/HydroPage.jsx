@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { getHydroData } from "../api/services/hydroService";
 import { createWebSocketConnection } from "../api/websocket/websocketClient";
 import HydroTable from "../components/tables/HydroTable";
@@ -9,16 +9,8 @@ import StationMap from "../components/maps/StationMap";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
-  const [selectedRecord, setSelectedRecord] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({});
-  const detailsRef = useRef(null);
-
-  useEffect(() => {
-    if (selectedRecord && detailsRef.current) {
-      detailsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [selectedRecord]);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,44 +102,7 @@ function HydroPage() {
 
       <HydroTable
         data={filteredData}
-        onSelectRecord={setSelectedRecord}
       />
-
-      {selectedRecord && (
-        <div ref={detailsRef} className="details-panel">
-          <h2>Podrobnosti o zapisu</h2>
-          <div className="details-grid">
-            <div className="detail-item">
-              <div className="detail-label">Merilna Postaja</div>
-              <div className="detail-value">{selectedRecord.stationName}</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Reka</div>
-              <div className="detail-value">{selectedRecord.riverName}</div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Vodni Vodostaj</div>
-              <div className="detail-value">
-                {selectedRecord.waterLevel != null ? `${selectedRecord.waterLevel} cm` : "N/A"}
-              </div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Pretok Vode</div>
-              <div className="detail-value">
-                {selectedRecord.waterFlow != null ? `${selectedRecord.waterFlow} m³/s` : "N/A"}
-              </div>
-            </div>
-            <div className="detail-item">
-              <div className="detail-label">Čas Meritve</div>
-              <div className="detail-value">
-                {selectedRecord.measuredAt
-                  ? new Date(selectedRecord.measuredAt).toLocaleString("sl-SI")
-                  : "N/A"}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
