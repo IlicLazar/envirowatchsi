@@ -43,6 +43,29 @@ function HomePage() {
     );
   }
 
+  function getUniqueStationsCount(records) {
+    if (!records || !Array.isArray(records)) return 0;
+    const uniqueIds = new Set(records.map(r => r.stationId || r.stationName).filter(Boolean));
+    return uniqueIds.size;
+  }
+
+  function formatSlovenian(count, wordType) {
+    const mod100 = count % 100;
+    if (wordType === "postaja") {
+      if (mod100 === 1) return `${count} postaja`;
+      if (mod100 === 2) return `${count} postaji`;
+      if (mod100 === 3 || mod100 === 4) return `${count} postaje`;
+      return `${count} postaj`;
+    }
+    if (wordType === "meritev") {
+      if (mod100 === 1) return `${count} meritev`;
+      if (mod100 === 2) return `${count} meritvi`;
+      if (mod100 === 3 || mod100 === 4) return `${count} meritve`;
+      return `${count} meritev`;
+    }
+    return `${count}`;
+  }
+
   return (
     <div className="dashboard-container">
       {/* Hero Banner Section */}
@@ -74,8 +97,11 @@ function HomePage() {
                 Temperatura, vlažnost, hitrost vetra in padavine.
               </p>
             </div>
-            <span className="stats-card-value" style={{ marginTop: "16px", display: "block" }}>
-              {data.meteo.length} <span style={{ fontSize: "1rem", fontWeight: "normal", color: "var(--text-secondary)" }}>zapisov</span>
+            <span className="stats-card-value" style={{ marginTop: "16px", display: "block", fontSize: "1.45rem", fontWeight: "700" }}>
+              {formatSlovenian(getUniqueStationsCount(data.meteo), "postaja")}{" "}
+              <span style={{ fontSize: "0.95rem", fontWeight: "normal", color: "var(--text-secondary)" }}>
+                ({formatSlovenian(data.meteo.length, "meritev")})
+              </span>
             </span>
           </div>
         </a>
@@ -88,8 +114,11 @@ function HomePage() {
                 AQI indeks, PM10, PM2.5 delci in koncentracije plinov.
               </p>
             </div>
-            <span className="stats-card-value" style={{ marginTop: "16px", display: "block" }}>
-              {data.airQuality.length} <span style={{ fontSize: "1rem", fontWeight: "normal", color: "var(--text-secondary)" }}>zapisov</span>
+            <span className="stats-card-value" style={{ marginTop: "16px", display: "block", fontSize: "1.45rem", fontWeight: "700" }}>
+              {formatSlovenian(getUniqueStationsCount(data.airQuality), "postaja")}{" "}
+              <span style={{ fontSize: "0.95rem", fontWeight: "normal", color: "var(--text-secondary)" }}>
+                ({formatSlovenian(data.airQuality.length, "meritev")})
+              </span>
             </span>
           </div>
         </a>
@@ -102,8 +131,11 @@ function HomePage() {
                 Vodostaji in pretoki rek po celotni Sloveniji.
               </p>
             </div>
-            <span className="stats-card-value" style={{ marginTop: "16px", display: "block" }}>
-              {data.hydro.length} <span style={{ fontSize: "1rem", fontWeight: "normal", color: "var(--text-secondary)" }}>zapisov</span>
+            <span className="stats-card-value" style={{ marginTop: "16px", display: "block", fontSize: "1.45rem", fontWeight: "700" }}>
+              {formatSlovenian(getUniqueStationsCount(data.hydro), "postaja")}{" "}
+              <span style={{ fontSize: "0.95rem", fontWeight: "normal", color: "var(--text-secondary)" }}>
+                ({formatSlovenian(data.hydro.length, "meritev")})
+              </span>
             </span>
           </div>
         </a>
