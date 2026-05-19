@@ -26,7 +26,7 @@ fun LoginScreen(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "Login",
+            text = "Prijava",
             style = MaterialTheme.typography.titleSmall
         )
 
@@ -45,7 +45,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text("Geslo") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.width(360.dp)
@@ -57,13 +57,13 @@ fun LoginScreen(
             enabled = !isLoading,
             onClick = {
                 if (email.isBlank() || password.isBlank()) {
-                    message = "Email i password su obavezni."
+                    message = "Email in geslo sta obvezna."
                     return@Button
                 }
 
                 scope.launch {
                     isLoading = true
-                    message = "Prijava u toku..."
+                    message = "Prijava je v teku..."
 
                     try {
                         val result = withContext(Dispatchers.IO) {
@@ -72,21 +72,21 @@ fun LoginScreen(
 
                         if (result.role != "admin") {
                             ApiClient.logout()
-                            message = "Login uspesan, ali korisnik nema admin rolu."
+                            message = "Prijava je uspela, vendar uporabnik nima administratorske vloge."
                             return@launch
                         }
 
-                        message = "Login uspesan. Token je sacuvan za ovu sesiju."
+                        message = "Prijava je uspela. Token je shranjen za to sejo."
                         onLoginSuccess(result)
                     } catch (e: Exception) {
-                        message = "Login nije uspeo: ${e.message}"
+                        message = "Prijava ni uspela: ${e.message}"
                     } finally {
                         isLoading = false
                     }
                 }
             }
         ) {
-            Text(if (isLoading) "Login..." else "Login")
+            Text(if (isLoading) "Prijava..." else "Prijava")
         }
 
         Spacer(modifier = Modifier.height(12.dp))

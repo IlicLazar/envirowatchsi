@@ -58,7 +58,7 @@ object ApiClient {
         val token = authResponse.token?.trim()
 
         if (token.isNullOrBlank()) {
-            throw RuntimeException("Login succeeded, but API did not return a token.")
+            throw RuntimeException("Prijava je uspela, vendar API ni vrnil tokena.")
         }
 
         sessionAdminToken = token
@@ -188,8 +188,8 @@ object ApiClient {
 
         val expectedFiles = tokenFiles.joinToString(", ") { it.path }
         throw IllegalStateException(
-            "Admin token is missing. Put a JWT token in envirowatchsi-desktop/admin-token.txt " +
-                "or set $TOKEN_ENV. Checked: $expectedFiles"
+            "Administratorski token manjka. Vnesi JWT token v envirowatchsi-desktop/admin-token.txt " +
+                "ali nastavi $TOKEN_ENV. Preverjene poti: $expectedFiles"
         )
     }
 }

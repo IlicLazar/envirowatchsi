@@ -9,7 +9,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import org.envirowatchsi.api.ApiClient
 import org.envirowatchsi.ui.components.Sidebar
 import org.envirowatchsi.ui.screens.LoginScreen
-import org.envirowatchsi.ui.screens.DashboardScreen
 import org.envirowatchsi.ui.screens.DatabaseScreen
 import org.envirowatchsi.ui.screens.DataEntryScreen
 import org.envirowatchsi.ui.screens.UpdateDataScreen
@@ -39,7 +38,7 @@ fun App() {
                     selectedScreen = Screen.LOGIN
                 }
             )
-            Divider(
+            VerticalDivider(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(1.dp)
@@ -52,11 +51,10 @@ fun App() {
                 when(selectedScreen){
                     Screen.LOGIN -> LoginScreen(
                         onLoginSuccess = { result ->
-                            loggedInUser = result.email ?: result.username ?: "Prijavljen korisnik"
+                            loggedInUser = result.email ?: result.username ?: "Prijavljen uporabnik"
                             selectedScreen = Screen.DATA_ENTRY
                         }
                     )
-                    Screen.DASHBOARD -> DashboardScreen()
                     Screen.AIR_QUALITY -> AirQualityScreen()
                     Screen.METEO -> MeteoScreen()
                     Screen.HYDRO -> HydroScreen()

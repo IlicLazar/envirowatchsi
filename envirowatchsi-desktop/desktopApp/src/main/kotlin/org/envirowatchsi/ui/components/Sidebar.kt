@@ -37,11 +37,22 @@ fun Sidebar(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        SidebarButton("Login", Screen.LOGIN, selectedScreen, onScreenSelected)
-        SidebarButton("Nadzorna plosca", Screen.DASHBOARD, selectedScreen, onScreenSelected)
+        if (loggedInUser.isNullOrBlank()) {
+            SidebarButton("Prijava", Screen.LOGIN, selectedScreen, onScreenSelected)
+        } else {
+            OutlinedButton(
+                onClick = onLogout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            ) {
+                Text("Odjava")
+            }
+        }
+
         SidebarButton("Kakovost zraka", Screen.AIR_QUALITY, selectedScreen, onScreenSelected)
-        SidebarButton("Meteoroloski podatki", Screen.METEO, selectedScreen, onScreenSelected)
-        SidebarButton("Hidroloski podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
+        SidebarButton("Meteorološki podatki", Screen.METEO, selectedScreen, onScreenSelected)
+        SidebarButton("Hidrološki podatki", Screen.HYDRO, selectedScreen, onScreenSelected)
         SidebarButton("Podatkovna baza", Screen.DATABASE, selectedScreen, onScreenSelected)
         SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
         SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
@@ -51,18 +62,9 @@ fun Sidebar(
 
         if (!loggedInUser.isNullOrBlank()) {
             Text(
-                text = "Prijavljen: $loggedInUser",
+                text = "Prijavljen uporabnik: $loggedInUser",
                 style = MaterialTheme.typography.bodySmall
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedButton(
-                onClick = onLogout,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Logout")
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -81,13 +83,23 @@ fun SidebarButton(
     selectedScreen: Screen,
     onScreenSelected: (Screen) -> Unit
 ) {
-    Button(
-        onClick = { onScreenSelected(screen) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = ButtonDefaults.buttonColors()
-    ) {
-        Text(text)
+    val modifier = Modifier
+        .fillMaxWidth()
+        .padding(vertical = 4.dp)
+
+    if (screen == selectedScreen) {
+        Button(
+            onClick = { onScreenSelected(screen) },
+            modifier = modifier
+        ) {
+            Text(text)
+        }
+    } else {
+        OutlinedButton(
+            onClick = { onScreenSelected(screen) },
+            modifier = modifier
+        ) {
+            Text(text)
+        }
     }
 }
