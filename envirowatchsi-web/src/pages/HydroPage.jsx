@@ -5,7 +5,6 @@ import HydroTable from "../components/tables/HydroTable";
 import HydroChart from "../components/charts/HydroChart";
 import StatsCard from "../components/stats/StatsCard";
 import Filters from "../components/filters/Filters";
-import StationMap from "../components/maps/StationMap";
 
 function HydroPage() {
   const [hydroData, setHydroData] = useState([]);
@@ -105,12 +104,6 @@ function HydroPage() {
         <StatsCard title="Povprečni pretok" value={averageWaterFlow != null ? `${averageWaterFlow} m³/s` : "N/A"} />
       </div>
 
-      <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
-        <h2>Zemljevid Merilnih Postaj</h2>
-        <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
-          <StationMap data={latestHydroData} />
-        </div>
-      </div>
 
       <div className="glass-panel" style={{ marginBottom: "40px" }}>
         <HydroChart data={filteredData} />

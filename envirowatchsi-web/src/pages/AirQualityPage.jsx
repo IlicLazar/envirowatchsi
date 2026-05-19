@@ -5,7 +5,6 @@ import AirQualityTable from "../components/tables/AirQualityTable";
 import AirQualityChart from "../components/charts/AirQualityChart";
 import StatsCard from "../components/stats/StatsCard";
 import Filters from "../components/filters/Filters";
-import StationMap from "../components/maps/StationMap";
 
 function AirQualityPage() {
   const [airQualityData, setAirQualityData] = useState([]);
@@ -102,12 +101,6 @@ function AirQualityPage() {
         <StatsCard title="Maksimalni PM10" value={maxPm10 != null ? `${maxPm10} µg/m³` : "N/A"} />
       </div>
 
-      <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column" }}>
-        <h2>Zemljevid Merilnih Postaj</h2>
-        <div style={{ flex: 1, minHeight: 0, marginTop: "16px" }}>
-          <StationMap data={latestAirQualityData} />
-        </div>
-      </div>
 
       <div className="glass-panel" style={{ marginBottom: "40px" }}>
         <AirQualityChart data={filteredData} />

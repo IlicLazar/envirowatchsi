@@ -6,8 +6,18 @@ function Navbar() {
 
   return (
     <nav className="nav-container">
-      <NavLink to="/" className="nav-brand">
-        🌍 EnviroWatchSI
+      <NavLink to="/" className="nav-brand" style={{ padding: 0, display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+        <img 
+          src="/logo.png" 
+          alt="EnviroWatchSI" 
+          style={{ 
+            height: "115px", 
+            width: "auto", 
+            marginTop: "-22px", 
+            marginBottom: "-38px", 
+            display: "block"
+          }} 
+        />
       </NavLink>
       <div className="nav-links">
         <NavLink to="/" end className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
@@ -21,6 +31,9 @@ function Navbar() {
         </NavLink>
         <NavLink to="/hydro" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Vode (Hydro)
+        </NavLink>
+        <NavLink to="/map" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
+          Zemljevid
         </NavLink>
         {isAuthenticated ? (
           <NavLink to="/admin" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
