@@ -16,156 +16,165 @@ import org.envirowatchsi.api.ApiClient
 fun DeleteDataScreen() {
     val scope = rememberCoroutineScope()
     var selectedTable by remember { mutableStateOf("air-quality") }
-    var recordsText by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
+    var records by remember { mutableStateOf(emptyList<DatabaseRecordItem>()) }
+    var selectedRecord by remember { mutableStateOf<DatabaseRecordItem?>(null) }
+    var message by remember { mutableStateOf("Najprej naloži zapise za izbrano tabelo.") }
+    var isLoading by remember { mutableStateOf(false) }
     var showConfirmation by remember { mutableStateOf(false) }
+
+    fun resetSelection() {
+        selectedRecord = null
+        showConfirmation = false
+    }
+
+    fun loadRecords() {
+        scope.launch {
+            isLoading = true
+            message = "Nalagam zapise..."
+
+            try {
+                val loaded = withContext(Dispatchers.IO) {
+                    parseDatabaseRecords(ApiClient.getRaw("/api/$selectedTable"), selectedTable)
+                }
+
+                records = loaded
+                resetSelection()
+                message = if (loaded.isEmpty()) {
+                    "V izbrani tabeli ni zapisov."
+                } else {
+                    "Naloženih zapisov: ${loaded.size}"
+                }
+            } catch (e: Exception) {
+                records = emptyList()
+                resetSelection()
+                message = "Napaka pri nalaganju podatkov: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Brisanje podatkov",
-            style = MaterialTheme.typography.titleSmall
+        Text("Brisanje podatkov", style = MaterialTheme.typography.titleMedium)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TableSelector(
+            selectedTable = selectedTable,
+            onSelected = {
+                selectedTable = it
+                records = emptyList()
+                resetSelection()
+                message = "Najprej naloži zapise za izbrano tabelo."
+            }
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row {
-            Button(onClick = { selectedTable = "air-quality" }) {
-                Text("Air Quality")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(onClick = { selectedTable = "meteo" }) {
-                Text("Meteo")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(onClick = { selectedTable = "hydro" }) {
-                Text("Hydro")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                scope.launch {
-                    recordsText = try {
-                        withContext(Dispatchers.IO) {
-                            ApiClient.getRaw("/api/$selectedTable")
-                        }
-                    } catch (e: Exception) {
-                        "Napaka: ${e.message}"
-                    }
-                }
-            }
-        ) {
-            Text("Naloži zapise")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(recordsText)
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        OutlinedTextField(
-            value = selectedId,
-            onValueChange = { selectedId = it },
-            label = { Text("ID zapisa za brisanje") }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                val id = selectedId.trim()
-
-                if (id.isBlank()) {
-                    message = "Vnesi veljaven ID."
-                } else {
-                    showConfirmation = true
-                }
-            }
-        ) {
-            Text("Izbriši zapis")
-        }
-
-        if (showConfirmation) {
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Ali si prepričan, da želiš izbrisati zapis?",
-                style = MaterialTheme.typography.titleSmall
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Row {
-                Button(
-                    onClick = {
-                        val id = selectedId.trim()
-
-                        if (id.isBlank()) {
-                            message = "Vnesi veljaven ID."
-                            showConfirmation = false
-                            return@Button
-                        }
-
-                        scope.launch {
-                            message = "Brišem zapis..."
-
-                            message = try {
-                                withContext(Dispatchers.IO) {
-                                    ApiClient.delete("/api/$selectedTable/$id")
-                                }
-
-                                recordsText = withContext(Dispatchers.IO) {
-                                    ApiClient.getRaw("/api/$selectedTable")
-                                }.let { response ->
-                                    if (response == "[]") {
-                                        "Ni zapisov v izbrani tabeli."
-                                    } else {
-                                        response
-                                    }
-                                }
-
-                                selectedId = ""
-                                showConfirmation = false
-
-                                "Zapis je uspešno izbrisan."
-                            } catch (e: Exception) {
-                                showConfirmation = false
-                                "Napaka pri brisanju: ${e.message}"
-                            }
-                        }
-                    }
-                ) {
-                    Text("Da")
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = {
-                        message = "Brisanje preklicano."
-                        showConfirmation = false
-                    }
-                ) {
-                    Text("Ne")
-                }
-            }
-        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
+        Button(
+            enabled = !isLoading,
+            onClick = { loadRecords() }
+        ) {
+            Text(if (isLoading) "Nalagam..." else "Naloži zapise")
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
         Text(message)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        RecordsTable(
+            records = records,
+            selectedId = selectedRecord?.id,
+            actionText = "Izberi",
+            onRecordSelected = {
+                selectedRecord = it
+                showConfirmation = false
+                message = "Izbran zapis: ${it.stationName}"
+            }
+        )
+
+        selectedRecord?.let { record ->
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Izbrani zapis", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Postaja: ${record.stationName}")
+                    Text(record.detail)
+                    Text("ID: ${record.id}", style = MaterialTheme.typography.bodySmall)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { showConfirmation = true }
+                    ) {
+                        Text("Izbriši izbrani zapis")
+                    }
+                }
+            }
+        }
+
+        if (showConfirmation && selectedRecord != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Ali si prepričan, da želiš izbrisati izbrani zapis?",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row {
+                        Button(
+                            onClick = {
+                                val record = selectedRecord ?: return@Button
+
+                                scope.launch {
+                                    message = "Brišem zapis..."
+
+                                    message = try {
+                                        withContext(Dispatchers.IO) {
+                                            ApiClient.delete("/api/$selectedTable/${record.id}")
+                                        }
+
+                                        val loaded = withContext(Dispatchers.IO) {
+                                            parseDatabaseRecords(ApiClient.getRaw("/api/$selectedTable"), selectedTable)
+                                        }
+
+                                        records = loaded
+                                        resetSelection()
+
+                                        "Zapis je uspešno izbrisan."
+                                    } catch (e: Exception) {
+                                        showConfirmation = false
+                                        "Napaka pri brisanju: ${e.message}"
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("Da, izbriši")
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        OutlinedButton(
+                            onClick = {
+                                message = "Brisanje preklicano."
+                                showConfirmation = false
+                            }
+                        ) {
+                            Text("Prekliči")
+                        }
+                    }
+                }
+            }
+        }
     }
 }

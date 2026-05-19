@@ -1,7 +1,7 @@
 package org.envirowatchsi.ui
 
 enum class Screen {
-    DASHBOARD,
+    LOGIN,
     AIR_QUALITY,
     METEO,
     HYDRO,

@@ -5,13 +5,22 @@ import org.envirowatchsi.models.HydroStation
 import org.envirowatchsi.models.MeteoStation
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
 object ApiClient {
     private const val BASE_URL = "http://localhost:3000"
     private const val TIMEOUT_MS = 5000
+    private const val TOKEN_ENV = "ENVIROWATCHSI_ADMIN_TOKEN"
+    private const val TOKEN_PROPERTY = "envirowatchsi.adminToken"
     private val gson = Gson()
+    private var sessionAdminToken: String? = null
+    private val tokenFiles = listOf(
+        File("admin-token.txt"),
+        File("envirowatchsi-desktop/admin-token.txt"),
+        File("../admin-token.txt")
+    )
 
     fun getAirQualityStations(): List<AirQualityStation> {
         val json = getRaw("/api/air-quality")
@@ -38,12 +47,41 @@ object ApiClient {
         )
     }
 
+    fun login(email: String, password: String): LoginResult {
+        val response = request(
+            path = "/api/auth/login",
+            method = "POST",
+            body = gson.toJson(mapOf("email" to email, "password" to password)),
+            contentType = "application/json"
+        )
+        val authResponse = gson.fromJson(response, AuthResponse::class.java)
+        val token = authResponse.token?.trim()
+
+        if (token.isNullOrBlank()) {
+            throw RuntimeException("Prijava je uspela, vendar API ni vrnil tokena.")
+        }
+
+        sessionAdminToken = token
+
+        return LoginResult(
+            token = token,
+            username = authResponse.user?.username,
+            email = authResponse.user?.email,
+            role = authResponse.user?.role
+        )
+    }
+
+    fun logout() {
+        sessionAdminToken = null
+    }
+
     fun postJson(path: String, jsonBody: String): String {
         return request(
             path = path,
             method = "POST",
             body = jsonBody,
-            contentType = "application/json"
+            contentType = "application/json",
+            requiresAdminToken = true
         )
     }
 
@@ -52,7 +90,8 @@ object ApiClient {
             path = path,
             method = "PUT",
             body = jsonBody,
-            contentType = "application/json"
+            contentType = "application/json",
+            requiresAdminToken = true
         )
     }
 
@@ -61,14 +100,16 @@ object ApiClient {
             path = path,
             method = "PUT",
             body = formBody,
-            contentType = "application/x-www-form-urlencoded"
+            contentType = "application/json",
+            requiresAdminToken = true
         )
     }
 
     fun delete(path: String): String {
         return request(
             path = path,
-            method = "DELETE"
+            method = "DELETE",
+            requiresAdminToken = true
         )
     }
 
@@ -76,13 +117,18 @@ object ApiClient {
         path: String,
         method: String,
         body: String? = null,
-        contentType: String? = null
+        contentType: String? = null,
+        requiresAdminToken: Boolean = false
     ): String {
         val connection = URL("$BASE_URL$path").openConnection() as HttpURLConnection
 
         connection.requestMethod = method
         connection.connectTimeout = TIMEOUT_MS
         connection.readTimeout = TIMEOUT_MS
+
+        if (requiresAdminToken) {
+            connection.setRequestProperty("Authorization", "Bearer ${adminToken()}")
+        }
 
         if (body != null) {
             connection.doOutput = true
@@ -114,4 +160,54 @@ object ApiClient {
             connection.disconnect()
         }
     }
+
+    private fun adminToken(): String {
+        if (!sessionAdminToken.isNullOrBlank()) {
+            return sessionAdminToken!!.trim()
+        }
+
+        val configuredToken = listOf(
+            System.getProperty(TOKEN_PROPERTY),
+            System.getenv(TOKEN_ENV)
+        ).firstOrNull { !it.isNullOrBlank() }
+
+        if (!configuredToken.isNullOrBlank()) {
+            return configuredToken.trim()
+        }
+
+        val token = tokenFiles
+            .firstOrNull { it.isFile }
+            ?.readText()
+            ?.lineSequence()
+            ?.map { it.trim() }
+            ?.firstOrNull { it.isNotBlank() && !it.startsWith("#") }
+
+        if (!token.isNullOrBlank()) {
+            return token
+        }
+
+        val expectedFiles = tokenFiles.joinToString(", ") { it.path }
+        throw IllegalStateException(
+            "Administratorski token manjka. Vnesi JWT token v envirowatchsi-desktop/admin-token.txt " +
+                "ali nastavi $TOKEN_ENV. Preverjene poti: $expectedFiles"
+        )
+    }
 }
+
+data class LoginResult(
+    val token: String,
+    val username: String?,
+    val email: String?,
+    val role: String?
+)
+
+private data class AuthResponse(
+    val token: String?,
+    val user: AuthUser?
+)
+
+private data class AuthUser(
+    val username: String?,
+    val email: String?,
+    val role: String?
+)

@@ -22,123 +22,165 @@ fun AirQualityScreen() {
     var records by remember { mutableStateOf(emptyList<AirQualityStation>()) }
     var selectedRecord by remember { mutableStateOf<AirQualityStation?>(null) }
     var message by remember { mutableStateOf("Klikni gumb za pridobitev podatkov o kakovosti zraka.") }
+    var isSavingAll by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        Text("Kakovost zraka", style = MaterialTheme.typography.titleSmall)
+        Text("Kakovost zraka", style = MaterialTheme.typography.titleMedium)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                scope.launch {
-                    message = "Pridobivanje in razčlenjevanje podatkov o kakovosti zraka..."
+        Row {
+            Button(
+                onClick = {
+                    scope.launch {
+                        message = "Pridobivanje in razčlenjevanje podatkov o kakovosti zraka..."
 
-                    try {
-                        val parsed = withContext(Dispatchers.IO) {
-                            val xml = fetchRawAirQualityXml()
-                            parseAirQualityData(xml)
+                        try {
+                            val parsed = withContext(Dispatchers.IO) {
+                                val xml = fetchRawAirQualityXml()
+                                parseAirQualityData(xml)
+                            }
+
+                            records = parsed
+                            selectedRecord = null
+                            message = "Pridobljenih zapisov: ${parsed.size}"
+                        } catch (e: Exception) {
+                            records = emptyList()
+                            message = "Napaka: ${e.message}"
                         }
-
-                        records = parsed
-                        selectedRecord = null
-                        message = "Pridobljenih zapisov: ${parsed.size}"
-                    } catch (e: Exception) {
-                        records = emptyList()
-                        message = "Napaka: ${e.message}"
                     }
                 }
+            ) {
+                Text("Pridobi podatke")
             }
-        ) {
-            Text("Pridobi podatke o kakovosti zraka")
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                enabled = records.isNotEmpty() && !isSavingAll,
+                onClick = {
+                    scope.launch {
+                        isSavingAll = true
+                        message = "Shranjevanje vseh zapisov kakovosti zraka..."
+
+                        message = try {
+                            val savedCount = withContext(Dispatchers.IO) {
+                                records.forEach { record ->
+                                    ApiClient.postJson("/api/air-quality", record.toAirQualityJson())
+                                }
+                                records.size
+                            }
+
+                            "Vsi zapisi kakovosti zraka so shranjeni v bazo. Skupaj: $savedCount"
+                        } catch (e: Exception) {
+                            "Napaka pri shranjevanju vseh zapisov: ${e.message}"
+                        } finally {
+                            isSavingAll = false
+                        }
+                    }
+                }
+            ) {
+                Text(if (isSavingAll) "Shranjujem..." else "Shrani vse v bazo")
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
         Text(message)
         Spacer(modifier = Modifier.height(16.dp))
 
-        records.forEach { record ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Button(
-                    onClick = {
-                        selectedRecord = record
-                        message = "Izbran zapis: ${record.stationName}"
+        if (records.isNotEmpty()) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text("Razčlenjeni zapisi (${records.size})", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    records.forEach { record ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    selectedRecord = record
+                                    message = "Izbran zapis: ${record.stationName}"
+                                }
+                            ) {
+                                Text("Izberi")
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "${record.stationName} | AQI: ${record.airQualityIndex}",
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+
+                        HorizontalDivider()
                     }
-                ) {
-                    Text("Izberi")
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "${record.stationName} | AQI: ${record.airQualityIndex}",
-                    modifier = Modifier.padding(8.dp)
-                )
             }
-
-            Divider()
         }
 
         selectedRecord?.let { record ->
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Pregled izbranega zapisa", style = MaterialTheme.typography.titleSmall)
-            Text(
-                text = "Podatki so pripravljeni za shranjevanje v bazo.",
-                style = MaterialTheme.typography.titleSmall
-            )
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Pregled izbranega zapisa", style = MaterialTheme.typography.titleSmall)
+                    Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Text("Postaja: ${record.stationName}")
+                    Text("Latitude: ${record.latitude}")
+                    Text("Longitude: ${record.longitude}")
+                    Text("PM10: ${record.pm10}")
+                    Text("PM2.5: ${record.pm2_5}")
+                    Text("O3: ${record.o3}")
+                    Text("CO: ${record.co}")
+                    Text("SO2: ${record.so2}")
+                    Text("AQI: ${record.airQualityIndex}")
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Postaja: ${record.stationName}")
-            Text("Latitude: ${record.latitude}")
-            Text("Longitude: ${record.longitude}")
-            Text("PM10: ${record.pm10}")
-            Text("PM2.5: ${record.pm2_5}")
-            Text("O3: ${record.o3}")
-            Text("CO: ${record.co}")
-            Text("SO2: ${record.so2}")
-            Text("AQI: ${record.airQualityIndex}")
-            Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                message = "Shranjevanje izbranega zapisa..."
 
-            Button(
-                onClick = {
-                    scope.launch {
-                        message = "Shranjevanje izbranega zapisa..."
+                                message = try {
+                                    withContext(Dispatchers.IO) {
+                                        ApiClient.postJson("/api/air-quality", record.toAirQualityJson())
+                                    }
 
-                        message = try {
-                            val jsonBody = buildAirQualityJson(
-                                record.stationName,
-                                record.latitude.toString(),
-                                record.longitude.toString(),
-                                record.airQualityIndex?.toInt()?.toString() ?: "0",
-                                pm10 = record.pm10?.toString(),
-                                pm2_5 = record.pm2_5?.toString(),
-                                o3 = record.o3?.toString(),
-                                co = record.co?.toString(),
-                                so2 = record.so2?.toString()
-                            )
-
-                            withContext(Dispatchers.IO) {
-                                ApiClient.postJson("/api/air-quality", jsonBody)
+                                    "Izbran zapis kakovosti zraka je shranjen v bazo."
+                                } catch (e: Exception) {
+                                    "Napaka pri shranjevanju: ${e.message}"
+                                }
                             }
-
-                            "Izbran zapis kakovosti zraka je shranjen v bazo."
-                        } catch (e: Exception) {
-                            "Napaka pri shranjevanju: ${e.message}"
                         }
+                    ) {
+                        Text("Shrani izbrani zapis")
                     }
                 }
-            ) {
-                Text("Shrani v bazo")
             }
         }
     }
+}
+
+private fun AirQualityStation.toAirQualityJson(): String {
+    return buildAirQualityJson(
+        stationName,
+        latitude.toString(),
+        longitude.toString(),
+        airQualityIndex?.toInt()?.toString() ?: "0",
+        pm10 = pm10?.toString(),
+        pm2_5 = pm2_5?.toString(),
+        o3 = o3?.toString(),
+        co = co?.toString(),
+        so2 = so2?.toString()
+    )
 }
