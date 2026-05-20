@@ -22,13 +22,25 @@ function initWebSocket(server) {
 function broadcastEvent(event) {
   if (!wss) return;
 
-  const message = JSON.stringify(event);
+  try {
+    const message = JSON.stringify(event);
 
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
-    }
-  });
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        try {
+          client.send(message, (error) => {
+            if (error) {
+              console.error("[WebSocket] Error sending message to client:", error.message);
+            }
+          });
+        } catch (error) {
+          console.error("[WebSocket] Synchronous error sending message:", error.message);
+        }
+      }
+    });
+  } catch (error) {
+    console.error("[WebSocket] Failed to stringify or broadcast event:", error.message);
+  }
 }
 
 module.exports = {

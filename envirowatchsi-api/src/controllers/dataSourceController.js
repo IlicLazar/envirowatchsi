@@ -1,4 +1,8 @@
 const DataSource = require("../models/DataSource");
+const AirQuality = require("../models/AirQuality");
+const Meteo = require("../models/Meteo");
+const Hydro = require("../models/Hydro");
+const { broadcastEvent } = require("../websocket/websocketServer");
 const { syncSource } = require("../services/schedulerService");
 
 exports.getAllDataSources = async (req, res) => {
@@ -116,6 +120,29 @@ exports.syncDataSource = async (req, res) => {
     res.status(500).json({
       message: "Failed to trigger sync",
       error: error.message,
+    });
+  }
+};
+
+exports.clearAllMeasurements = async (req, res) => {
+  try {
+    await Promise.all([
+      Meteo.deleteMany({}),
+      AirQuality.deleteMany({}),
+      Hydro.deleteMany({})
+    ]);
+
+    broadcastEvent({ type: "METEO_ALL_DELETED", data: null });
+    broadcastEvent({ type: "AIR_QUALITY_ALL_DELETED", data: null });
+    broadcastEvent({ type: "HYDRO_ALL_DELETED", data: null });
+
+    res.status(200).json({
+      message: "Successfully deleted all measurements from the database."
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to delete measurements",
+      error: error.message
     });
   }
 };

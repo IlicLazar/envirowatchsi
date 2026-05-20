@@ -89,7 +89,9 @@ async function checkAndSyncSources() {
       const lastTime = source.lastRefreshed ? new Date(source.lastRefreshed).getTime() : 0;
 
       if (!source.lastRefreshed || (now.getTime() - lastTime) >= intervalMs) {
-        syncSource(source);
+        syncSource(source).catch((err) => {
+          console.error(`[Scheduler] Unhandled error during background sync for "${source.name}":`, err.message);
+        });
       }
     }
   } catch (error) {

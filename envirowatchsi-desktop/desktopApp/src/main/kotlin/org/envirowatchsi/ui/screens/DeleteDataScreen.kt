@@ -21,10 +21,12 @@ fun DeleteDataScreen() {
     var message by remember { mutableStateOf("Najprej naloži zapise za izbrano tabelo.") }
     var isLoading by remember { mutableStateOf(false) }
     var showConfirmation by remember { mutableStateOf(false) }
+    var showDeleteAllConfirmation by remember { mutableStateOf(false) }
 
     fun resetSelection() {
         selectedRecord = null
         showConfirmation = false
+        showDeleteAllConfirmation = false
     }
 
     fun loadRecords() {
@@ -58,10 +60,80 @@ fun DeleteDataScreen() {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
+            .padding(16.dp)
     ) {
         Text("Brisanje podatkov", style = MaterialTheme.typography.titleMedium)
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Nevarno območje",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Z enim klikom lahko izbrišeš popolnoma vse meritve (Meteo, Kakovost zraka in Hydro) iz baze podatkov.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (!showDeleteAllConfirmation) {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        onClick = { showDeleteAllConfirmation = true }
+                    ) {
+                        Text("Izbriši VSE meritve iz baze")
+                    }
+                } else {
+                    Text(
+                        text = "Ali ste prepričani? Ta akcija bo izbrisala VSE podatke in je ni mogoče razveljaviti!",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row {
+                        Button(
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            onClick = {
+                                scope.launch {
+                                    message = "Brišem vse meritve..."
+                                    try {
+                                        withContext(Dispatchers.IO) {
+                                            ApiClient.delete("/api/data-sources/measurements/clear")
+                                        }
+                                        records = emptyList()
+                                        resetSelection()
+                                        showDeleteAllConfirmation = false
+                                        message = "Vse meritve so bile uspešno izbrisane iz baze."
+                                    } catch (e: Exception) {
+                                        showDeleteAllConfirmation = false
+                                        message = "Napaka pri brisanju: ${e.message}"
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("Da, izbriši vse")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        OutlinedButton(
+                            onClick = { showDeleteAllConfirmation = false }
+                        ) {
+                            Text("Prekliči")
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         TableSelector(
             selectedTable = selectedTable,

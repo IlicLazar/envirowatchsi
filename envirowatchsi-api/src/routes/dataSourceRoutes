@@ -8,6 +8,7 @@ const {
   updateDataSource,
   deleteDataSource,
   syncDataSource,
+  clearAllMeasurements,
 } = require("../controllers/dataSourceController");
 
 router.get("/", authenticate, requireAdmin, getAllDataSources);
@@ -15,6 +16,8 @@ router.get("/", authenticate, requireAdmin, getAllDataSources);
 router.post("/", authenticate, requireAdmin, createDataSource);
 
 router.put("/:id", authenticate, requireAdmin, updateDataSource);
+
+router.delete("/measurements/clear", authenticate, requireAdmin, clearAllMeasurements);
 
 router.delete("/:id", authenticate, requireAdmin, deleteDataSource);
 
