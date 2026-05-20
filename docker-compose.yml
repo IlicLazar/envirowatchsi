@@ -1,0 +1,31 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: envirowatchsi-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  backend:
+    build: ./envirowatchsi-api
+    container_name: envirowatchsi-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./envirowatchsi-api/.env
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/envirowatchsi
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./envirowatchsi-web
+    container_name: envirowatchsi-web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
