@@ -1,5 +1,5 @@
 export function createWebSocketConnection(onMessage) {
-    const socket = new WebSocket("ws://localhost:3000");
+    const socket = new WebSocket("ws://68.210.201.189:3000");
   
     socket.onopen = () => {
       console.log("WebSocket connected");
