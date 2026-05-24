@@ -35,3 +35,7 @@ jobs:
       - name: Push frontend image
         run: |
           docker push dejanrankicc/envirowatchsi-frontend:latest
+
+      - name: Trigger Azure Webhook
+        run: |
+          curl -X POST http://68.210.201.189:8080/deploy
