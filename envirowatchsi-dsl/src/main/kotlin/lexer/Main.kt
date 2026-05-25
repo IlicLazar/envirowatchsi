@@ -1,9 +1,10 @@
 package lexer
+import parser.Parser
 
 fun main() {
     val program = """
     city "TestCity" {
-        // komentar koji lexer treba ignorirati
+        // comment that the lexer should ignore
 
         station "Generic Air Station" type air at (-14.512,46.065);
 
@@ -21,10 +22,24 @@ fun main() {
     }
 """.trimIndent()
 
+    //invalid test:
+    //val program = """
+    //    city "Ljubljana" {
+    //        airStation "Center" at 14.5,46.0 {
+    //            pollutant pm10 unit "ug/m3";
+    //        };
+    //    }
+    //""".trimIndent()
+
     val lexer = Lexer(program)
     val tokens = lexer.tokenize()
+
+    val parser = Parser(tokens)
+    parser.parse()
 
     tokens.forEach {
         println("${it.type} '${it.lexeme}' [${it.line}:${it.column}]")
     }
+
+    println("\nProgram je sintaktično pravilen.")
 }
