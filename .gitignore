@@ -4,4 +4,6 @@ dist
 .vite
 .DS_Store
 envirowatchsi-desktop/admin-token.txt
-
+*.iml
+out/
+build/
