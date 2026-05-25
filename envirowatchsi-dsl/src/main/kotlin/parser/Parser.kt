@@ -2,36 +2,46 @@ package parser
 
 import lexer.Token
 import lexer.TokenType
+import ast.*
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
 
-    fun parse() {
-        parseCities()
+    fun parse(): ProgramNode {
+        val program = parseCities()
         consume(TokenType.EOF, "Pričakovan konec datoteke.")
+        return program
     }
 
-    private fun parseCities() {
-        parseCity()
+    private fun parseCities(): ProgramNode {
+        val cities = mutableListOf<CityNode>()
+
+        cities.add(parseCity())
+
         while (!check(TokenType.EOF)) {
-            parseCity()
+            cities.add(parseCity())
         }
+
+        return ProgramNode(cities)
     }
 
-    private fun parseCity() {
+    private fun parseCity(): CityNode {
         consume(TokenType.CITY, "Pričakovana ključna beseda 'city'.")
-        consume(TokenType.STRING, "Pričakovano ime mesta.")
+        val name = consume(TokenType.STRING, "Pričakovano ime mesta.").lexeme
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val items = mutableListOf<CityItemNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            parseCityItem()
+            items.add(parseCityItem())
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
+        return CityNode(name, items)
     }
 
-    private fun parseCityItem() {
-        when {
+    private fun parseCityItem(): CityItemNode {
+        return when {
             check(TokenType.AREA) -> parseArea()
             check(TokenType.RIVER) -> parseRiver()
             check(TokenType.DATE) -> parseDate()
@@ -41,45 +51,58 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseArea() {
+    private fun parseArea(): AreaNode {
         consume(TokenType.AREA, "Pričakovana ključna beseda 'area'.")
-        consume(TokenType.STRING, "Pričakovano ime območja.")
+        val name = consume(TokenType.STRING, "Pričakovano ime območja.").lexeme
         consume(TokenType.POLYGON, "Pričakovana ključna beseda 'polygon'.")
-        parsePoints()
+
+        val points = parsePoints()
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return AreaNode(name, points)
     }
 
-    private fun parseRiver() {
+    private fun parseRiver(): RiverNode {
         consume(TokenType.RIVER, "Pričakovana ključna beseda 'river'.")
-        consume(TokenType.STRING, "Pričakovano ime reke.")
+        val name = consume(TokenType.STRING, "Pričakovano ime reke.").lexeme
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return RiverNode(name)
     }
 
-    private fun parseDate() {
+    private fun parseDate(): DateNode {
         consume(TokenType.DATE, "Pričakovana ključna beseda 'date'.")
-        consume(TokenType.STRING, "Pričakovan datum kot string.")
+        val value = consume(TokenType.STRING, "Pričakovan datum kot string.").lexeme
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return DateNode(value)
     }
 
-    private fun parseRule() {
+    private fun parseRule(): RuleNode {
         consume(TokenType.RULE, "Pričakovana ključna beseda 'rule'.")
-        consume(TokenType.ID, "Pričakovano ime pravila.")
+        val name = consume(TokenType.ID, "Pričakovano ime pravila.").lexeme
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val items = mutableListOf<RuleItemNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            when {
+            val item = when {
                 check(TokenType.THRESHOLD) -> parseThreshold()
                 check(TokenType.FLOOD_THRESHOLD) -> parseFloodThreshold()
                 else -> error(peek(), "Pričakovan threshold ali floodThreshold.")
             }
+            items.add(item)
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return RuleNode(name, items)
     }
 
-    private fun parseStation() {
-        when {
+    private fun parseStation(): StationNode {
+        return when {
             check(TokenType.STATION) -> parseGenericStation()
             check(TokenType.AIR_STATION) -> parseAirStation()
             check(TokenType.METEO_STATION) -> parseMeteoStation()
@@ -88,13 +111,23 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseGenericStation() {
+    private fun parseGenericStation(): GenericStationNode {
         consume(TokenType.STATION, "Pričakovana ključna beseda 'station'.")
-        consume(TokenType.STRING, "Pričakovano ime postaje.")
+
+        val name = consume(
+            TokenType.STRING,
+            "Pričakovano ime postaje."
+        ).lexeme
+
         consume(TokenType.TYPE, "Pričakovana ključna beseda 'type'.")
-        parseStationType()
-        parseLocation()
+
+        val type = advance().lexeme
+
+        val location = parseLocation()
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return GenericStationNode(name, type, location)
     }
 
     private fun parseStationType() {
@@ -103,52 +136,87 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseAirStation() {
+    private fun parseAirStation(): AirStationNode {
         consume(TokenType.AIR_STATION, "Pričakovana ključna beseda 'airStation'.")
-        consume(TokenType.STRING, "Pričakovano ime postaje.")
-        parseLocation()
+
+        val name = consume(
+            TokenType.STRING,
+            "Pričakovano ime postaje."
+        ).lexeme
+
+        val location = parseLocation()
+
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val items = mutableListOf<AirItemNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            parseAirItem()
+            items.add(parseAirItem())
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return AirStationNode(name, location, items)
     }
 
-    private fun parseMeteoStation() {
+    private fun parseMeteoStation(): MeteoStationNode {
         consume(TokenType.METEO_STATION, "Pričakovana ključna beseda 'meteoStation'.")
-        consume(TokenType.STRING, "Pričakovano ime postaje.")
-        parseLocation()
+
+        val name = consume(
+            TokenType.STRING,
+            "Pričakovano ime postaje."
+        ).lexeme
+
+        val location = parseLocation()
+
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val items = mutableListOf<MeteoItemNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            parseMeteoItem()
+            items.add(parseMeteoItem())
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return MeteoStationNode(name, location, items)
     }
 
-    private fun parseHydroStation() {
+    private fun parseHydroStation(): HydroStationNode {
         consume(TokenType.HYDRO_STATION, "Pričakovana ključna beseda 'hydroStation'.")
-        consume(TokenType.STRING, "Pričakovano ime postaje.")
+
+        val name = consume(
+            TokenType.STRING,
+            "Pričakovano ime postaje."
+        ).lexeme
+
         consume(TokenType.RIVER, "Pričakovana ključna beseda 'river'.")
-        consume(TokenType.STRING, "Pričakovano ime reke.")
-        parseLocation()
+
+        val river = consume(
+            TokenType.STRING,
+            "Pričakovano ime reke."
+        ).lexeme
+
+        val location = parseLocation()
+
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val items = mutableListOf<HydroItemNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            parseHydroItem()
+            items.add(parseHydroItem())
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return HydroStationNode(name, river, location, items)
     }
 
-    private fun parseAirItem() {
-        when {
+    private fun parseAirItem(): AirItemNode {
+        return when {
             check(TokenType.SOURCE) -> parseSource()
             check(TokenType.STATUS) -> parseStatus()
             check(TokenType.POLLUTANT) -> parsePollutant()
@@ -158,8 +226,8 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseMeteoItem() {
-        when {
+    private fun parseMeteoItem(): MeteoItemNode {
+        return when {
             check(TokenType.SOURCE) -> parseSource()
             check(TokenType.STATUS) -> parseStatus()
             isWeatherMeasurementStart() -> parseWeatherMeasurement()
@@ -168,8 +236,8 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseHydroItem() {
-        when {
+    private fun parseHydroItem(): HydroItemNode {
+        return when {
             check(TokenType.SOURCE) -> parseSource()
             check(TokenType.STATUS) -> parseStatus()
             isHydroMeasurementStart() -> parseHydroMeasurement()
@@ -179,172 +247,231 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseSource() {
+    private fun parseSource(): SourceNode {
         consume(TokenType.SOURCE, "Pričakovana ključna beseda 'source'.")
-        consume(TokenType.STRING, "Pričakovan vir podatkov.")
+        val value = consume(TokenType.STRING, "Pričakovan vir podatkov.").lexeme
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+        return SourceNode(value)
     }
 
-    private fun parseStatus() {
+    private fun parseStatus(): StatusNode {
         consume(TokenType.STATUS, "Pričakovana ključna beseda 'status'.")
-        if (!match(TokenType.ACTIVE, TokenType.INACTIVE, TokenType.TEST)) {
+
+        val value = if (match(TokenType.ACTIVE, TokenType.INACTIVE, TokenType.TEST)) {
+            previous().lexeme
+        } else {
             error(peek(), "Pričakovan status: active, inactive ali test.")
         }
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+        return StatusNode(value)
     }
 
-    private fun parsePollutant() {
+    private fun parsePollutant(): PollutantNode {
         consume(TokenType.POLLUTANT, "Pričakovana ključna beseda 'pollutant'.")
-        parsePollutantType()
+
+        val type = parsePollutantType()
+
         consume(TokenType.UNIT, "Pričakovana ključna beseda 'unit'.")
-        consume(TokenType.STRING, "Pričakovana enota.")
+        val unit = consume(TokenType.STRING, "Pričakovana enota.").lexeme
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return PollutantNode(type, unit)
     }
 
-    private fun parsePollutantType() {
-        if (!match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.ID)) {
+    private fun parsePollutantType(): String {
+        return if (match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.ID)) {
+            previous().lexeme
+        } else {
             error(peek(), "Pričakovan tip onesnaževala.")
         }
     }
 
-    private fun parseAirMeasurement() {
-        if (match(TokenType.MEASUREMENT)) {
-            consume(TokenType.ID, "Pričakovan identifikator meritve.")
+    private fun parseAirMeasurement(): AirItemNode {
+        return if (match(TokenType.MEASUREMENT)) {
+            val name = consume(TokenType.ID, "Pričakovan identifikator meritve.").lexeme
             consume(TokenType.EQUALS, "Pričakovan znak '='.")
-            consume(TokenType.NUMBER, "Pričakovana številčna vrednost.")
-            parseUnitOptional()
-            parseTimeOptional()
+            val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
+            val unit = parseUnitOptional()
+            val time = parseTimeOptional()
             consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+            MeasurementNode(name, value, unit, time)
         } else {
             consume(TokenType.AQI, "Pričakovana ključna beseda 'aqi'.")
-            consume(TokenType.NUMBER, "Pričakovana AQI vrednost.")
-            parseTimeOptional()
+            val value = consume(TokenType.NUMBER, "Pričakovana AQI vrednost.").lexeme
+            val time = parseTimeOptional()
             consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+            AqiNode(value, time)
         }
     }
 
-    private fun parseWeatherMeasurement() {
-        when {
+    private fun parseWeatherMeasurement(): MeteoItemNode {
+        return when {
             match(TokenType.TEMPERATURE, TokenType.HUMIDITY, TokenType.PRECIPITATION) -> {
-                consume(TokenType.NUMBER, "Pričakovana številčna vrednost.")
-                parseUnitOptional()
-                parseTimeOptional()
+                val type = previous().lexeme
+                val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
+                val unit = parseUnitOptional()
+                val time = parseTimeOptional()
                 consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+                WeatherMeasurementNode(type, value, unit, time)
             }
+
             match(TokenType.WIND) -> {
                 consume(TokenType.SPEED, "Pričakovana ključna beseda 'speed'.")
-                consume(TokenType.NUMBER, "Pričakovana hitrost vetra.")
+                val speed = consume(TokenType.NUMBER, "Pričakovana hitrost vetra.").lexeme
                 consume(TokenType.DIRECTION, "Pričakovana ključna beseda 'direction'.")
-                consume(TokenType.STRING, "Pričakovana smer vetra.")
-                parseTimeOptional()
+                val direction = consume(TokenType.STRING, "Pričakovana smer vetra.").lexeme
+                val time = parseTimeOptional()
                 consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+                WindMeasurementNode(speed, direction, time)
             }
+
             else -> error(peek(), "Pričakovana vremenska meritev.")
         }
     }
 
-    private fun parseHydroMeasurement() {
-        if (!match(TokenType.WATER_LEVEL, TokenType.WATER_FLOW)) {
+    private fun parseHydroMeasurement(): HydroMeasurementNode {
+        val type = if (match(TokenType.WATER_LEVEL, TokenType.WATER_FLOW)) {
+            previous().lexeme
+        } else {
             error(peek(), "Pričakovana hidrološka meritev.")
         }
 
-        consume(TokenType.NUMBER, "Pričakovana številčna vrednost.")
-        parseUnitOptional()
-        parseTimeOptional()
+        val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
+        val unit = parseUnitOptional()
+        val time = parseTimeOptional()
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return HydroMeasurementNode(type, value, unit, time)
     }
 
-    private fun parseThreshold() {
+    private fun parseThreshold(): ThresholdNode {
         consume(TokenType.THRESHOLD, "Pričakovana ključna beseda 'threshold'.")
-        consumeAnyPollutantOrId()
+        val parameter = consumeAnyPollutantOrId()
+
         consume(TokenType.WARNING, "Pričakovana ključna beseda 'warning'.")
-        consume(TokenType.NUMBER, "Pričakovana opozorilna vrednost.")
+        val warning = consume(TokenType.NUMBER, "Pričakovana opozorilna vrednost.").lexeme
+
         consume(TokenType.CRITICAL, "Pričakovana ključna beseda 'critical'.")
-        consume(TokenType.NUMBER, "Pričakovana kritična vrednost.")
+        val critical = consume(TokenType.NUMBER, "Pričakovana kritična vrednost.").lexeme
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return ThresholdNode(parameter, warning, critical)
     }
 
-    private fun consumeAnyPollutantOrId() {
-        if (!match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.ID)) {
+    private fun consumeAnyPollutantOrId(): String {
+        return if (match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.ID)) {
+            previous().lexeme
+        } else {
             error(peek(), "Pričakovan identifikator parametra.")
         }
     }
 
-    private fun parseFloodThreshold() {
+    private fun parseFloodThreshold(): FloodThresholdNode {
         consume(TokenType.FLOOD_THRESHOLD, "Pričakovana ključna beseda 'floodThreshold'.")
+
         consume(TokenType.WARNING, "Pričakovana ključna beseda 'warning'.")
-        consume(TokenType.NUMBER, "Pričakovana opozorilna vrednost.")
+        val warning = consume(TokenType.NUMBER, "Pričakovana opozorilna vrednost.").lexeme
+
         consume(TokenType.CRITICAL, "Pričakovana ključna beseda 'critical'.")
-        consume(TokenType.NUMBER, "Pričakovana kritična vrednost.")
+        val critical = consume(TokenType.NUMBER, "Pričakovana kritična vrednost.").lexeme
+
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return FloodThresholdNode(warning, critical)
     }
 
-    private fun parseInterval() {
+    private fun parseInterval(): IntervalNode {
         consume(TokenType.INTERVAL, "Pričakovana ključna beseda 'interval'.")
         consume(TokenType.FROM, "Pričakovana ključna beseda 'from'.")
-        consume(TokenType.STRING, "Pričakovan začetni čas.")
+        val from = consume(TokenType.STRING, "Pričakovan začetni čas.").lexeme
         consume(TokenType.TO, "Pričakovana ključna beseda 'to'.")
-        consume(TokenType.STRING, "Pričakovan končni čas.")
+        val to = consume(TokenType.STRING, "Pričakovan končni čas.").lexeme
         consume(TokenType.STEP, "Pričakovana ključna beseda 'step'.")
-        consume(TokenType.STRING, "Pričakovan korak intervala.")
+        val step = consume(TokenType.STRING, "Pričakovan korak intervala.").lexeme
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
 
+        val measurements = mutableListOf<AstNode>()
+
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
-            when {
+            val measurement = when {
                 check(TokenType.MEASUREMENT) -> parseMeasurement()
                 isWeatherMeasurementStart() -> parseWeatherMeasurement()
                 isHydroMeasurementStart() -> parseHydroMeasurement()
                 else -> error(peek(), "Neveljavna meritev v intervalu.")
             }
+            measurements.add(measurement)
         }
 
         consume(TokenType.RBRACE, "Pričakovan znak '}'.")
+
+        return IntervalNode(from, to, step, measurements)
     }
 
-    private fun parseMeasurement() {
+    private fun parseMeasurement(): MeasurementNode {
         consume(TokenType.MEASUREMENT, "Pričakovana ključna beseda 'measurement'.")
-        consume(TokenType.ID, "Pričakovan identifikator meritve.")
+        val name = consume(TokenType.ID, "Pričakovan identifikator meritve.").lexeme
         consume(TokenType.EQUALS, "Pričakovan znak '='.")
-        consume(TokenType.NUMBER, "Pričakovana številčna vrednost.")
-        parseUnitOptional()
-        parseTimeOptional()
+        val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
+        val unit = parseUnitOptional()
+        val time = parseTimeOptional()
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return MeasurementNode(name, value, unit, time)
     }
 
-    private fun parseUnitOptional() {
-        if (match(TokenType.UNIT)) {
-            consume(TokenType.STRING, "Pričakovana enota.")
+    private fun parseUnitOptional(): String? {
+        return if (match(TokenType.UNIT)) {
+            consume(TokenType.STRING, "Pričakovana enota.").lexeme
+        } else {
+            null
         }
     }
 
-    private fun parseTimeOptional() {
-        if (match(TokenType.AT)) {
-            consume(TokenType.STRING, "Pričakovan časovni zapis.")
+    private fun parseTimeOptional(): String? {
+        return if (match(TokenType.AT)) {
+            consume(TokenType.STRING, "Pričakovan časovni zapis.").lexeme
+        } else {
+            null
         }
     }
 
-    private fun parseLocation() {
+    private fun parseLocation(): PointNode {
         consume(TokenType.AT, "Pričakovana ključna beseda 'at'.")
-        parsePoint()
+        return parsePoint()
     }
 
-    private fun parsePoints() {
+    private fun parsePoints(): List<PointNode> {
         consume(TokenType.LPAREN, "Pričakovan znak '('.")
-        parsePoint()
+
+        val points = mutableListOf<PointNode>()
+
+        points.add(parsePoint())
 
         while (match(TokenType.COMMA)) {
-            parsePoint()
+            points.add(parsePoint())
         }
 
         consume(TokenType.RPAREN, "Pričakovan znak ')'.")
+
+        return points
     }
 
-    private fun parsePoint() {
+    private fun parsePoint(): PointNode {
         consume(TokenType.LPAREN, "Pričakovan znak '('.")
-        consume(TokenType.NUMBER, "Pričakovana prva koordinata.")
+
+        val longitude = consume(TokenType.NUMBER, "Pričakovana prva koordinata.").lexeme
+
         consume(TokenType.COMMA, "Pričakovan znak ','.")
-        consume(TokenType.NUMBER, "Pričakovana druga koordinata.")
+
+        val latitude = consume(TokenType.NUMBER, "Pričakovana druga koordinata.").lexeme
+
         consume(TokenType.RPAREN, "Pričakovan znak ')'.")
+
+        return PointNode(longitude, latitude)
     }
 
     private fun isStationStart(): Boolean =
