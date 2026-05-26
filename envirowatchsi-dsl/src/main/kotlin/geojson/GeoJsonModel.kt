@@ -10,3 +10,7 @@ data class GeoJsonFeature(
 )
 
 sealed interface GeoJsonGeometry
+
+data class GeoJsonPoint(
+    val coordinates: List<Double>
+) : GeoJsonGeometry
