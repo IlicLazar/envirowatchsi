@@ -1,6 +1,7 @@
 package lexer
 import parser.Parser
 import ast.AstPrinter
+import semantic.SemanticValidator
 
 fun main() {
     val program = """
@@ -8,6 +9,14 @@ fun main() {
             // comment that the lexer should ignore
 
             station "Generic Air Station" type air at (-14.512,46.065);
+
+            airStation "Air Quality" at (14.512,46.065) {
+                source "ARSO";
+                status active;
+                pollutant pm10 unit "ug/m3";
+                aqi 64 at "2026-05-21T12:00";
+                threshold pm10 warning 50 critical 100;
+            };
 
             meteoStation "Weather" at (15.646,46.554) {
                 temperature -5.2 unit "C" at "2026-05-21T12:00";
@@ -23,27 +32,24 @@ fun main() {
         }
     """.trimIndent()
 
-    //invalid test:
-    /*val program = """
-        city "Ljubljana" {
-            airStation "Center" at 14.5,46.0 {
-                pollutant pm10 unit "ug/m3";
-            };
-        }
-    """.trimIndent()*/
-
     val lexer = Lexer(program)
-    val tokens = lexer.tokenize()
 
-    val parser = Parser(tokens)
-    val ast = parser.parse()
+    try {
+        val tokens = lexer.tokenize()
 
-    tokens.forEach {
-        println("${it.type} '${it.lexeme}' [${it.line}:${it.column}]")
+        val parser = Parser(tokens)
+        val ast = parser.parse()
+        SemanticValidator.validateOrThrow(ast)
+
+        tokens.forEach {
+            println("${it.type} '${it.lexeme}' [${it.line}:${it.column}]")
+        }
+
+        println("\nProgram je sintaktično in semantično pravilen.\n")
+
+        AstPrinter.print(ast)
+    } catch (error: RuntimeException) {
+        println("Program ni veljaven:")
+        println(error.message)
     }
-
-    println("\nProgram je sintaktično pravilen.\n")
-
-    AstPrinter.print(ast)
-
 }
