@@ -90,6 +90,26 @@ class GeoJsonConverterTest {
     }
 
     @Test
+    fun `typed stations export source and status`() {
+        val program = parse(
+            """
+                city "Ljubljana" {
+                    meteoStation "Weather" at (14.5,46.0) {
+                        source "ARSO";
+                        status active;
+                        temperature 21 unit "C";
+                    };
+                }
+            """.trimIndent()
+        )
+
+        val feature = GeoJsonConverter.convert(program).features.single()
+
+        assertEquals("ARSO", feature.properties["source"])
+        assertEquals("active", feature.properties["status"])
+    }
+
+    @Test
     fun `area becomes polygon feature with closed ring`() {
         val program = parse(
             """

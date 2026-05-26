@@ -14,6 +14,8 @@ import ast.MeteoStationNode
 import ast.PointNode
 import ast.PollutantNode
 import ast.ProgramNode
+import ast.SourceNode
+import ast.StatusNode
 import ast.WeatherMeasurementNode
 import ast.WindMeasurementNode
 
@@ -51,7 +53,7 @@ object GeoJsonConverter {
                 kind = "airStation",
                 stationType = "air",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = measurementProperties(item.items)
+                properties = measurementProperties(item.items) + metadataProperties(item.items)
             )
 
             is MeteoStationNode -> stationFeature(
@@ -60,7 +62,7 @@ object GeoJsonConverter {
                 kind = "meteoStation",
                 stationType = "meteo",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = measurementProperties(item.items)
+                properties = measurementProperties(item.items) + metadataProperties(item.items)
             )
 
             is HydroStationNode -> stationFeature(
@@ -69,7 +71,7 @@ object GeoJsonConverter {
                 kind = "hydroStation",
                 stationType = "hydro",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = mapOf("river" to item.river) + measurementProperties(item.items)
+                properties = mapOf("river" to item.river) + measurementProperties(item.items) + metadataProperties(item.items)
             )
 
             else -> null
@@ -137,4 +139,14 @@ object GeoJsonConverter {
             mapOf("measurementTypes" to measurementTypes.joinToString(","))
         }
     }
+
+    private fun metadataProperties(items: List<Any>): Map<String, String> =
+        buildMap {
+            items.filterIsInstance<SourceNode>().firstOrNull()?.let { source ->
+                put("source", source.value)
+            }
+            items.filterIsInstance<StatusNode>().firstOrNull()?.let { status ->
+                put("status", status.value)
+            }
+        }
 }
