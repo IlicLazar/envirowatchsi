@@ -33,16 +33,32 @@ object GeoJsonConverter {
                 city = city,
                 name = item.name,
                 kind = "station",
+                stationType = item.type,
                 geometry = item.location.toGeoJsonPoint(),
                 properties = mapOf("type" to item.type)
             )
 
-            is AirStationNode -> stationFeature(city, item.name, "airStation", item.location.toGeoJsonPoint())
-            is MeteoStationNode -> stationFeature(city, item.name, "meteoStation", item.location.toGeoJsonPoint())
+            is AirStationNode -> stationFeature(
+                city = city,
+                name = item.name,
+                kind = "airStation",
+                stationType = "air",
+                geometry = item.location.toGeoJsonPoint()
+            )
+
+            is MeteoStationNode -> stationFeature(
+                city = city,
+                name = item.name,
+                kind = "meteoStation",
+                stationType = "meteo",
+                geometry = item.location.toGeoJsonPoint()
+            )
+
             is HydroStationNode -> stationFeature(
                 city = city,
                 name = item.name,
                 kind = "hydroStation",
+                stationType = "hydro",
                 geometry = item.location.toGeoJsonPoint(),
                 properties = mapOf("river" to item.river)
             )
@@ -54,7 +70,8 @@ object GeoJsonConverter {
         city: CityNode,
         name: String,
         kind: String,
-        geometry: GeoJsonGeometry,
+        stationType: String,
+        geometry: GeoJsonPoint,
         properties: Map<String, String> = emptyMap()
     ): GeoJsonFeature =
         GeoJsonFeature(
@@ -62,7 +79,10 @@ object GeoJsonConverter {
             properties = mapOf(
                 "city" to city.name,
                 "kind" to kind,
-                "name" to name
+                "name" to name,
+                "stationType" to stationType,
+                "longitude" to geometry.coordinates[0].toString(),
+                "latitude" to geometry.coordinates[1].toString()
             ) + properties
         )
 

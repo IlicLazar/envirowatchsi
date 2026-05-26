@@ -26,6 +26,32 @@ class GeoJsonConverterTest {
         assertEquals("station", feature.properties["kind"])
         assertEquals("Center", feature.properties["name"])
         assertEquals("air", feature.properties["type"])
+        assertEquals("air", feature.properties["stationType"])
+        assertEquals("14.512", feature.properties["longitude"])
+        assertEquals("46.065", feature.properties["latitude"])
+    }
+
+    @Test
+    fun `typed station exports station attributes`() {
+        val program = parse(
+            """
+                city "Celje" {
+                    river "Savinja";
+                    hydroStation "Lasko" river "Savinja" at (15.2,46.1) {
+                        waterLevel 142 unit "cm";
+                    };
+                }
+            """.trimIndent()
+        )
+
+        val featureCollection = GeoJsonConverter.convert(program)
+        val feature = featureCollection.features.single()
+
+        assertEquals("hydroStation", feature.properties["kind"])
+        assertEquals("hydro", feature.properties["stationType"])
+        assertEquals("Savinja", feature.properties["river"])
+        assertEquals("15.2", feature.properties["longitude"])
+        assertEquals("46.1", feature.properties["latitude"])
     }
 
     @Test
