@@ -5,6 +5,7 @@ import ast.AreaNode
 import ast.AqiNode
 import ast.CityItemNode
 import ast.CityNode
+import ast.FloodThresholdNode
 import ast.GenericStationNode
 import ast.HydroStationNode
 import ast.HydroMeasurementNode
@@ -16,6 +17,7 @@ import ast.PollutantNode
 import ast.ProgramNode
 import ast.SourceNode
 import ast.StatusNode
+import ast.ThresholdNode
 import ast.WeatherMeasurementNode
 import ast.WindMeasurementNode
 
@@ -53,7 +55,9 @@ object GeoJsonConverter {
                 kind = "airStation",
                 stationType = "air",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = measurementProperties(item.items) + metadataProperties(item.items)
+                properties = measurementProperties(item.items) +
+                        metadataProperties(item.items) +
+                        thresholdProperties(item.items)
             )
 
             is MeteoStationNode -> stationFeature(
@@ -71,7 +75,10 @@ object GeoJsonConverter {
                 kind = "hydroStation",
                 stationType = "hydro",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = mapOf("river" to item.river) + measurementProperties(item.items) + metadataProperties(item.items)
+                properties = mapOf("river" to item.river) +
+                        measurementProperties(item.items) +
+                        metadataProperties(item.items) +
+                        thresholdProperties(item.items)
             )
 
             else -> null
@@ -147,6 +154,22 @@ object GeoJsonConverter {
             }
             items.filterIsInstance<StatusNode>().firstOrNull()?.let { status ->
                 put("status", status.value)
+            }
+        }
+
+    private fun thresholdProperties(items: List<Any>): Map<String, String> =
+        buildMap {
+            val thresholds = items.filterIsInstance<ThresholdNode>()
+                .joinToString(";") { threshold ->
+                    "${threshold.parameter}:warning=${threshold.warning},critical=${threshold.critical}"
+                }
+
+            if (thresholds.isNotEmpty()) {
+                put("thresholds", thresholds)
+            }
+
+            items.filterIsInstance<FloodThresholdNode>().firstOrNull()?.let { threshold ->
+                put("floodThreshold", "warning=${threshold.warning},critical=${threshold.critical}")
             }
         }
 }

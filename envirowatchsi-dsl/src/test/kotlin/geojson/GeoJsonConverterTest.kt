@@ -110,6 +110,39 @@ class GeoJsonConverterTest {
     }
 
     @Test
+    fun `typed stations export warning thresholds`() {
+        val program = parse(
+            """
+                city "Celje" {
+                    airStation "Air" at (15.1,46.1) {
+                        aqi 42;
+                        threshold pm10 warning 50 critical 100;
+                        threshold o3 warning 120 critical 180;
+                    };
+
+                    hydroStation "River" river "Savinja" at (15.2,46.2) {
+                        waterLevel 142 unit "cm";
+                        floodThreshold warning 180 critical 240;
+                    };
+                }
+            """.trimIndent()
+        )
+
+        val featuresByName = GeoJsonConverter.convert(program)
+            .features
+            .associateBy { it.properties["name"] }
+
+        assertEquals(
+            "pm10:warning=50,critical=100;o3:warning=120,critical=180",
+            featuresByName["Air"]?.properties?.get("thresholds")
+        )
+        assertEquals(
+            "warning=180,critical=240",
+            featuresByName["River"]?.properties?.get("floodThreshold")
+        )
+    }
+
+    @Test
     fun `area becomes polygon feature with closed ring`() {
         val program = parse(
             """
