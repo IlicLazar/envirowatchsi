@@ -1,9 +1,18 @@
 package lexer
+import geojson.GeoJsonConverter
+import geojson.GeoJsonSerializer
 import parser.Parser
 import ast.AstPrinter
 import semantic.SemanticValidator
+import java.nio.file.Files
+import java.nio.file.Path
 
-fun main() {
+fun main(args: Array<String>) {
+    if (args.firstOrNull() == "geojson") {
+        printGeoJson(args)
+        return
+    }
+
     val program = """
         city "TestCity" {
             // comment that the lexer should ignore
@@ -52,4 +61,17 @@ fun main() {
         println("Program ni veljaven:")
         println(error.message)
     }
+}
+
+private fun printGeoJson(args: Array<String>) {
+    if (args.size != 2) {
+        throw IllegalArgumentException("Uporaba: geojson <pot-do-dsl-datoteke>")
+    }
+
+    val source = Files.readString(Path.of(args[1]))
+    val ast = Parser(Lexer(source).tokenize()).parse()
+    SemanticValidator.validateOrThrow(ast)
+
+    val featureCollection = GeoJsonConverter.convert(ast)
+    println(GeoJsonSerializer.serialize(featureCollection))
 }
