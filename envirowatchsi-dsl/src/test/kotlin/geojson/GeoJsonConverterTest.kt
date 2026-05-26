@@ -55,6 +55,41 @@ class GeoJsonConverterTest {
     }
 
     @Test
+    fun `typed stations export measurement types`() {
+        val program = parse(
+            """
+                city "Maribor" {
+                    airStation "Air" at (15.6,46.5) {
+                        pollutant pm10 unit "ug/m3";
+                        measurement no2 = 18 unit "ug/m3";
+                        aqi 42;
+                    };
+
+                    meteoStation "Weather" at (15.7,46.6) {
+                        temperature 21 unit "C";
+                        wind speed 4 direction "NE";
+                    };
+
+                    hydroStation "River" river "Drava" at (15.8,46.7) {
+                        interval from "2026-05-20T00:00" to "2026-05-20T01:00" step "1h" {
+                            waterLevel 142 unit "cm";
+                            waterFlow 87 unit "m3/s";
+                        }
+                    };
+                }
+            """.trimIndent()
+        )
+
+        val featuresByName = GeoJsonConverter.convert(program)
+            .features
+            .associateBy { it.properties["name"] }
+
+        assertEquals("pm10,no2,aqi", featuresByName["Air"]?.properties?.get("measurementTypes"))
+        assertEquals("temperature,wind", featuresByName["Weather"]?.properties?.get("measurementTypes"))
+        assertEquals("waterLevel,waterFlow", featuresByName["River"]?.properties?.get("measurementTypes"))
+    }
+
+    @Test
     fun `area becomes polygon feature with closed ring`() {
         val program = parse(
             """

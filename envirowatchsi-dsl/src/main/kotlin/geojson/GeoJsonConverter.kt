@@ -2,13 +2,20 @@ package geojson
 
 import ast.AirStationNode
 import ast.AreaNode
+import ast.AqiNode
 import ast.CityItemNode
 import ast.CityNode
 import ast.GenericStationNode
 import ast.HydroStationNode
+import ast.HydroMeasurementNode
+import ast.IntervalNode
+import ast.MeasurementNode
 import ast.MeteoStationNode
 import ast.PointNode
+import ast.PollutantNode
 import ast.ProgramNode
+import ast.WeatherMeasurementNode
+import ast.WindMeasurementNode
 
 object GeoJsonConverter {
     fun convert(program: ProgramNode): GeoJsonFeatureCollection =
@@ -43,7 +50,8 @@ object GeoJsonConverter {
                 name = item.name,
                 kind = "airStation",
                 stationType = "air",
-                geometry = item.location.toGeoJsonPoint()
+                geometry = item.location.toGeoJsonPoint(),
+                properties = measurementProperties(item.items)
             )
 
             is MeteoStationNode -> stationFeature(
@@ -51,7 +59,8 @@ object GeoJsonConverter {
                 name = item.name,
                 kind = "meteoStation",
                 stationType = "meteo",
-                geometry = item.location.toGeoJsonPoint()
+                geometry = item.location.toGeoJsonPoint(),
+                properties = measurementProperties(item.items)
             )
 
             is HydroStationNode -> stationFeature(
@@ -60,7 +69,7 @@ object GeoJsonConverter {
                 kind = "hydroStation",
                 stationType = "hydro",
                 geometry = item.location.toGeoJsonPoint(),
-                properties = mapOf("river" to item.river)
+                properties = mapOf("river" to item.river) + measurementProperties(item.items)
             )
 
             else -> null
@@ -105,4 +114,27 @@ object GeoJsonConverter {
 
     private fun PointNode.toCoordinates(): List<Double> =
         listOf(longitude.toDouble(), latitude.toDouble())
+
+    private fun measurementProperties(items: List<Any>): Map<String, String> {
+        val measurementTypes = items.flatMap { item ->
+            when (item) {
+                is MeasurementNode -> listOf(item.name)
+                is AqiNode -> listOf("aqi")
+                is PollutantNode -> listOf(item.type)
+                is WeatherMeasurementNode -> listOf(item.type)
+                is WindMeasurementNode -> listOf("wind")
+                is HydroMeasurementNode -> listOf(item.type)
+                is IntervalNode -> measurementProperties(item.measurements)["measurementTypes"]
+                    ?.split(",")
+                    .orEmpty()
+                else -> emptyList()
+            }
+        }.distinct()
+
+        return if (measurementTypes.isEmpty()) {
+            emptyMap()
+        } else {
+            mapOf("measurementTypes" to measurementTypes.joinToString(","))
+        }
+    }
 }
