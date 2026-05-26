@@ -121,7 +121,8 @@ class Parser(private val tokens: List<Token>) {
 
         consume(TokenType.TYPE, "Pričakovana ključna beseda 'type'.")
 
-        val type = advance().lexeme
+        parseStationType()
+        val type = previous().lexeme
 
         val location = parseLocation()
 

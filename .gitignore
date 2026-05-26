@@ -3,6 +3,7 @@ node_modules
 dist
 .vite
 .DS_Store
+.gradle/
 envirowatchsi-desktop/admin-token.txt
 *.iml
 out/
