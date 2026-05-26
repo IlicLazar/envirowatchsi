@@ -14,3 +14,7 @@ sealed interface GeoJsonGeometry
 data class GeoJsonPoint(
     val coordinates: List<Double>
 ) : GeoJsonGeometry
+
+data class GeoJsonPolygon(
+    val coordinates: List<List<List<Double>>>
+) : GeoJsonGeometry

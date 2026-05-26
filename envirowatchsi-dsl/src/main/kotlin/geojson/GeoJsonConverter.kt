@@ -1,6 +1,7 @@
 package geojson
 
 import ast.AirStationNode
+import ast.AreaNode
 import ast.CityItemNode
 import ast.CityNode
 import ast.GenericStationNode
@@ -19,6 +20,15 @@ object GeoJsonConverter {
 
     private fun convertCityItem(city: CityNode, item: CityItemNode): GeoJsonFeature? =
         when (item) {
+            is AreaNode -> GeoJsonFeature(
+                geometry = item.points.toGeoJsonPolygon(),
+                properties = mapOf(
+                    "city" to city.name,
+                    "kind" to "area",
+                    "name" to item.name
+                )
+            )
+
             is GenericStationNode -> stationFeature(
                 city = city,
                 name = item.name,
@@ -60,4 +70,19 @@ object GeoJsonConverter {
         GeoJsonPoint(
             coordinates = listOf(longitude.toDouble(), latitude.toDouble())
         )
+
+    private fun List<PointNode>.toGeoJsonPolygon(): GeoJsonPolygon {
+        val ring = map { it.toCoordinates() }.let { coordinates ->
+            if (coordinates.firstOrNull() == coordinates.lastOrNull()) {
+                coordinates
+            } else {
+                coordinates + listOf(coordinates.first())
+            }
+        }
+
+        return GeoJsonPolygon(coordinates = listOf(ring))
+    }
+
+    private fun PointNode.toCoordinates(): List<Double> =
+        listOf(longitude.toDouble(), latitude.toDouble())
 }
