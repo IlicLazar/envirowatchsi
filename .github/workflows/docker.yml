@@ -41,4 +41,3 @@ jobs:
           curl -X POST http://68.210.201.189:8080/deploy \
             -H "x-deploy-secret: ${{ secrets.DEPLOY_SECRET }}" \
             -H "x-github-event: push"
-

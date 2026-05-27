@@ -10,7 +10,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object ApiClient {
-    private const val BASE_URL = "http://localhost:3000"
+    private const val BASE_URL = "http://68.210.201.189:3000"
     private const val TIMEOUT_MS = 5000
     private const val TOKEN_ENV = "ENVIROWATCHSI_ADMIN_TOKEN"
     private const val TOKEN_PROPERTY = "envirowatchsi.adminToken"
