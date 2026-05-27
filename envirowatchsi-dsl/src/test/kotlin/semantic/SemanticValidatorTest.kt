@@ -131,6 +131,22 @@ class SemanticValidatorTest {
     }
 
     @Test
+    fun `air station can contain interval measurements`() {
+        val program = """
+            city "Ljubljana" {
+                airStation "Center" at (14.5,46.0) {
+                    interval from "2026-05-20T00:00" to "2026-05-20T03:00" step "1h" {
+                        measurement pm10 = 42 unit "ug/m3";
+                        aqi 64;
+                    }
+                };
+            }
+        """.trimIndent()
+
+        SemanticValidator.validateOrThrow(parse(program))
+    }
+
+    @Test
     fun `hydro station must contain at least one hydro measurement`() {
         val error = validateInvalidProgram(
             """

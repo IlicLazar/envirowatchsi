@@ -223,6 +223,7 @@ class Parser(private val tokens: List<Token>) {
             check(TokenType.POLLUTANT) -> parsePollutant()
             check(TokenType.MEASUREMENT) || check(TokenType.AQI) -> parseAirMeasurement()
             check(TokenType.THRESHOLD) -> parseThreshold()
+            check(TokenType.INTERVAL) -> parseInterval()
             else -> error(peek(), "Neveljaven element v airStation.")
         }
     }
@@ -291,7 +292,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun parseAirMeasurement(): AirItemNode {
         return if (match(TokenType.MEASUREMENT)) {
-            val name = consume(TokenType.ID, "Pričakovan identifikator meritve.").lexeme
+            val name = consumeAnyPollutantOrId()
             consume(TokenType.EQUALS, "Pričakovan znak '='.")
             val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
             val unit = parseUnitOptional()
@@ -400,6 +401,7 @@ class Parser(private val tokens: List<Token>) {
         while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
             val measurement = when {
                 check(TokenType.MEASUREMENT) -> parseMeasurement()
+                check(TokenType.AQI) -> parseAirMeasurement()
                 isWeatherMeasurementStart() -> parseWeatherMeasurement()
                 isHydroMeasurementStart() -> parseHydroMeasurement()
                 else -> error(peek(), "Neveljavna meritev v intervalu.")
@@ -414,7 +416,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun parseMeasurement(): MeasurementNode {
         consume(TokenType.MEASUREMENT, "Pričakovana ključna beseda 'measurement'.")
-        val name = consume(TokenType.ID, "Pričakovan identifikator meritve.").lexeme
+        val name = consumeAnyPollutantOrId()
         consume(TokenType.EQUALS, "Pričakovan znak '='.")
         val value = consume(TokenType.NUMBER, "Pričakovana številčna vrednost.").lexeme
         val unit = parseUnitOptional()

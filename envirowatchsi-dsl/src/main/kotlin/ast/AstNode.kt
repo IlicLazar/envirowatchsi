@@ -120,7 +120,7 @@ data class IntervalNode(
     val to: String,
     val step: String,
     val measurements: List<AstNode>
-) : MeteoItemNode, HydroItemNode
+) : AirItemNode, MeteoItemNode, HydroItemNode
 
 data class PointNode(
     val longitude: String,

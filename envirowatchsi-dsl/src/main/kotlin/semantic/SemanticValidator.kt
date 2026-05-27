@@ -112,7 +112,7 @@ object SemanticValidator {
         validateStationName(station.name, "airStation", city, errors)
         validatePoint(station.location, "airStation '${station.name}' v mestu '${city.name}'", errors)
 
-        val measurements = station.items.filter { it is MeasurementNode || it is AqiNode }
+        val measurements = station.items.filter { it is MeasurementNode || it is AqiNode || it is IntervalNode }
         if (measurements.isEmpty()) {
             errors.add(
                 SemanticError(
@@ -134,6 +134,12 @@ object SemanticValidator {
                 is StatusNode,
                 is PollutantNode,
                 is AqiNode -> Unit
+                is IntervalNode -> validateInterval(
+                    interval = item,
+                    context = "airStation '${station.name}' v mestu '${city.name}'",
+                    errors = errors,
+                    isAllowedMeasurement = { it is MeasurementNode || it is AqiNode }
+                )
             }
         }
     }
