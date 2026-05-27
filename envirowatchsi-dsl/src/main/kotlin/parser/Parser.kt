@@ -389,9 +389,9 @@ class Parser(private val tokens: List<Token>) {
     private fun parseInterval(): IntervalNode {
         consume(TokenType.INTERVAL, "Pričakovana ključna beseda 'interval'.")
         consume(TokenType.FROM, "Pričakovana ključna beseda 'from'.")
-        val from = consume(TokenType.STRING, "Pričakovan začetni čas.").lexeme
+        val from = parseDateTimeLiteral("Pričakovan začetni čas.")
         consume(TokenType.TO, "Pričakovana ključna beseda 'to'.")
-        val to = consume(TokenType.STRING, "Pričakovan končni čas.").lexeme
+        val to = parseDateTimeLiteral("Pričakovan končni čas.")
         consume(TokenType.STEP, "Pričakovana ključna beseda 'step'.")
         val step = consume(TokenType.STRING, "Pričakovan korak intervala.").lexeme
         consume(TokenType.LBRACE, "Pričakovan znak '{'.")
@@ -436,10 +436,18 @@ class Parser(private val tokens: List<Token>) {
 
     private fun parseTimeOptional(): String? {
         return if (match(TokenType.AT)) {
-            consume(TokenType.STRING, "Pričakovan časovni zapis.").lexeme
+            parseDateTimeLiteral("Pričakovan časovni zapis.")
         } else {
             null
         }
+    }
+
+    private fun parseDateTimeLiteral(message: String): String {
+        if (match(TokenType.STRING, TokenType.DATETIME)) {
+            return previous().lexeme
+        }
+
+        error(peek(), message)
     }
 
     private fun parseLocation(): PointNode {

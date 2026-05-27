@@ -78,7 +78,8 @@ class Lexer(private val input: String) {
 
             val token = when {
                 char.isLetter() -> readIdentifier(startLine, startColumn)
-                char.isDigit() || char == '-' -> readNumber(startLine, startColumn)
+                char.isDigit() -> readNumberOrDateTime(startLine, startColumn)
+                char == '-' -> readNumber(startLine, startColumn)
                 char == '"' -> readString(startLine, startColumn)
 
                 char == '{' -> simpleToken(TokenType.LBRACE, startLine, startColumn)
@@ -110,6 +111,30 @@ class Lexer(private val input: String) {
         val type = keywords[text] ?: TokenType.ID
 
         return Token(type, text, startLine, startColumn)
+    }
+
+    private fun readNumberOrDateTime(startLine: Int, startColumn: Int): Token {
+        if (!looksLikeDateTimeStart()) {
+            return readNumber(startLine, startColumn)
+        }
+
+        val start = position
+
+        while (!isAtEnd() && !peek().isWhitespace() && peek() !in charArrayOf(';', '{', '}', '(', ')', ',')) {
+            advance()
+        }
+
+        val text = input.substring(start, position)
+        return Token(TokenType.DATETIME, text, startLine, startColumn)
+    }
+
+    private fun looksLikeDateTimeStart(): Boolean {
+        if (position + 4 >= input.length) {
+            return false
+        }
+
+        return input.substring(position, position + 4).all { it.isDigit() } &&
+                input[position + 4] == '-'
     }
 
     private fun readNumber(startLine: Int, startColumn: Int): Token {

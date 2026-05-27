@@ -18,7 +18,7 @@ enum class TokenType {
 
     UNIT, AT, INTERVAL, FROM, TO, STEP,
 
-    ID, STRING, NUMBER,
+    ID, STRING, NUMBER, DATETIME,
 
     LBRACE, RBRACE,
     LPAREN, RPAREN,

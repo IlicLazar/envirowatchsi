@@ -147,6 +147,21 @@ class SemanticValidatorTest {
     }
 
     @Test
+    fun `interval accepts unquoted datetime literals`() {
+        val program = """
+            city "Maribor" {
+                meteoStation "Weather" at (15.6,46.5) {
+                    interval from 2026-05-20T00:00 to 2026-05-20T03:00 step "1h" {
+                        temperature 21.4 unit "C" at 2026-05-20T01:00;
+                    }
+                };
+            }
+        """.trimIndent()
+
+        SemanticValidator.validateOrThrow(parse(program))
+    }
+
+    @Test
     fun `hydro station must contain at least one hydro measurement`() {
         val error = validateInvalidProgram(
             """
