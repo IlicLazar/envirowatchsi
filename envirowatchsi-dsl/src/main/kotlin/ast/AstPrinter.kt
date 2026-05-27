@@ -114,7 +114,7 @@ object AstPrinter {
             }
 
             is IntervalNode -> {
-                println("${indent}IntervalNode(from=${node.from}, to=${node.to}, step=${node.step})")
+                println("${indent}IntervalNode(from=${node.from.value}, to=${node.to.value}, step=${node.step})")
 
                 node.measurements.forEach {
                     print(it, "$indent    ")
@@ -123,6 +123,10 @@ object AstPrinter {
 
             is PointNode -> {
                 println("${indent}PointNode(${node.longitude}, ${node.latitude})")
+            }
+
+            is DateTimeNode -> {
+                println("${indent}DateTimeNode(value=\"${node.value}\")")
             }
         }
     }

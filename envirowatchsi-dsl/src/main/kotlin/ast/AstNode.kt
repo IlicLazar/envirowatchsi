@@ -76,32 +76,32 @@ data class MeasurementNode(
     val name: String,
     val value: String,
     val unit: String?,
-    val time: String?
+    val time: DateTimeNode?
 ) : AirItemNode, MeteoItemNode, HydroItemNode
 
 data class AqiNode(
     val value: String,
-    val time: String?
+    val time: DateTimeNode?
 ) : AirItemNode
 
 data class WeatherMeasurementNode(
     val type: String,
     val value: String,
     val unit: String?,
-    val time: String?
+    val time: DateTimeNode?
 ) : MeteoItemNode
 
 data class WindMeasurementNode(
     val speed: String,
     val direction: String,
-    val time: String?
+    val time: DateTimeNode?
 ) : MeteoItemNode
 
 data class HydroMeasurementNode(
     val type: String,
     val value: String,
     val unit: String?,
-    val time: String?
+    val time: DateTimeNode?
 ) : HydroItemNode
 
 data class ThresholdNode(
@@ -116,11 +116,15 @@ data class FloodThresholdNode(
 ) : HydroItemNode, RuleItemNode
 
 data class IntervalNode(
-    val from: String,
-    val to: String,
+    val from: DateTimeNode,
+    val to: DateTimeNode,
     val step: String,
     val measurements: List<AstNode>
 ) : AirItemNode, MeteoItemNode, HydroItemNode
+
+data class DateTimeNode(
+    val value: String
+) : AstNode
 
 data class PointNode(
     val longitude: String,

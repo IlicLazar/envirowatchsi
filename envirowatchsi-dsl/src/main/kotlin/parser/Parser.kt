@@ -434,7 +434,7 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseTimeOptional(): String? {
+    private fun parseTimeOptional(): DateTimeNode? {
         return if (match(TokenType.AT)) {
             parseDateTimeLiteral("Pričakovan časovni zapis.")
         } else {
@@ -442,9 +442,9 @@ class Parser(private val tokens: List<Token>) {
         }
     }
 
-    private fun parseDateTimeLiteral(message: String): String {
+    private fun parseDateTimeLiteral(message: String): DateTimeNode {
         if (match(TokenType.STRING, TokenType.DATETIME)) {
-            return previous().lexeme
+            return DateTimeNode(previous().lexeme)
         }
 
         error(peek(), message)
