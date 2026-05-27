@@ -1,6 +1,9 @@
 package semantic
 
 import ast.*
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
 
 data class SemanticError(
     val message: String
@@ -123,7 +126,11 @@ object SemanticValidator {
 
         station.items.forEach { item ->
             when (item) {
-                is MeasurementNode -> Unit
+                is MeasurementNode -> validateDateTime(
+                    item.time,
+                    "meritev '${item.name}' v airStation '${station.name}' v mestu '${city.name}'",
+                    errors
+                )
                 is ThresholdNode -> validateThreshold(
                     item.warning,
                     item.critical,
@@ -132,8 +139,12 @@ object SemanticValidator {
                 )
                 is SourceNode,
                 is StatusNode,
-                is PollutantNode,
-                is AqiNode -> Unit
+                is PollutantNode -> Unit
+                is AqiNode -> validateDateTime(
+                    item.time,
+                    "AQI meritev v airStation '${station.name}' v mestu '${city.name}'",
+                    errors
+                )
                 is IntervalNode -> validateInterval(
                     interval = item,
                     context = "airStation '${station.name}' v mestu '${city.name}'",
@@ -170,6 +181,22 @@ object SemanticValidator {
                 errors = errors,
                 isAllowedMeasurement = { it is WeatherMeasurementNode || it is WindMeasurementNode }
             )
+        }
+
+        station.items.forEach { item ->
+            when (item) {
+                is WeatherMeasurementNode -> validateDateTime(
+                    item.time,
+                    "meritev '${item.type}' v meteoStation '${station.name}' v mestu '${city.name}'",
+                    errors
+                )
+                is WindMeasurementNode -> validateDateTime(
+                    item.time,
+                    "meritev 'wind' v meteoStation '${station.name}' v mestu '${city.name}'",
+                    errors
+                )
+                else -> Unit
+            }
         }
     }
 
@@ -226,9 +253,13 @@ object SemanticValidator {
                                 "'${item.name}', dovoljena sta samo waterLevel in waterFlow."
                     )
                 )
+                is HydroMeasurementNode -> validateDateTime(
+                    item.time,
+                    "meritev '${item.type}' v hydroStation '${station.name}' v mestu '${city.name}'",
+                    errors
+                )
                 is SourceNode,
-                is StatusNode,
-                is HydroMeasurementNode -> Unit
+                is StatusNode -> Unit
             }
         }
     }
@@ -243,6 +274,18 @@ object SemanticValidator {
             errors.add(SemanticError("Interval v $context mora vsebovati vsaj eno meritev."))
         }
 
+        val from = parseDateTime(interval.from, "začetek intervala v $context", errors)
+        val to = parseDateTime(interval.to, "konec intervala v $context", errors)
+        val step = parseStep(interval.step, "interval v $context", errors)
+
+        if (from != null && to != null) {
+            if (!from.isBefore(to)) {
+                errors.add(SemanticError("Začetek intervala v $context mora biti pred koncem intervala."))
+            } else if (step != null && step > Duration.between(from, to)) {
+                errors.add(SemanticError("Korak intervala v $context ne sme biti daljši od trajanja intervala."))
+            }
+        }
+
         interval.measurements.forEach { measurement ->
             if (!isAllowedMeasurement(measurement)) {
                 errors.add(
@@ -251,8 +294,86 @@ object SemanticValidator {
                     )
                 )
             }
+
+            val measurementTime = measurementDateTime(measurement)
+            validateDateTime(measurementTime, "meritev v intervalu v $context", errors)
+
+            if (from != null && to != null && measurementTime != null) {
+                parseDateTime(measurementTime, "meritev v intervalu v $context", errors)?.let { parsedTime ->
+                    if (parsedTime.isBefore(from) || parsedTime.isAfter(to)) {
+                        errors.add(
+                            SemanticError(
+                                "Čas meritve (${measurementTime.value}) v $context mora biti znotraj intervala " +
+                                        "[${interval.from.value}, ${interval.to.value}]."
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
+
+    private fun parseDateTime(
+        dateTime: DateTimeNode,
+        context: String,
+        errors: MutableList<SemanticError>
+    ): LocalDateTime? =
+        try {
+            LocalDateTime.parse(dateTime.value)
+        } catch (_: DateTimeParseException) {
+            errors.add(
+                SemanticError(
+                    "Časovni zapis za $context mora biti v ISO-8601 obliki yyyy-MM-ddTHH:mm, najdeno: ${dateTime.value}."
+                )
+            )
+            null
+        }
+
+    private fun validateDateTime(
+        dateTime: DateTimeNode?,
+        context: String,
+        errors: MutableList<SemanticError>
+    ) {
+        if (dateTime != null) {
+            parseDateTime(dateTime, context, errors)
+        }
+    }
+
+    private fun parseStep(
+        step: String,
+        context: String,
+        errors: MutableList<SemanticError>
+    ): Duration? {
+        val match = Regex("""^(\d+)(m|min|h|d)$""").matchEntire(step)
+        if (match == null) {
+            errors.add(SemanticError("Korak za $context mora biti zapisan kot pozitivno trajanje, npr. 15m, 1h ali 1d."))
+            return null
+        }
+
+        val amount = match.groupValues[1].toLong()
+        if (amount <= 0) {
+            errors.add(SemanticError("Korak za $context mora biti večji od 0."))
+            return null
+        }
+
+        return when (match.groupValues[2]) {
+            "m",
+            "min" -> Duration.ofMinutes(amount)
+            "h" -> Duration.ofHours(amount)
+            "d" -> Duration.ofDays(amount)
+            else -> null
+        }
+    }
+
+    private fun measurementDateTime(measurement: AstNode): DateTimeNode? =
+        when (measurement) {
+            is MeasurementNode -> measurement.time
+            is WeatherMeasurementNode -> measurement.time
+            is WindMeasurementNode -> measurement.time
+            is HydroMeasurementNode -> measurement.time
+            is AqiNode -> measurement.time
+            else -> null
+        }
 
     private fun validateThreshold(
         warning: String,

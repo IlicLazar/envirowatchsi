@@ -228,6 +228,74 @@ class SemanticValidatorTest {
         assertContainsError(error, "neustreznega tipa: temperature")
     }
 
+    @Test
+    fun `interval start must be before end`() {
+        val error = validateInvalidProgram(
+            """
+                city "Maribor" {
+                    meteoStation "Weather" at (15.6,46.5) {
+                        interval from 2026-05-20T03:00 to 2026-05-20T00:00 step "1h" {
+                            temperature 21.4 unit "C";
+                        }
+                    };
+                }
+            """.trimIndent()
+        )
+
+        assertContainsError(error, "mora biti pred koncem")
+    }
+
+    @Test
+    fun `interval datetime must use iso format`() {
+        val error = validateInvalidProgram(
+            """
+                city "Maribor" {
+                    meteoStation "Weather" at (15.6,46.5) {
+                        interval from "20-05-2026 00:00" to 2026-05-20T03:00 step "1h" {
+                            temperature 21.4 unit "C";
+                        }
+                    };
+                }
+            """.trimIndent()
+        )
+
+        assertContainsError(error, "ISO-8601")
+    }
+
+    @Test
+    fun `measurement time must be inside interval`() {
+        val error = validateInvalidProgram(
+            """
+                city "Maribor" {
+                    meteoStation "Weather" at (15.6,46.5) {
+                        interval from 2026-05-20T00:00 to 2026-05-20T03:00 step "1h" {
+                            temperature 21.4 unit "C" at 2026-05-20T04:00;
+                        }
+                    };
+                }
+            """.trimIndent()
+        )
+
+        assertContainsError(error, "znotraj intervala")
+    }
+
+    @Test
+    fun `interval step must be positive duration`() {
+        val error = validateInvalidProgram(
+            """
+                city "Maribor" {
+                    meteoStation "Weather" at (15.6,46.5) {
+                        interval from 2026-05-20T00:00 to 2026-05-20T03:00 step "one hour" {
+                            temperature 21.4 unit "C";
+                        }
+                    };
+                }
+            """.trimIndent()
+        )
+
+        assertContainsError(error, "Korak")
+    }
+
     private fun validateInvalidProgram(program: String): SemanticValidationException =
         assertFailsWith<SemanticValidationException> {
             SemanticValidator.validateOrThrow(parse(program))
