@@ -1,7 +1,89 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import { useEffect } from "react";
+import { useMap } from "react-leaflet";
+import "leaflet.heat";
 
-function StationMap({ data, dataType }) {
+function HeatmapLayer({ data, dataType }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!data || data.length === 0) return;
+
+    const heatPoints = data
+      .filter((item) => item.latitude && item.longitude)
+      .map((item) => {
+        let intensity = 0;
+
+        if (dataType === "air-quality") {
+          const aqi = item.airQualityIndex ?? 0;
+          if (aqi <= 50) intensity = 0.25;
+          else if (aqi <= 100) intensity = 0.65;
+          else intensity = 1;
+        }
+
+        if (dataType === "hydro") {
+          const level = item.waterLevel ?? 0;
+          if (level <= 150) intensity = 0.25;
+          else if (level <= 300) intensity = 0.65;
+          else intensity = 1;
+        }
+
+        if (dataType === "meteo") {
+          const temp = item.temperature ?? 0;
+          if (temp < 5) intensity = 0.25;
+          else if (temp < 20) intensity = 0.5;
+          else if (temp < 30) intensity = 0.75;
+          else intensity = 1;
+        }
+
+        return [item.latitude, item.longitude, intensity];
+      });
+
+     const getHeatmapGradient = () => {
+      if (dataType === "air-quality") {
+        return {
+          0.25: "#22c55e",
+          0.65: "#f59e0b",
+          1.0: "#dc2626",
+        };
+      }
+
+      if (dataType === "hydro") {
+        return {
+          0.25: "#93c5fd",
+          0.65: "#3b82f6",
+          1.0: "#1e3a8a",
+        };
+      }
+
+      return {
+        0.25: "#38bdf8",
+        0.5: "#22c55e",
+        0.75: "#f97316",
+        1.0: "#dc2626",
+      };
+    };
+
+    const heatLayer = L.heatLayer(heatPoints, {
+      radius: 45,
+      blur: 30,
+      maxZoom: 12,
+      minOpacity: 0.35,
+      gradient: getHeatmapGradient(),
+    });
+
+    heatLayer.addTo(map);
+
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [data, dataType, map]);
+
+  return null;
+}
+
+function StationMap({ data, dataType, selectedTime }) {
   const defaultCenter = [46.1512, 14.9955]; // Slovenia center
 
   const getMarkerIcon = (item) => {
@@ -76,6 +158,12 @@ function StationMap({ data, dataType }) {
       <TileLayer
         attribution="&copy; OpenStreetMap contributors"
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <HeatmapLayer
+        key={`${dataType}-${selectedTime}`}
+        data={data}
+        dataType={dataType}
       />
 
       {data

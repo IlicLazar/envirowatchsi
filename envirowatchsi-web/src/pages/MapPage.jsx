@@ -71,19 +71,9 @@ const selectedTime = sortedTimes[selectedTimeIndex];
 const getMeasurementsAtTime = (records, time) => {
   if (!time) return getLatestMeasurements(records);
 
-  const map = new Map();
-
-  records
-    .filter((record) => record.measuredAt && record.measuredAt <= time)
-    .sort((a, b) => new Date(b.measuredAt) - new Date(a.measuredAt))
-    .forEach((record) => {
-      const key = record.stationId || record.stationName;
-      if (!map.has(key)) {
-        map.set(key, record);
-      }
-    });
-
-  return Array.from(map.values());
+  return records.filter(
+    (record) => record.measuredAt === time
+  );
 };
 
 const latestStations = getMeasurementsAtTime(dataList, selectedTime);
@@ -274,7 +264,11 @@ const filteredStations = latestStations.filter((item) =>
             </div>
           </div>
         )}
-            <StationMap data={filteredStations} dataType={activeTab} />
+          <StationMap
+            data={filteredStations}
+            dataType={activeTab}
+            selectedTime={selectedTime}
+          />
           </div>
         </div>
       )}
