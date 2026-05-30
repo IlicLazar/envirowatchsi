@@ -12,6 +12,8 @@ function MapPage() {
   const [dataList, setDataList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedTimeIndex, setSelectedTimeIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -58,9 +60,52 @@ function MapPage() {
     return Array.from(map.values());
   };
 
-  // Filter latest entries by name search
-  const latestStations = getLatestMeasurements(dataList);
-  const filteredStations = latestStations.filter((item) =>
+  const sortedTimes = [...new Set(
+  dataList
+    .filter((item) => item.measuredAt)
+    .map((item) => item.measuredAt)
+)].sort();
+
+const selectedTime = sortedTimes[selectedTimeIndex];
+
+const getMeasurementsAtTime = (records, time) => {
+  if (!time) return getLatestMeasurements(records);
+
+  const map = new Map();
+
+  records
+    .filter((record) => record.measuredAt && record.measuredAt <= time)
+    .sort((a, b) => new Date(b.measuredAt) - new Date(a.measuredAt))
+    .forEach((record) => {
+      const key = record.stationId || record.stationName;
+      if (!map.has(key)) {
+        map.set(key, record);
+      }
+    });
+
+  return Array.from(map.values());
+};
+
+const latestStations = getMeasurementsAtTime(dataList, selectedTime);
+
+useEffect(() => {
+  if (!isPlaying || sortedTimes.length === 0) return;
+
+  const interval = setInterval(() => {
+    setSelectedTimeIndex((prev) => {
+      if (prev >= sortedTimes.length - 1) {
+        setIsPlaying(false);
+        return prev;
+      }
+
+      return prev + 1;
+    });
+  }, 800);
+
+  return () => clearInterval(interval);
+}, [isPlaying, sortedTimes.length]);
+
+const filteredStations = latestStations.filter((item) =>
     item.stationName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -176,6 +221,59 @@ function MapPage() {
       ) : (
         <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column", padding: "16px" }}>
           <div style={{ flex: 1, minHeight: 0 }}>
+            {sortedTimes.length > 0 && (
+          <div className="glass-panel" style={{ marginBottom: "16px", padding: "16px" }}>
+            <h3 style={{ marginTop: 0 }}>Animiran prikaz skozi čas</h3>
+
+            <input
+              type="range"
+              min="0"
+              max={sortedTimes.length - 1}
+              value={selectedTimeIndex}
+              onChange={(e) => {
+                setSelectedTimeIndex(Number(e.target.value));
+                setIsPlaying(false);
+              }}
+              style={{ width: "100%" }}
+            />
+
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "12px", flexWrap: "wrap" }}>
+              <button
+                className="btn-primary"
+                onClick={() => setIsPlaying((prev) => !prev)}
+              >
+                {isPlaying ? "⏸ Pause" : "▶ Play"}
+              </button>
+
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setSelectedTimeIndex(0);
+                  setIsPlaying(false);
+                }}
+              >
+                ⏮ Začetek
+              </button>
+
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  setSelectedTimeIndex(sortedTimes.length - 1);
+                  setIsPlaying(false);
+                }}
+              >
+                ⏭ Zadnje
+              </button>
+
+              <span>
+                Prikazujem stanje ob:{" "}
+                <strong>
+                  {selectedTime ? new Date(selectedTime).toLocaleString("sl-SI") : "N/A"}
+                </strong>
+              </span>
+            </div>
+          </div>
+        )}
             <StationMap data={filteredStations} dataType={activeTab} />
           </div>
         </div>
