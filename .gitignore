@@ -8,3 +8,4 @@ envirowatchsi-desktop/admin-token.txt
 *.iml
 out/
 build/
+**/.gradle/
