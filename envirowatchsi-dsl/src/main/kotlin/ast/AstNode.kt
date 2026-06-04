@@ -31,6 +31,43 @@ data class RuleNode(
     val items: List<RuleItemNode>
 ) : CityItemNode
 
+data class ListNode(
+    val name: String,
+    val values: List<ListValueNode>
+) : CityItemNode, AirItemNode, MeteoItemNode, HydroItemNode, RuleItemNode
+
+data class ForNode(
+    val variable: String,
+    val iterable: String,
+    val items: List<AstNode>
+) : StatementNode
+
+data class IfNode(
+    val condition: ConditionNode,
+    val thenItems: List<AstNode>,
+    val elseItems: List<AstNode>
+) : StatementNode
+
+data class WhileNode(
+    val condition: ConditionNode,
+    val items: List<AstNode>
+) : StatementNode
+
+data class ConditionNode(
+    val left: ListValueNode,
+    val operator: String,
+    val right: ListValueNode
+) : AstNode
+
+sealed interface StatementNode : CityItemNode, AirItemNode, MeteoItemNode, HydroItemNode, RuleItemNode
+
+sealed interface ListValueNode : AstNode
+
+data class StringValueNode(val value: String) : ListValueNode
+data class NumberValueNode(val value: String) : ListValueNode
+data class IdentifierValueNode(val value: String) : ListValueNode
+data class PointValueNode(val value: PointNode) : ListValueNode
+
 sealed interface RuleItemNode : AstNode
 
 sealed interface StationNode : CityItemNode

@@ -10,6 +10,8 @@ import ast.GenericStationNode
 import ast.HydroStationNode
 import ast.HydroMeasurementNode
 import ast.IntervalNode
+import ast.ForNode
+import ast.IfNode
 import ast.MeasurementNode
 import ast.MeteoStationNode
 import ast.PointNode
@@ -19,37 +21,38 @@ import ast.SourceNode
 import ast.StatusNode
 import ast.ThresholdNode
 import ast.WeatherMeasurementNode
+import ast.WhileNode
 import ast.WindMeasurementNode
 
 object GeoJsonConverter {
     fun convert(program: ProgramNode): GeoJsonFeatureCollection =
         GeoJsonFeatureCollection(
             features = program.cities.flatMap { city ->
-                city.items.mapNotNull { item -> convertCityItem(city, item) }
+                city.items.flatMap { item -> convertCityItem(city, item) }
             }
         )
 
-    private fun convertCityItem(city: CityNode, item: CityItemNode): GeoJsonFeature? =
+    private fun convertCityItem(city: CityNode, item: CityItemNode): List<GeoJsonFeature> =
         when (item) {
-            is AreaNode -> GeoJsonFeature(
+            is AreaNode -> listOf(GeoJsonFeature(
                 geometry = item.points.toGeoJsonPolygon(),
                 properties = mapOf(
                     "city" to city.name,
                     "kind" to "area",
                     "name" to item.name
                 )
-            )
+            ))
 
-            is GenericStationNode -> stationFeature(
+            is GenericStationNode -> listOf(stationFeature(
                 city = city,
                 name = item.name,
                 kind = "station",
                 stationType = item.type,
                 geometry = item.location.toGeoJsonPoint(),
                 properties = mapOf("type" to item.type)
-            )
+            ))
 
-            is AirStationNode -> stationFeature(
+            is AirStationNode -> listOf(stationFeature(
                 city = city,
                 name = item.name,
                 kind = "airStation",
@@ -58,18 +61,18 @@ object GeoJsonConverter {
                 properties = measurementProperties(item.items) +
                         metadataProperties(item.items) +
                         thresholdProperties(item.items)
-            )
+            ))
 
-            is MeteoStationNode -> stationFeature(
+            is MeteoStationNode -> listOf(stationFeature(
                 city = city,
                 name = item.name,
                 kind = "meteoStation",
                 stationType = "meteo",
                 geometry = item.location.toGeoJsonPoint(),
                 properties = measurementProperties(item.items) + metadataProperties(item.items)
-            )
+            ))
 
-            is HydroStationNode -> stationFeature(
+            is HydroStationNode -> listOf(stationFeature(
                 city = city,
                 name = item.name,
                 kind = "hydroStation",
@@ -79,10 +82,20 @@ object GeoJsonConverter {
                         measurementProperties(item.items) +
                         metadataProperties(item.items) +
                         thresholdProperties(item.items)
-            )
+            ))
 
-            else -> null
+            is ForNode -> item.items.flatMap { nestedItem -> convertNestedCityItem(city, nestedItem) }
+
+            is IfNode -> item.thenItems.flatMap { nestedItem -> convertNestedCityItem(city, nestedItem) } +
+                    item.elseItems.flatMap { nestedItem -> convertNestedCityItem(city, nestedItem) }
+
+            is WhileNode -> item.items.flatMap { nestedItem -> convertNestedCityItem(city, nestedItem) }
+
+            else -> emptyList()
         }
+
+    private fun convertNestedCityItem(city: CityNode, item: ast.AstNode): List<GeoJsonFeature> =
+        if (item is CityItemNode) convertCityItem(city, item) else emptyList()
 
     private fun stationFeature(
         city: CityNode,

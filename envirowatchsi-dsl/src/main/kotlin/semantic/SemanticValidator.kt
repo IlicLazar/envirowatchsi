@@ -46,9 +46,147 @@ object SemanticValidator {
                 is AirStationNode -> validateAirStation(city, item, errors)
                 is MeteoStationNode -> validateMeteoStation(city, item, errors)
                 is HydroStationNode -> validateHydroStation(city, item, declaredRivers, errors)
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, declaredRivers, errors)
+                is IfNode -> validateIf(city, item, declaredRivers, errors)
+                is WhileNode -> validateWhile(city, item, declaredRivers, errors)
                 is RiverNode,
                 is DateNode -> Unit
             }
+        }
+    }
+
+    private fun validateList(city: CityNode, list: ListNode, errors: MutableList<SemanticError>) {
+        if (list.name.isBlank()) {
+            errors.add(SemanticError("Lista v mestu '${city.name}' mora imeti ime."))
+        }
+
+        list.values.filterIsInstance<PointValueNode>().forEach { value ->
+            validatePoint(value.value, "lista '${list.name}' v mestu '${city.name}'", errors)
+        }
+    }
+
+    private fun validateFor(
+        city: CityNode,
+        loop: ForNode,
+        declaredRivers: Set<String>,
+        errors: MutableList<SemanticError>,
+        visibleLists: Set<String> = emptySet()
+    ) {
+        if (loop.variable.isBlank()) {
+            errors.add(SemanticError("For zanka v mestu '${city.name}' mora imeti ime spremenljivke."))
+        }
+
+        val declaredLists = city.items.filterIsInstance<ListNode>().map { it.name }.toSet() + visibleLists
+        if (loop.iterable !in declaredLists) {
+            errors.add(
+                SemanticError(
+                    "For zanka v mestu '${city.name}' se sklicuje na listo '${loop.iterable}', ki ni deklarirana."
+                )
+            )
+        }
+
+        loop.items.forEach { item ->
+            when (item) {
+                is AreaNode -> validateArea(city, item, errors)
+                is RuleNode -> validateRule(city, item, errors)
+                is GenericStationNode -> validateGenericStation(city, item, errors)
+                is AirStationNode -> validateAirStation(city, item, errors)
+                is MeteoStationNode -> validateMeteoStation(city, item, errors)
+                is HydroStationNode -> validateHydroStation(city, item, declaredRivers, errors)
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, declaredRivers, errors)
+                is IfNode -> validateIf(city, item, declaredRivers, errors)
+                is WhileNode -> validateWhile(city, item, declaredRivers, errors)
+                is MeasurementNode,
+                is AqiNode,
+                is WeatherMeasurementNode,
+                is WindMeasurementNode,
+                is HydroMeasurementNode,
+                is ThresholdNode,
+                is FloodThresholdNode,
+                is SourceNode,
+                is StatusNode,
+                is PollutantNode,
+                is ConditionNode,
+                is StringValueNode,
+                is NumberValueNode,
+                is IdentifierValueNode,
+                is PointValueNode,
+                is PointNode,
+                is ProgramNode,
+                is CityNode,
+                is IntervalNode -> Unit
+                is RiverNode,
+                is DateNode -> Unit
+            }
+        }
+    }
+
+    private fun validateIf(
+        city: CityNode,
+        statement: IfNode,
+        declaredRivers: Set<String>,
+        errors: MutableList<SemanticError>
+    ) {
+        validateCondition(statement.condition, "if stavek v mestu '${city.name}'", errors)
+        validateStatementItems(city, statement.thenItems, declaredRivers, errors)
+        validateStatementItems(city, statement.elseItems, declaredRivers, errors)
+    }
+
+    private fun validateWhile(
+        city: CityNode,
+        statement: WhileNode,
+        declaredRivers: Set<String>,
+        errors: MutableList<SemanticError>
+    ) {
+        validateCondition(statement.condition, "while stavek v mestu '${city.name}'", errors)
+        validateStatementItems(city, statement.items, declaredRivers, errors)
+    }
+
+    private fun validateStatementItems(
+        city: CityNode,
+        items: List<AstNode>,
+        declaredRivers: Set<String>,
+        errors: MutableList<SemanticError>
+    ) {
+        items.forEach { item ->
+            when (item) {
+                is ThresholdNode -> validateThreshold(
+                    item.warning,
+                    item.critical,
+                    "kompleksni stavek v mestu '${city.name}'",
+                    errors
+                )
+                is FloodThresholdNode -> validateThreshold(
+                    item.warning,
+                    item.critical,
+                    "kompleksni stavek v mestu '${city.name}'",
+                    errors
+                )
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, declaredRivers, errors)
+                is IfNode -> validateIf(city, item, declaredRivers, errors)
+                is WhileNode -> validateWhile(city, item, declaredRivers, errors)
+                is MeasurementNode,
+                is AqiNode,
+                is WeatherMeasurementNode,
+                is WindMeasurementNode,
+                is HydroMeasurementNode,
+                is StatusNode -> Unit
+                else -> Unit
+            }
+        }
+    }
+
+    private fun validateCondition(
+        condition: ConditionNode,
+        context: String,
+        errors: MutableList<SemanticError>
+    ) {
+        val validOperators = setOf(">", "<", ">=", "<=", "==", "!=")
+        if (condition.operator !in validOperators) {
+            errors.add(SemanticError("Pogoj v $context ima neveljaven operator '${condition.operator}'."))
         }
     }
 
@@ -81,6 +219,10 @@ object SemanticValidator {
                     "pravilo '${rule.name}' v mestu '${city.name}'",
                     errors
                 )
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, emptySet(), errors)
+                is IfNode -> validateIf(city, item, emptySet(), errors)
+                is WhileNode -> validateWhile(city, item, emptySet(), errors)
             }
         }
     }
@@ -121,6 +263,7 @@ object SemanticValidator {
             )
         }
 
+        val localLists = station.items.filterIsInstance<ListNode>().map { it.name }.toSet()
         station.items.forEach { item ->
             when (item) {
                 is MeasurementNode -> Unit
@@ -134,6 +277,10 @@ object SemanticValidator {
                 is StatusNode,
                 is PollutantNode,
                 is AqiNode -> Unit
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, emptySet(), errors, localLists)
+                is IfNode -> validateIf(city, item, emptySet(), errors)
+                is WhileNode -> validateWhile(city, item, emptySet(), errors)
             }
         }
     }
@@ -164,6 +311,17 @@ object SemanticValidator {
                 errors = errors,
                 isAllowedMeasurement = { it is WeatherMeasurementNode || it is WindMeasurementNode }
             )
+        }
+
+        val localLists = station.items.filterIsInstance<ListNode>().map { it.name }.toSet()
+        station.items.forEach { item ->
+            when (item) {
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, emptySet(), errors, localLists)
+                is IfNode -> validateIf(city, item, emptySet(), errors)
+                is WhileNode -> validateWhile(city, item, emptySet(), errors)
+                else -> Unit
+            }
         }
     }
 
@@ -200,6 +358,7 @@ object SemanticValidator {
             )
         }
 
+        val localLists = station.items.filterIsInstance<ListNode>().map { it.name }.toSet()
         station.items.forEach { item ->
             when (item) {
                 is FloodThresholdNode -> validateThreshold(
@@ -223,6 +382,10 @@ object SemanticValidator {
                 is SourceNode,
                 is StatusNode,
                 is HydroMeasurementNode -> Unit
+                is ListNode -> validateList(city, item, errors)
+                is ForNode -> validateFor(city, item, declaredRivers, errors, localLists)
+                is IfNode -> validateIf(city, item, declaredRivers, errors)
+                is WhileNode -> validateWhile(city, item, declaredRivers, errors)
             }
         }
     }

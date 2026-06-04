@@ -38,6 +38,66 @@ object AstPrinter {
                 }
             }
 
+            is ListNode -> {
+                println("${indent}ListNode(name=\"${node.name}\")")
+                node.values.forEach {
+                    print(it, "$indent  ")
+                }
+            }
+
+            is ForNode -> {
+                println("${indent}ForNode(variable=${node.variable}, iterable=${node.iterable})")
+                node.items.forEach {
+                    print(it, "$indent  ")
+                }
+            }
+
+            is IfNode -> {
+                println("${indent}IfNode")
+                print(node.condition, "$indent  ")
+                println("${indent}  then")
+                node.thenItems.forEach {
+                    print(it, "$indent    ")
+                }
+                if (node.elseItems.isNotEmpty()) {
+                    println("${indent}  else")
+                    node.elseItems.forEach {
+                        print(it, "$indent    ")
+                    }
+                }
+            }
+
+            is WhileNode -> {
+                println("${indent}WhileNode")
+                print(node.condition, "$indent  ")
+                node.items.forEach {
+                    print(it, "$indent  ")
+                }
+            }
+
+            is ConditionNode -> {
+                println("${indent}ConditionNode(operator=${node.operator})")
+                print(node.left, "$indent  ")
+                print(node.right, "$indent  ")
+            }
+
+            is StringValueNode -> {
+                println("${indent}StringValueNode(value=\"${node.value}\")")
+            }
+
+            is NumberValueNode -> {
+                println("${indent}NumberValueNode(value=${node.value})")
+            }
+
+            is IdentifierValueNode -> {
+                println("${indent}IdentifierValueNode(value=${node.value})")
+            }
+
+            is PointValueNode -> {
+                println("${indent}PointValueNode")
+                print(node.value, "$indent  ")
+            }
+
             is GenericStationNode -> {
                 println("${indent}GenericStationNode")
                 println("${indent}  name = ${node.name}")

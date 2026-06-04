@@ -13,6 +13,12 @@ class Lexer(private val input: String) {
         "river" to TokenType.RIVER,
         "date" to TokenType.DATE,
         "rule" to TokenType.RULE,
+        "list" to TokenType.LIST,
+        "if" to TokenType.IF,
+        "else" to TokenType.ELSE,
+        "for" to TokenType.FOR,
+        "in" to TokenType.IN,
+        "while" to TokenType.WHILE,
 
         "station" to TokenType.STATION,
         "type" to TokenType.TYPE,
@@ -83,11 +89,24 @@ class Lexer(private val input: String) {
 
                 char == '{' -> simpleToken(TokenType.LBRACE, startLine, startColumn)
                 char == '}' -> simpleToken(TokenType.RBRACE, startLine, startColumn)
+                char == '[' -> simpleToken(TokenType.LBRACKET, startLine, startColumn)
+                char == ']' -> simpleToken(TokenType.RBRACKET, startLine, startColumn)
                 char == '(' -> simpleToken(TokenType.LPAREN, startLine, startColumn)
                 char == ')' -> simpleToken(TokenType.RPAREN, startLine, startColumn)
                 char == ',' -> simpleToken(TokenType.COMMA, startLine, startColumn)
                 char == ';' -> simpleToken(TokenType.SEMICOLON, startLine, startColumn)
-                char == '=' -> simpleToken(TokenType.EQUALS, startLine, startColumn)
+                char == '=' -> {
+                    if (peekNext() == '=') twoCharToken(TokenType.EQUAL_EQUAL, startLine, startColumn) else simpleToken(TokenType.EQUALS, startLine, startColumn)
+                }
+                char == '!' -> {
+                    if (peekNext() == '=') twoCharToken(TokenType.BANG_EQUAL, startLine, startColumn) else throw RuntimeException("Neznan znak '$char' na vrstici $line, stolpec $column")
+                }
+                char == '>' -> {
+                    if (peekNext() == '=') twoCharToken(TokenType.GREATER_EQUAL, startLine, startColumn) else simpleToken(TokenType.GREATER, startLine, startColumn)
+                }
+                char == '<' -> {
+                    if (peekNext() == '=') twoCharToken(TokenType.LESS_EQUAL, startLine, startColumn) else simpleToken(TokenType.LESS, startLine, startColumn)
+                }
 
                 else -> throw RuntimeException("Neznan znak '$char' na vrstici $line, stolpec $column")
             }
@@ -167,6 +186,11 @@ class Lexer(private val input: String) {
 
     private fun simpleToken(type: TokenType, startLine: Int, startColumn: Int): Token {
         val text = advance().toString()
+        return Token(type, text, startLine, startColumn)
+    }
+
+    private fun twoCharToken(type: TokenType, startLine: Int, startColumn: Int): Token {
+        val text = "${advance()}${advance()}"
         return Token(type, text, startLine, startColumn)
     }
 

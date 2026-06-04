@@ -46,6 +46,8 @@ class Parser(private val tokens: List<Token>) {
             check(TokenType.RIVER) -> parseRiver()
             check(TokenType.DATE) -> parseDate()
             check(TokenType.RULE) -> parseRule()
+            check(TokenType.LIST) -> parseList()
+            isStatementStart() -> parseStatement()
             isStationStart() -> parseStation()
             else -> error(peek(), "Nepričakovan element v bloku city.")
         }
@@ -90,7 +92,9 @@ class Parser(private val tokens: List<Token>) {
             val item = when {
                 check(TokenType.THRESHOLD) -> parseThreshold()
                 check(TokenType.FLOOD_THRESHOLD) -> parseFloodThreshold()
-                else -> error(peek(), "Pričakovan threshold ali floodThreshold.")
+                check(TokenType.LIST) -> parseList()
+                isStatementStart() -> parseStatement()
+                else -> error(peek(), "Pričakovan threshold, floodThreshold, list ali kompleksni stavek.")
             }
             items.add(item)
         }
@@ -99,6 +103,152 @@ class Parser(private val tokens: List<Token>) {
         consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
 
         return RuleNode(name, items)
+    }
+
+    private fun parseList(): ListNode {
+        consume(TokenType.LIST, "Pričakovana ključna beseda 'list'.")
+        val name = consume(TokenType.ID, "Pričakovano ime liste.").lexeme
+        consume(TokenType.EQUALS, "Pričakovan znak '='.")
+        consume(TokenType.LBRACKET, "Pričakovan znak '['.")
+
+        val values = mutableListOf<ListValueNode>()
+
+        if (!check(TokenType.RBRACKET)) {
+            values.add(parseListValue())
+
+            while (match(TokenType.COMMA)) {
+                values.add(parseListValue())
+            }
+        }
+
+        consume(TokenType.RBRACKET, "Pričakovan znak ']'.")
+        consume(TokenType.SEMICOLON, "Pričakovan znak ';'.")
+
+        return ListNode(name, values)
+    }
+
+    private fun parseListValue(): ListValueNode {
+        return when {
+            match(TokenType.STRING) -> StringValueNode(previous().lexeme)
+            match(TokenType.NUMBER) -> NumberValueNode(previous().lexeme)
+            check(TokenType.LPAREN) -> PointValueNode(parsePoint())
+            match(
+                TokenType.ID,
+                TokenType.AIR,
+                TokenType.METEO,
+                TokenType.HYDRO,
+                TokenType.MIXED,
+                TokenType.ACTIVE,
+                TokenType.INACTIVE,
+                TokenType.TEST,
+                TokenType.MEASUREMENT,
+                TokenType.AQI,
+                TokenType.TEMPERATURE,
+                TokenType.HUMIDITY,
+                TokenType.PRECIPITATION,
+                TokenType.WIND,
+                TokenType.WATER_LEVEL,
+                TokenType.WATER_FLOW,
+                TokenType.PM10,
+                TokenType.PM2_5,
+                TokenType.O3,
+                TokenType.CO,
+                TokenType.SO2
+            ) -> IdentifierValueNode(previous().lexeme)
+            else -> error(peek(), "Pričakovana vrednost v listi.")
+        }
+    }
+
+    private fun parseStatement(): StatementNode {
+        return when {
+            check(TokenType.IF) -> parseIf()
+            check(TokenType.FOR) -> parseFor()
+            check(TokenType.WHILE) -> parseWhile()
+            else -> error(peek(), "Pričakovan kompleksni stavek.")
+        }
+    }
+
+    private fun parseIf(): IfNode {
+        consume(TokenType.IF, "Pričakovana ključna beseda 'if'.")
+        val condition = parseCondition()
+        val thenItems = parseBlock()
+        val elseItems = if (match(TokenType.ELSE)) parseBlock() else emptyList()
+        match(TokenType.SEMICOLON)
+
+        return IfNode(condition, thenItems, elseItems)
+    }
+
+    private fun parseFor(): ForNode {
+        consume(TokenType.FOR, "Pričakovana ključna beseda 'for'.")
+        val variable = consume(TokenType.ID, "Pričakovan identifikator zanke.").lexeme
+        consume(TokenType.IN, "Pričakovana ključna beseda 'in'.")
+        val iterable = consume(TokenType.ID, "Pričakovano ime liste za zanko.").lexeme
+        val items = parseBlock()
+        match(TokenType.SEMICOLON)
+
+        return ForNode(variable, iterable, items)
+    }
+
+    private fun parseWhile(): WhileNode {
+        consume(TokenType.WHILE, "Pričakovana ključna beseda 'while'.")
+        val condition = parseCondition()
+        val items = parseBlock()
+        match(TokenType.SEMICOLON)
+
+        return WhileNode(condition, items)
+    }
+
+    private fun parseBlock(): List<AstNode> {
+        consume(TokenType.LBRACE, "Pričakovan znak '{'.")
+
+        val items = mutableListOf<AstNode>()
+
+        while (!check(TokenType.RBRACE) && !check(TokenType.EOF)) {
+            items.add(parseStatementItem())
+        }
+
+        consume(TokenType.RBRACE, "Pričakovan znak '}'.")
+
+        return items
+    }
+
+    private fun parseStatementItem(): AstNode {
+        return when {
+            check(TokenType.MEASUREMENT) -> parseMeasurement()
+            check(TokenType.AQI) -> parseAirMeasurement()
+            isWeatherMeasurementStart() -> parseWeatherMeasurement()
+            isHydroMeasurementStart() -> parseHydroMeasurement()
+            check(TokenType.THRESHOLD) -> parseThreshold()
+            check(TokenType.FLOOD_THRESHOLD) -> parseFloodThreshold()
+            check(TokenType.STATUS) -> parseStatus()
+            check(TokenType.LIST) -> parseList()
+            isStatementStart() -> parseStatement()
+            else -> error(peek(), "Neveljaven element v kompleksnem bloku.")
+        }
+    }
+
+    private fun parseCondition(): ConditionNode {
+        val left = parseListValue()
+        val operator = parseCompareOperator()
+        val right = parseListValue()
+
+        return ConditionNode(left, operator, right)
+    }
+
+    private fun parseCompareOperator(): String {
+        return if (match(
+                TokenType.GREATER,
+                TokenType.LESS,
+                TokenType.GREATER_EQUAL,
+                TokenType.LESS_EQUAL,
+                TokenType.EQUAL_EQUAL,
+                TokenType.BANG_EQUAL
+            )
+        ) {
+            previous().lexeme
+        } else {
+            error(peek(), "Pričakovan primerjalni operator.")
+        }
     }
 
     private fun parseStation(): StationNode {
@@ -223,6 +373,8 @@ class Parser(private val tokens: List<Token>) {
             check(TokenType.POLLUTANT) -> parsePollutant()
             check(TokenType.MEASUREMENT) || check(TokenType.AQI) -> parseAirMeasurement()
             check(TokenType.THRESHOLD) -> parseThreshold()
+            check(TokenType.LIST) -> parseList()
+            isStatementStart() -> parseStatement()
             else -> error(peek(), "Neveljaven element v airStation.")
         }
     }
@@ -233,6 +385,8 @@ class Parser(private val tokens: List<Token>) {
             check(TokenType.STATUS) -> parseStatus()
             isWeatherMeasurementStart() -> parseWeatherMeasurement()
             check(TokenType.INTERVAL) -> parseInterval()
+            check(TokenType.LIST) -> parseList()
+            isStatementStart() -> parseStatement()
             else -> error(peek(), "Neveljaven element v meteoStation.")
         }
     }
@@ -244,6 +398,8 @@ class Parser(private val tokens: List<Token>) {
             isHydroMeasurementStart() -> parseHydroMeasurement()
             check(TokenType.FLOOD_THRESHOLD) -> parseFloodThreshold()
             check(TokenType.INTERVAL) -> parseInterval()
+            check(TokenType.LIST) -> parseList()
+            isStatementStart() -> parseStatement()
             else -> error(peek(), "Neveljaven element v hydroStation.")
         }
     }
@@ -364,7 +520,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun consumeAnyPollutantOrId(): String {
-        return if (match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.ID)) {
+        return if (match(TokenType.PM10, TokenType.PM2_5, TokenType.O3, TokenType.CO, TokenType.SO2, TokenType.AQI, TokenType.ID)) {
             previous().lexeme
         } else {
             error(peek(), "Pričakovan identifikator parametra.")
@@ -485,6 +641,9 @@ class Parser(private val tokens: List<Token>) {
 
     private fun isHydroMeasurementStart(): Boolean =
         check(TokenType.WATER_LEVEL) || check(TokenType.WATER_FLOW)
+
+    private fun isStatementStart(): Boolean =
+        check(TokenType.IF) || check(TokenType.FOR) || check(TokenType.WHILE)
 
     private fun match(vararg types: TokenType): Boolean {
         for (type in types) {
