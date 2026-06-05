@@ -1,5 +1,6 @@
 const Hydro = require("../models/Hydro");
 const { broadcastEvent } = require("../websocket/websocketServer");
+const { getCache, setCache, clearCache, createCacheKey } = require("../utils/cache");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -15,11 +16,31 @@ const { buildFilterQuery } = require("../utils/filterUtils");
 
 exports.getAllHydro = async (req, res) => {
   try {
+    const cacheKey = createCacheKey("hydro:all", req.query);
+    const cached = getCache(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
+    }
+
     const query = buildFilterQuery(req.query);
-    const records = await Hydro.find(query).sort({ createdAt: -1 });
+    if (!req.query.startDate && !req.query.endDate) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      query.measuredAt = { $gte: sevenDaysAgo };
+    }
+
+    const records = await Hydro.find(query).sort({ measuredAt: -1 });
+
+    setCache(cacheKey, records);
+
     res.json(records);
   } catch (err) {
-    res.status(500).json({ message: "Failed to get hydro records", error: err.message });
+    res.status(500).json({
+      message: "Failed to get hydro records",
+      error: err.message,
+    });
   }
 };
 
@@ -72,6 +93,8 @@ if (latitude !== undefined && longitude !== undefined) {
       waterFlow,
     });
 
+    clearCache("hydro:");
+
     broadcastEvent({ type: "HYDRO_CREATED", data: record });
     res.status(201).json(record);
 
@@ -120,12 +143,13 @@ exports.updateHydro = async (req, res) => {
     if (!isValidLongitude(longitude)) {
       return res.status(400).json({ message: "Longitude must be between -180 and 180" });
     }
-if (latitude !== undefined && longitude !== undefined) {
-  updateData.location = {
-    type: "Point",
-    coordinates: [longitude, latitude],
-  };
-}
+
+    if (latitude !== undefined && longitude !== undefined) {
+      updateData.location = {
+        type: "Point",
+        coordinates: [longitude, latitude],
+      };
+    }
     const record = await Hydro.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -141,6 +165,8 @@ if (latitude !== undefined && longitude !== undefined) {
       });
     }
 
+    clearCache("hydro:");
+
     broadcastEvent({ type: "HYDRO_UPDATED", data: record });
     res.json(record);
   } catch (err) {
@@ -150,6 +176,7 @@ if (latitude !== undefined && longitude !== undefined) {
     });
   }
 };
+
 exports.getNearbyHydro = async (req, res) => {
   try {
     const lat = Number(req.query.lat);
@@ -157,11 +184,22 @@ exports.getNearbyHydro = async (req, res) => {
     const radius = Number(req.query.radius) || 10000;
 
     if (isNaN(lat) || lat < -90 || lat > 90) {
-      return res.status(400).json({ message: "Valid lat query parameter is required" });
+      return res.status(400).json({
+        message: "Valid lat query parameter is required",
+      });
     }
 
     if (isNaN(lng) || lng < -180 || lng > 180) {
-      return res.status(400).json({ message: "Valid lng query parameter is required" });
+      return res.status(400).json({
+        message: "Valid lng query parameter is required",
+      });
+    }
+
+    const cacheKey = createCacheKey("hydro:near", req.query);
+    const cached = getCache(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
     }
 
     const records = await Hydro.find({
@@ -176,6 +214,8 @@ exports.getNearbyHydro = async (req, res) => {
       },
     });
 
+    setCache(cacheKey, records);
+
     res.json(records);
   } catch (err) {
     res.status(500).json({
@@ -184,10 +224,31 @@ exports.getNearbyHydro = async (req, res) => {
     });
   }
 };
-exports.deleteHydro = async (req, res) => {
-  const record = await Hydro.findByIdAndDelete(req.params.id);
 
-  if (!record) return res.status(404).json({ message: "Hydro record not found" });
-broadcastEvent({ type: "HYDRO_DELETED", data: record });
-  res.json({ message: "Hydro record deleted" });
+exports.deleteHydro = async (req, res) => {
+  try {
+    const record = await Hydro.findByIdAndDelete(req.params.id);
+
+    if (!record) {
+      return res.status(404).json({
+        message: "Hydro record not found",
+      });
+    }
+
+    clearCache("hydro:");
+
+    broadcastEvent({
+      type: "HYDRO_DELETED",
+      data: record,
+    });
+
+    res.json({
+      message: "Hydro record deleted",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to delete hydro record",
+      error: err.message,
+    });
+  }
 };

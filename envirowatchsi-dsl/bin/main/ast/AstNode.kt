@@ -1,0 +1,165 @@
+package ast
+
+sealed interface AstNode
+
+data class ProgramNode(
+    val cities: List<CityNode>
+) : AstNode
+
+data class CityNode(
+    val name: String,
+    val items: List<CityItemNode>
+) : AstNode
+
+sealed interface CityItemNode : AstNode
+
+data class AreaNode(
+    val name: String,
+    val points: List<PointNode>
+) : CityItemNode
+
+data class RiverNode(
+    val name: String
+) : CityItemNode
+
+data class DateNode(
+    val value: String
+) : CityItemNode
+
+data class RuleNode(
+    val name: String,
+    val items: List<RuleItemNode>
+) : CityItemNode
+
+data class ListNode(
+    val name: String,
+    val values: List<ListValueNode>
+) : CityItemNode, AirItemNode, MeteoItemNode, HydroItemNode, RuleItemNode
+
+data class ForNode(
+    val variable: String,
+    val iterable: String,
+    val items: List<AstNode>
+) : StatementNode
+
+data class IfNode(
+    val condition: ConditionNode,
+    val thenItems: List<AstNode>,
+    val elseItems: List<AstNode>
+) : StatementNode
+
+data class WhileNode(
+    val condition: ConditionNode,
+    val items: List<AstNode>
+) : StatementNode
+
+data class ConditionNode(
+    val left: ListValueNode,
+    val operator: String,
+    val right: ListValueNode
+) : AstNode
+
+sealed interface StatementNode : CityItemNode, AirItemNode, MeteoItemNode, HydroItemNode, RuleItemNode
+
+sealed interface ListValueNode : AstNode
+
+data class StringValueNode(val value: String) : ListValueNode
+data class NumberValueNode(val value: String) : ListValueNode
+data class IdentifierValueNode(val value: String) : ListValueNode
+data class PointValueNode(val value: PointNode) : ListValueNode
+
+sealed interface RuleItemNode : AstNode
+
+sealed interface StationNode : CityItemNode
+
+data class GenericStationNode(
+    val name: String,
+    val type: String,
+    val location: PointNode
+) : StationNode
+
+data class AirStationNode(
+    val name: String,
+    val location: PointNode,
+    val items: List<AirItemNode>
+) : StationNode
+
+data class MeteoStationNode(
+    val name: String,
+    val location: PointNode,
+    val items: List<MeteoItemNode>
+) : StationNode
+
+data class HydroStationNode(
+    val name: String,
+    val river: String,
+    val location: PointNode,
+    val items: List<HydroItemNode>
+) : StationNode
+
+sealed interface AirItemNode : AstNode
+sealed interface MeteoItemNode : AstNode
+sealed interface HydroItemNode : AstNode
+
+data class SourceNode(val value: String) : AirItemNode, MeteoItemNode, HydroItemNode
+data class StatusNode(val value: String) : AirItemNode, MeteoItemNode, HydroItemNode
+
+data class PollutantNode(
+    val type: String,
+    val unit: String
+) : AirItemNode
+
+data class MeasurementNode(
+    val name: String,
+    val value: String,
+    val unit: String?,
+    val time: String?
+) : AirItemNode, MeteoItemNode, HydroItemNode
+
+data class AqiNode(
+    val value: String,
+    val time: String?
+) : AirItemNode
+
+data class WeatherMeasurementNode(
+    val type: String,
+    val value: String,
+    val unit: String?,
+    val time: String?
+) : MeteoItemNode
+
+data class WindMeasurementNode(
+    val speed: String,
+    val direction: String,
+    val time: String?
+) : MeteoItemNode
+
+data class HydroMeasurementNode(
+    val type: String,
+    val value: String,
+    val unit: String?,
+    val time: String?
+) : HydroItemNode
+
+data class ThresholdNode(
+    val parameter: String,
+    val warning: String,
+    val critical: String
+) : AirItemNode, RuleItemNode
+
+data class FloodThresholdNode(
+    val warning: String,
+    val critical: String
+) : HydroItemNode, RuleItemNode
+
+data class IntervalNode(
+    val from: String,
+    val to: String,
+    val step: String,
+    val measurements: List<AstNode>
+) : MeteoItemNode, HydroItemNode
+
+data class PointNode(
+    val longitude: String,
+    val latitude: String
+) : AstNode

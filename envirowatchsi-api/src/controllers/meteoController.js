@@ -1,5 +1,6 @@
 const Meteo = require("../models/Meteo");
 const { broadcastEvent } = require("../websocket/websocketServer");
+const { getCache, setCache, clearCache, createCacheKey } = require("../utils/cache");
 
 function createStationId(stationName) {
   return stationName.toLowerCase().replace(/\s+/g, "_");
@@ -15,8 +16,24 @@ const { buildFilterQuery } = require("../utils/filterUtils");
 
 exports.getAllMeteo = async (req, res) => {
   try {
+    const cacheKey = createCacheKey("meteo:all", req.query);
+    const cached = getCache(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
+    }
+
     const query = buildFilterQuery(req.query);
-    const records = await Meteo.find(query).sort({ createdAt: -1 });
+    if (!req.query.startDate && !req.query.endDate) {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      query.measuredAt = { $gte: sevenDaysAgo };
+    }
+
+    const records = await Meteo.find(query).sort({ measuredAt: -1 });
+
+    setCache(cacheKey, records);
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: "Failed to get meteo records", error: err.message });
@@ -79,6 +96,8 @@ exports.createMeteo = async (req, res) => {
       windDirection,
       precipitation,
     });
+
+    clearCache("meteo:");
 
   broadcastEvent({
   type: "METEO_CREATED",
@@ -157,6 +176,9 @@ exports.updateMeteo = async (req, res) => {
         message: "Meteo record not found",
       });
     }
+
+    clearCache("meteo:");
+
     broadcastEvent({
   type: "METEO_UPDATED",
   data: record,
@@ -185,6 +207,13 @@ exports.getNearbyMeteo = async (req, res) => {
       return res.status(400).json({ message: "Valid lng query parameter is required" });
     }
 
+    const cacheKey = createCacheKey("meteo:near", req.query);
+    const cached = getCache(cacheKey);
+
+    if (cached) {
+      return res.json(cached);
+    }
+
     const records = await Meteo.find({
       location: {
         $near: {
@@ -197,6 +226,7 @@ exports.getNearbyMeteo = async (req, res) => {
       },
     });
 
+    setCache(cacheKey, records);
     res.json(records);
   } catch (err) {
     res.status(500).json({
@@ -206,12 +236,25 @@ exports.getNearbyMeteo = async (req, res) => {
   }
 };
 exports.deleteMeteo = async (req, res) => {
-  const record = await Meteo.findByIdAndDelete(req.params.id);
+  try {
+    const record = await Meteo.findByIdAndDelete(req.params.id);
 
-  if (!record) return res.status(404).json({ message: "Meteo record not found" });
-broadcastEvent({
-  type: "METEO_DELETED",
-  data: record,
-});
-  res.json({ message: "Meteo record deleted" });
+    if (!record) {
+      return res.status(404).json({ message: "Meteo record not found" });
+    }
+
+    clearCache("meteo:");
+
+    broadcastEvent({
+      type: "METEO_DELETED",
+      data: record,
+    });
+
+    res.json({ message: "Meteo record deleted" });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to delete meteo record",
+      error: err.message,
+    });
+  }
 };
