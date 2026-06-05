@@ -478,6 +478,50 @@ select.input-field option {
   animation: slideDownDetails 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* Correlation comparison page */
+.correlation-intro {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.comparison-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.comparison-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.comparison-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.comparison-panel h2 {
+  margin-bottom: 14px;
+}
+
+.comparison-panel .input-field {
+  margin-bottom: 14px;
+}
+
+.chart-frame {
+  width: 100%;
+  height: 360px;
+}
+
+.error-panel {
+  border-color: rgba(220, 38, 38, 0.2);
+  color: var(--accent-red);
+}
+
 /* Premium Leaflet popup aesthetic overrides */
 .leaflet-popup-content-wrapper {
   background: #ffffff !important;

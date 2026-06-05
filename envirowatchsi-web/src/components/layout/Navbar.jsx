@@ -1,7 +1,6 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 function Navbar() {
-  const location = useLocation(); // Triggers re-render on route change
   const isAuthenticated = !!localStorage.getItem("token");
 
   return (
@@ -31,6 +30,9 @@ function Navbar() {
         </NavLink>
         <NavLink to="/hydro" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Hidrologija
+        </NavLink>
+        <NavLink to="/correlations" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
+          Primerjave
         </NavLink>
         <NavLink to="/map" className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}>
           Zemljevid
