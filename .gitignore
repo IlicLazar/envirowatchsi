@@ -9,3 +9,5 @@ envirowatchsi-desktop/admin-token.txt
 out/
 build/
 **/.gradle/
+envirowatchsi-dsl/bin/
+envirowatchsi-desktop/desktopApp/bin/
