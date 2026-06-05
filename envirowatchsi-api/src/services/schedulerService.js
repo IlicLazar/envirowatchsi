@@ -4,6 +4,7 @@ const Meteo = require("../models/Meteo");
 const Hydro = require("../models/Hydro");
 const { parseAirQualityData, parseMeteoData, parseHydroData } = require("../utils/xmlParser");
 const { broadcastEvent } = require("../websocket/websocketServer");
+const { clearCache } = require("../utils/cache");
 
 async function syncSource(source) {
   console.log(`[Scheduler] Syncing data source: ${source.name} (${source.type}) from ${source.url}`);
@@ -63,6 +64,10 @@ async function syncSource(source) {
     await source.save();
 
     broadcastEvent({ type: "DATA_SOURCE_UPDATED", data: source });
+
+    if (newRecordsCount > 0) {
+      clearCache(`${source.type}:`);
+    }
     
     return { success: true, newRecordsCount };
   } catch (error) {

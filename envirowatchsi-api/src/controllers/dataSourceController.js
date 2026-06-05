@@ -4,6 +4,7 @@ const Meteo = require("../models/Meteo");
 const Hydro = require("../models/Hydro");
 const { broadcastEvent } = require("../websocket/websocketServer");
 const { syncSource } = require("../services/schedulerService");
+const { clearCache } = require("../utils/cache");
 
 exports.getAllDataSources = async (req, res) => {
   try {
@@ -131,6 +132,8 @@ exports.clearAllMeasurements = async (req, res) => {
       AirQuality.deleteMany({}),
       Hydro.deleteMany({})
     ]);
+
+    clearCache();
 
     broadcastEvent({ type: "METEO_ALL_DELETED", data: null });
     broadcastEvent({ type: "AIR_QUALITY_ALL_DELETED", data: null });
