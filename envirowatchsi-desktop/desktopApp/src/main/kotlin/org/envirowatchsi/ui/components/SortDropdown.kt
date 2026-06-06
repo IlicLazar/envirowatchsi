@@ -3,8 +3,11 @@ package org.envirowatchsi.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.envirowatchsi.ui.theme.EnviroColors
 
 @Composable
 fun SortDropdown(
@@ -16,20 +19,26 @@ fun SortDropdown(
     var expanded by remember { mutableStateOf(false) }
 
     Column {
-        Text(label)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = EnviroColors.Muted
+        )
 
         Spacer(modifier = Modifier.height(4.dp))
 
         Box {
-            Button(
+            OutlinedButton(
                 onClick = { expanded = true }
             ) {
-                Text("$selectedText ▼")
+                Text(selectedText)
             }
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                containerColor = Color.White
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
@@ -37,7 +46,10 @@ fun SortDropdown(
                         onClick = {
                             onOptionSelected(option)
                             expanded = false
-                        }
+                        },
+                        colors = MenuDefaults.itemColors(
+                            textColor = EnviroColors.Ink
+                        )
                     )
                 }
             }
