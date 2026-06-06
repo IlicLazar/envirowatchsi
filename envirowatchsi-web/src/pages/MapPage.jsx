@@ -21,13 +21,23 @@ function MapPage() {
         setLoading(true);
         setError("");
         let data = [];
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const animationFilters = {
+          ...filters,
+          startDate: filters.startDate || sevenDaysAgo.toISOString(),
+        };
+
         if (activeTab === "meteo") {
-          data = await getMeteoData(filters);
+          data = await getMeteoData(animationFilters);
         } else if (activeTab === "air-quality") {
-          data = await getAirQualityData(filters);
+          data = await getAirQualityData(animationFilters);
         } else if (activeTab === "hydro") {
-          data = await getHydroData(filters);
+          data = await getHydroData(animationFilters);
         }
+        
         setDataList(data);
       } catch (err) {
         console.error(err);
