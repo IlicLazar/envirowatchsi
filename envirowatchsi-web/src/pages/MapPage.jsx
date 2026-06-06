@@ -100,7 +100,7 @@ useEffect(() => {
 
       return prev + 1;
     });
-  }, 800);
+  }, 400);
 
   return () => clearInterval(interval);
 }, [isPlaying, sortedTimes.length]);
@@ -234,44 +234,86 @@ const filteredStations = latestStations.filter((item) =>
                 setSelectedTimeIndex(Number(e.target.value));
                 setIsPlaying(false);
               }}
-              style={{ width: "100%" }}
+              style={{
+                width: "100%",
+                accentColor: "#16a34a",
+                cursor: "pointer",
+                height: "8px",
+              }}
             />
 
-            <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "12px", flexWrap: "wrap" }}>
+            <div
+              style={{
+                display: "flex",
+                gap: "12px",
+                alignItems: "center",
+                marginTop: "16px",
+                flexWrap: "wrap",
+              }}
+            >
               <button
-                className="btn-primary"
                 onClick={() => setIsPlaying((prev) => !prev)}
+                style={{
+                  background: isPlaying ? "#dc2626" : "#16a34a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  padding: "10px 18px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                }}
               >
-                {isPlaying ? "⏸ Pause" : "▶ Play"}
+                {isPlaying ? "⏸ Ustavi" : "▶ Predvajaj"}
               </button>
 
               <button
-                className="btn-secondary"
                 onClick={() => {
                   setSelectedTimeIndex(0);
                   setIsPlaying(false);
+                }}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  fontWeight: 500,
+                  cursor: "pointer",
                 }}
               >
                 ⏮ Začetek
               </button>
 
               <button
-                className="btn-secondary"
                 onClick={() => {
                   setSelectedTimeIndex(sortedTimes.length - 1);
                   setIsPlaying(false);
                 }}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  padding: "10px 16px",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
               >
-                ⏭ Zadnje
+                ⏭ Konec
               </button>
 
-              <span>
-                Prikazujem stanje ob:{" "}
-                <strong>
-                  {selectedTime ? new Date(selectedTime).toLocaleString("sl-SI") : "N/A"}
-                </strong>
-              </span>
+              <div
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                  fontWeight: 600,
+                }}
+              >
+                📅 {selectedTime ? new Date(selectedTime).toLocaleString("sl-SI") : "N/A"}
+              </div>
             </div>
+
           </div>
         )}
           <StationMap
