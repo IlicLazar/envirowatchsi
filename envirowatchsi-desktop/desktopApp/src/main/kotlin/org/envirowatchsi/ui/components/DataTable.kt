@@ -1,55 +1,69 @@
 package org.envirowatchsi.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.envirowatchsi.ui.theme.EnviroColors
 
 @Composable
 fun DataTable(
     headers: List<String>,
     rows: List<List<String>>
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth()
+    val cellWidth = 148.dp
+
+    EnviroPanel(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
         ) {
-            headers.forEach { header ->
-                Text(
-                    text = header,
-                    modifier = Modifier
-                        .weight(1f)
-//                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
-                        .padding(8.dp),
-                    style = MaterialTheme.typography.titleSmall
-                )
-            }
-        }
-
-        Divider()
-
-        rows.forEach { row ->
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .background(EnviroColors.LeafSoft)
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
-                row.forEach { cell ->
+                headers.forEach { header ->
                     Text(
-                        text = cell,
+                        text = header,
                         modifier = Modifier
-                            .weight(1f)
+                            .width(cellWidth)
                             .padding(8.dp),
-                        style = when {
-                            cell.contains("null") -> MaterialTheme.typography.titleSmall
-                            else -> MaterialTheme.typography.bodySmall
-                        }
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = EnviroColors.ForestDark
                     )
                 }
             }
 
-            Divider()
+            HorizontalDivider(color = EnviroColors.Line)
+
+            rows.forEachIndexed { index, row ->
+                Row(
+                    modifier = Modifier
+                        .background(if (index % 2 == 0) MaterialTheme.colorScheme.surface else EnviroColors.Mist)
+                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                ) {
+                    row.forEach { cell ->
+                        Text(
+                            text = cell,
+                            modifier = Modifier
+                                .width(cellWidth)
+                                .padding(8.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (cell == "-") EnviroColors.Muted else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = EnviroColors.Line.copy(alpha = 0.75f))
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ import org.envirowatchsi.ui.App
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "envirowatchsi-desktop",
+        title = "EnviroWatch SI",
     ) {
         App()
     }

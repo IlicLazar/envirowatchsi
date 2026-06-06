@@ -12,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.envirowatchsi.api.ApiClient
+import org.envirowatchsi.ui.components.EnviroPanel
+import org.envirowatchsi.ui.components.StatusText
 
 @Composable
 fun DataEntryScreen() {
@@ -53,131 +55,137 @@ fun DataEntryScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row {
-            Button(onClick = { selectedType = EntryType.AIR_QUALITY }) {
-                Text("Air Quality")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(onClick = { selectedType = EntryType.METEO }) {
-                Text("Meteo")
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(onClick = { selectedType = EntryType.HYDRO }) {
-                Text("Hydro")
+        EnviroPanel(modifier = Modifier.fillMaxWidth(), title = "Tip podatkov") {
+            Row {
+                DataTypeButton("Kakovost zraka", EntryType.AIR_QUALITY, selectedType) { selectedType = it }
+                Spacer(modifier = Modifier.width(8.dp))
+                DataTypeButton("Meteo", EntryType.METEO, selectedType) { selectedType = it }
+                Spacer(modifier = Modifier.width(8.dp))
+                DataTypeButton("Hidro", EntryType.HYDRO, selectedType) { selectedType = it }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = stationName,
-            onValueChange = { stationName = it },
-            label = { Text("Ime postaje") }
-        )
+        EnviroPanel(modifier = Modifier.fillMaxWidth(), title = "Podatki meritve") {
+            OutlinedTextField(
+                value = stationName,
+                onValueChange = { stationName = it },
+                label = { Text("Ime postaje") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = latitude,
-            onValueChange = { latitude = it },
-            label = { Text("Latitude") }
-        )
+            FormFieldRow {
+                OutlinedTextField(
+                    value = latitude,
+                    onValueChange = { latitude = it },
+                    label = { Text("Zemljepisna širina") },
+                    modifier = Modifier.weight(1f)
+                )
 
-        Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = longitude,
+                    onValueChange = { longitude = it },
+                    label = { Text("Zemljepisna dolžina") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-        OutlinedTextField(
-            value = longitude,
-            onValueChange = { longitude = it },
-            label = { Text("Longitude") }
-        )
-
-        when (selectedType) {
+            when (selectedType) {
             EntryType.AIR_QUALITY -> {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = pm10,
-                    onValueChange = { pm10 = it },
-                    label = { Text("PM10") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = pm10,
+                        onValueChange = { pm10 = it },
+                        label = { Text("PM10") },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    OutlinedTextField(
+                        value = pm25,
+                        onValueChange = { pm25 = it },
+                        label = { Text("PM2.5") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = pm25,
-                    onValueChange = { pm25 = it },
-                    label = { Text("PM2.5") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = o3,
+                        onValueChange = { o3 = it },
+                        label = { Text("O3") },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    OutlinedTextField(
+                        value = co,
+                        onValueChange = { co = it },
+                        label = { Text("CO") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = o3,
-                    onValueChange = { o3 = it },
-                    label = { Text("O3") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = so2,
+                        onValueChange = { so2 = it },
+                        label = { Text("SO2") },
+                        modifier = Modifier.weight(1f)
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = co,
-                    onValueChange = { co = it },
-                    label = { Text("CO") }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = so2,
-                    onValueChange = { so2 = it },
-                    label = { Text("SO2") }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = aqi,
-                    onValueChange = { aqi = it },
-                    label = { Text("AQI") }
-                )
+                    OutlinedTextField(
+                        value = aqi,
+                        onValueChange = { aqi = it },
+                        label = { Text("AQI") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             EntryType.METEO -> {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = temperature,
-                    onValueChange = { temperature = it },
-                    label = { Text("Temperature") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = temperature,
+                        onValueChange = { temperature = it },
+                        label = { Text("Temperatura") },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    OutlinedTextField(
+                        value = humidity,
+                        onValueChange = { humidity = it },
+                        label = { Text("Vlažnost") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = humidity,
-                    onValueChange = { humidity = it },
-                    label = { Text("Humidity") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = windSpeed,
+                        onValueChange = { windSpeed = it },
+                        label = { Text("Hitrost vetra") },
+                        modifier = Modifier.weight(1f)
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = windSpeed,
-                    onValueChange = { windSpeed = it },
-                    label = { Text("Wind Speed") }
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = precipitation,
-                    onValueChange = { precipitation = it },
-                    label = { Text("Precipitation") }
-                )
+                    OutlinedTextField(
+                        value = precipitation,
+                        onValueChange = { precipitation = it },
+                        label = { Text("Padavine") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
 
             EntryType.HYDRO -> {
@@ -186,25 +194,29 @@ fun DataEntryScreen() {
                 OutlinedTextField(
                     value = riverName,
                     onValueChange = { riverName = it },
-                    label = { Text("River Name") }
+                    label = { Text("Ime reke") },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = waterLevel,
-                    onValueChange = { waterLevel = it },
-                    label = { Text("Water Level") }
-                )
+                FormFieldRow {
+                    OutlinedTextField(
+                        value = waterLevel,
+                        onValueChange = { waterLevel = it },
+                        label = { Text("Vodostaj") },
+                        modifier = Modifier.weight(1f)
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = waterFlow,
-                    onValueChange = { waterFlow = it },
-                    label = { Text("Water Flow") }
-                )
+                    OutlinedTextField(
+                        value = waterFlow,
+                        onValueChange = { waterFlow = it },
+                        label = { Text("Pretok") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
+        }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -321,9 +333,37 @@ fun DataEntryScreen() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(message)
+        StatusText(message)
     }
 }
+
+@Composable
+private fun FormFieldRow(content: @Composable RowScope.() -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        content = content
+    )
+}
+
+@Composable
+private fun DataTypeButton(
+    text: String,
+    type: EntryType,
+    selectedType: EntryType,
+    onSelected: (EntryType) -> Unit
+) {
+    if (type == selectedType) {
+        Button(onClick = { onSelected(type) }) {
+            Text(text)
+        }
+    } else {
+        OutlinedButton(onClick = { onSelected(type) }) {
+            Text(text)
+        }
+    }
+}
+
 fun buildAirQualityJson(
     stationName: String,
     latitude: String,

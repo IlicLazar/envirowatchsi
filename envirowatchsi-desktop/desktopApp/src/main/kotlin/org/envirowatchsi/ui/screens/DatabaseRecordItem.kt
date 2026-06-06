@@ -3,6 +3,7 @@ package org.envirowatchsi.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.google.gson.JsonObject
@@ -63,7 +64,7 @@ fun TableSelector(
         Spacer(modifier = Modifier.width(8.dp))
         TableButton("Meteo", "meteo", selectedTable, onSelected)
         Spacer(modifier = Modifier.width(8.dp))
-        TableButton("Hydro", "hydro", selectedTable, onSelected)
+        TableButton("Hidro", "hydro", selectedTable, onSelected)
     }
 }
 
@@ -96,12 +97,12 @@ fun RecordsTable(
         return
     }
 
-    Card(modifier = Modifier.fillMaxWidth()) {
+    org.envirowatchsi.ui.components.EnviroPanel(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(12.dp)) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text("Postaja", modifier = Modifier.weight(2f), style = MaterialTheme.typography.titleSmall)
                 Text("Podatki", modifier = Modifier.weight(2f), style = MaterialTheme.typography.titleSmall)
-                Text("Akcija", modifier = Modifier.width(120.dp), style = MaterialTheme.typography.titleSmall)
+                Spacer(modifier = Modifier.width(120.dp))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -111,10 +112,23 @@ fun RecordsTable(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp)
+                        .padding(vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(record.stationName, modifier = Modifier.weight(2f))
-                    Text(record.detail, modifier = Modifier.weight(2f))
+                    Text(
+                        text = record.stationName,
+                        modifier = Modifier
+                            .weight(2f)
+                            .padding(vertical = 10.dp),
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                    Text(
+                        text = record.detail,
+                        modifier = Modifier
+                            .weight(2f)
+                            .padding(vertical = 10.dp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
 
                     if (record.id == selectedId) {
                         Button(

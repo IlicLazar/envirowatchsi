@@ -12,8 +12,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.random.Random
 import org.envirowatchsi.api.ApiClient
+import org.envirowatchsi.ui.components.EnviroPanel
 import org.envirowatchsi.ui.components.GeneratedDataTable
 import org.envirowatchsi.ui.components.RangeInputRow
+import org.envirowatchsi.ui.components.StatusText
 
 @Composable
 fun GeneratorScreen() {
@@ -47,18 +49,7 @@ fun GeneratorScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-//            elevation = 4.dp
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Nastavitve generiranja",
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+        EnviroPanel(modifier = Modifier.fillMaxWidth(), title = "Nastavitve generiranja") {
                 OutlinedTextField(
                     value = recordCount,
                     onValueChange = { recordCount = it },
@@ -73,39 +64,36 @@ fun GeneratorScreen() {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Row {
-                    Button(onClick = { selectedGeneratorType = "meteo" }) {
-                        Text("Meteo")
-                    }
+                    GeneratorTypeButton(
+                        text = "Meteo",
+                        type = "meteo",
+                        selectedType = selectedGeneratorType,
+                        onSelected = { selectedGeneratorType = it }
+                    )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Button(onClick = { selectedGeneratorType = "hydro" }) {
-                        Text("Hidro")
-                    }
+                    GeneratorTypeButton(
+                        text = "Hidro",
+                        type = "hydro",
+                        selectedType = selectedGeneratorType,
+                        onSelected = { selectedGeneratorType = it }
+                    )
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Button(onClick = { selectedGeneratorType = "air" }) {
-                        Text("Kakovost zraka")
-                    }
+                    GeneratorTypeButton(
+                        text = "Kakovost zraka",
+                        type = "air",
+                        selectedType = selectedGeneratorType,
+                        onSelected = { selectedGeneratorType = it }
+                    )
                 }
-            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-//            elevation = 4.dp
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Območja vrednosti",
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+        EnviroPanel(modifier = Modifier.fillMaxWidth(), title = "Območja vrednosti") {
                 when (selectedGeneratorType) {
                     "meteo" -> {
                         RangeInputRow(
@@ -145,23 +133,11 @@ fun GeneratorScreen() {
                         )
                     }
                 }
-            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-//            elevation = 4.dp
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Generiranje podatkov",
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
+        EnviroPanel(modifier = Modifier.fillMaxWidth(), title = "Generiranje podatkov") {
                 Button(
                     onClick = {
                         val count = recordCount.toIntOrNull()
@@ -339,12 +315,11 @@ fun GeneratorScreen() {
                 ) {
                     Text("Generiraj podatke")
                 }
-            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(message)
+        StatusText(message)
         Spacer(modifier = Modifier.height(12.dp))
 
 
@@ -469,6 +444,24 @@ fun GeneratorScreen() {
             ) {
                 Text("Shrani izbrane podatke")
             }
+        }
+    }
+}
+
+@Composable
+private fun GeneratorTypeButton(
+    text: String,
+    type: String,
+    selectedType: String,
+    onSelected: (String) -> Unit
+) {
+    if (type == selectedType) {
+        Button(onClick = { onSelected(type) }) {
+            Text(text)
+        }
+    } else {
+        OutlinedButton(onClick = { onSelected(type) }) {
+            Text(text)
         }
     }
 }

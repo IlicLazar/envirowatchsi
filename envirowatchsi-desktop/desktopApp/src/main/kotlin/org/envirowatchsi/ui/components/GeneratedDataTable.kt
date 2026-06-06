@@ -1,10 +1,13 @@
 package org.envirowatchsi.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.envirowatchsi.ui.theme.EnviroColors
 
 @Composable
 fun GeneratedDataTable(
@@ -14,19 +17,21 @@ fun GeneratedDataTable(
     onSelectionChange: (Int, Boolean) -> Unit,
     onDeleteRow: (Int) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    EnviroPanel(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(EnviroColors.LeafSoft)
+                .padding(horizontal = 8.dp, vertical = 6.dp)
         ) {
             Text(
                 text = "Shrani",
                 modifier = Modifier
                     .weight(1f)
-//                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
                     .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = EnviroColors.ForestDark
             )
 
             headers.forEach { header ->
@@ -34,9 +39,10 @@ fun GeneratedDataTable(
                     text = header,
                     modifier = Modifier
                         .weight(1f)
-//                        .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
                         .padding(8.dp),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = EnviroColors.ForestDark
                 )
             }
 
@@ -44,17 +50,21 @@ fun GeneratedDataTable(
                 text = "Akcija",
                 modifier = Modifier
                     .weight(1f)
-//                    .background(MaterialTheme.colors.primary.copy(alpha = 0.1f))
                     .padding(8.dp),
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = EnviroColors.ForestDark
             )
         }
 
-        Divider()
+        HorizontalDivider(color = EnviroColors.Line)
 
         rows.forEachIndexed { index, row ->
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (index % 2 == 0) MaterialTheme.colorScheme.surface else EnviroColors.Mist)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Checkbox(
                     checked = selectedRows.contains(index),
@@ -76,7 +86,7 @@ fun GeneratedDataTable(
                     )
                 }
 
-                Button(
+                OutlinedButton(
                     onClick = {
                         onDeleteRow(index)
                     },
@@ -88,7 +98,7 @@ fun GeneratedDataTable(
                 }
             }
 
-            Divider()
+            HorizontalDivider(color = EnviroColors.Line.copy(alpha = 0.75f))
         }
     }
 }
