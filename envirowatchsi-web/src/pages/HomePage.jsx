@@ -1,19 +1,17 @@
 import { useEffect, useState } from "react";
 import { getAllEnvironmentalData } from "../api/services/dataService";
-import Filters from "../components/filters/Filters";
 
 function HomePage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState({});
 
   useEffect(() => {
     async function loadData() {
       try {
         setLoading(true);
 
-        const result = await getAllEnvironmentalData(filters);
+        const result = await getAllEnvironmentalData();
 
         setData(result);
       } catch (err) {
@@ -25,7 +23,7 @@ function HomePage() {
     }
 
     loadData();
-  }, [filters]);
+  }, []);
 
   if (loading && !data) {
     return (
@@ -61,8 +59,6 @@ function HomePage() {
           <a href="/meteo" className="btn btn-primary">Prikaži podatke</a>
         </div>
       </div>
-
-      <Filters filters={filters} onFilterChange={setFilters} />
 
       <h2 style={{ marginTop: "40px", marginBottom: "20px" }}>Pregled Okoljskih Področij</h2>
       <div className="stats-grid">
