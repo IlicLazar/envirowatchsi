@@ -1,3 +1,0 @@
-Paste an admin JWT token here, then rename this file to admin-token.txt.
-
-The real admin-token.txt file is ignored by git.

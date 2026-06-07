@@ -1,44 +1,14 @@
 package org.envirowatchsi.api
 
-import org.envirowatchsi.models.AirQualityStation
-import org.envirowatchsi.models.HydroStation
-import org.envirowatchsi.models.MeteoStation
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
 object ApiClient {
     private const val BASE_URL = "http://68.210.201.189:3000"
     private const val TIMEOUT_MS = 5000
-    private const val TOKEN_ENV = "ENVIROWATCHSI_ADMIN_TOKEN"
-    private const val TOKEN_PROPERTY = "envirowatchsi.adminToken"
     private val gson = Gson()
     private var sessionAdminToken: String? = null
-    private val tokenFiles = listOf(
-        File("admin-token.txt"),
-        File("envirowatchsi-desktop/admin-token.txt"),
-        File("../admin-token.txt")
-    )
-
-    fun getAirQualityStations(): List<AirQualityStation> {
-        val json = getRaw("/api/air-quality")
-        val type = object : TypeToken<List<AirQualityStation>>() {}.type
-        return gson.fromJson(json, type)
-    }
-
-    fun getMeteoStations(): List<MeteoStation> {
-        val json = getRaw("/api/meteo")
-        val type = object : TypeToken<List<MeteoStation>>() {}.type
-        return gson.fromJson(json, type)
-    }
-
-    fun getHydroStations(): List<HydroStation> {
-        val json = getRaw("/api/hydro")
-        val type = object : TypeToken<List<HydroStation>>() {}.type
-        return gson.fromJson(json, type)
-    }
 
     fun getRaw(path: String): String {
         return request(
@@ -79,16 +49,6 @@ object ApiClient {
         return request(
             path = path,
             method = "POST",
-            body = jsonBody,
-            contentType = "application/json",
-            requiresAdminToken = true
-        )
-    }
-
-    fun putJson(path: String, jsonBody: String): String {
-        return request(
-            path = path,
-            method = "PUT",
             body = jsonBody,
             contentType = "application/json",
             requiresAdminToken = true
@@ -166,30 +126,8 @@ object ApiClient {
             return sessionAdminToken!!.trim()
         }
 
-        val configuredToken = listOf(
-            System.getProperty(TOKEN_PROPERTY),
-            System.getenv(TOKEN_ENV)
-        ).firstOrNull { !it.isNullOrBlank() }
-
-        if (!configuredToken.isNullOrBlank()) {
-            return configuredToken.trim()
-        }
-
-        val token = tokenFiles
-            .firstOrNull { it.isFile }
-            ?.readText()
-            ?.lineSequence()
-            ?.map { it.trim() }
-            ?.firstOrNull { it.isNotBlank() && !it.startsWith("#") }
-
-        if (!token.isNullOrBlank()) {
-            return token
-        }
-
-        val expectedFiles = tokenFiles.joinToString(", ") { it.path }
         throw IllegalStateException(
-            "Administratorski token manjka. Vnesi JWT token v envirowatchsi-desktop/admin-token.txt " +
-                "ali nastavi $TOKEN_ENV. Preverjene poti: $expectedFiles"
+            "Administratorski token manjka. Najprej se prijavi kot admin."
         )
     }
 }
