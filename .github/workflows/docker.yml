@@ -1,0 +1,43 @@
+name: Docker CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build backend image
+        run: |
+          docker build -t dejanrankicc/envirowatchsi-backend:latest ./envirowatchsi-api
+
+      - name: Push backend image
+        run: |
+          docker push dejanrankicc/envirowatchsi-backend:latest
+
+      - name: Build frontend image
+        run: |
+          docker build -t dejanrankicc/envirowatchsi-frontend:latest ./envirowatchsi-web
+
+      - name: Push frontend image
+        run: |
+          docker push dejanrankicc/envirowatchsi-frontend:latest
+
+      - name: Trigger Azure Webhook
+        run: |
+          curl -X POST http://68.210.201.189:8080/deploy \
+            -H "x-deploy-secret: ${{ secrets.DEPLOY_SECRET }}" \
+            -H "x-github-event: push"
