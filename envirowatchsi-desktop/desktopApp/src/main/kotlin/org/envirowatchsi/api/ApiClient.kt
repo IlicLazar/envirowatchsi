@@ -97,6 +97,7 @@ object ApiClient {
             }
 
             connection.outputStream.use {
+
                 it.write(body.toByteArray(Charsets.UTF_8))
             }
         }
