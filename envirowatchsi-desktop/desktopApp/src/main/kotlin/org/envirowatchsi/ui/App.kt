@@ -71,7 +71,7 @@ fun App() {
                     Screen.AIR_QUALITY -> AirQualityScreen(canManageData = isAdmin)
                     Screen.METEO -> MeteoScreen(canManageData = isAdmin)
                     Screen.HYDRO -> HydroScreen(canManageData = isAdmin)
-                        Screen.DATABASE -> DatabaseScreen()
+                        Screen.DATABASE -> DatabaseScreen(canManageData = isAdmin)
                         Screen.GENERATOR -> GeneratorScreen()
                         Screen.DATA_ENTRY -> DataEntryScreen()
                         Screen.UPDATE -> UpdateDataScreen()

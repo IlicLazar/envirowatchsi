@@ -67,8 +67,6 @@ fun Sidebar(
         if (!loggedInUser.isNullOrBlank()) {
             SidebarButton("Generator podatkov", Screen.GENERATOR, selectedScreen, onScreenSelected)
             SidebarButton("Vnos podatkov", Screen.DATA_ENTRY, selectedScreen, onScreenSelected)
-            SidebarButton("Posodabljanje podatkov", Screen.UPDATE, selectedScreen, onScreenSelected)
-            SidebarButton("Brisanje podatkov", Screen.DELETE, selectedScreen, onScreenSelected)
         }
         Spacer(modifier = Modifier.weight(1f))
 
