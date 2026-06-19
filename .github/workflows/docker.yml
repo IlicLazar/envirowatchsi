@@ -10,9 +10,7 @@ jobs:
   test:
     if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
-
-      ```
-      steps:
+    steps:
         - name: Checkout repository
           uses: actions/checkout@v4
 
@@ -30,14 +28,11 @@ jobs:
           run: |
             cd envirowatchsi-api
             npm test
-    ```
 
   deploy:
     if: github.ref == 'refs/heads/release'
     runs-on: ubuntu-latest
-
-      ```
-      steps:
+    steps:
         - name: Checkout repository
           uses: actions/checkout@v4
 
@@ -68,4 +63,3 @@ jobs:
             curl -X POST https://envirowatchsi.com:8080/deploy \
               -H "x-deploy-secret: ${{ secrets.DEPLOY_SECRET }}" \
               -H "x-github-event: push"
-      ```
