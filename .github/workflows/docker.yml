@@ -60,6 +60,6 @@ jobs:
 
         - name: Trigger Azure Webhook
           run: |
-            curl -X POST https://envirowatchsi.com:8080/deploy \
+            curl -X POST https://envirowatchsi.com/deploy \
               -H "x-deploy-secret: ${{ secrets.DEPLOY_SECRET }}" \
               -H "x-github-event: push"
