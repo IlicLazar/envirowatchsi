@@ -220,9 +220,9 @@ const filteredStations = latestStations.filter((item) =>
         </div>
       ) : (
         <div className="glass-panel" style={{ height: "650px", display: "flex", flexDirection: "column", padding: "16px" }}>
-          <div style={{ flex: 1, minHeight: 0 }}>
+          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
             {sortedTimes.length > 0 && (
-          <div className="glass-panel" style={{ marginBottom: "16px", padding: "16px" }}>
+          <div className="glass-panel" style={{ marginBottom: "16px", padding: "16px", flexShrink: 0 }}>
             <h3 style={{ marginTop: 0 }}>Animiran prikaz skozi čas</h3>
 
             <input
@@ -316,11 +316,13 @@ const filteredStations = latestStations.filter((item) =>
 
           </div>
         )}
-          <StationMap
-            data={filteredStations}
-            dataType={activeTab}
-            selectedTime={selectedTime}
-          />
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <StationMap
+                data={filteredStations}
+                dataType={activeTab}
+                selectedTime={selectedTime}
+              />
+            </div>
           </div>
         </div>
       )}
