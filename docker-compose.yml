@@ -1,0 +1,19 @@
+services:
+  backend:
+    build: ./envirowatchsi-api
+    container_name: envirowatchsi-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./envirowatchsi-api/.env
+
+  frontend:
+    build: ./envirowatchsi-web
+    container_name: envirowatchsi-web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:

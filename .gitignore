@@ -1,0 +1,13 @@
+.idea/
+node_modules
+dist
+.vite
+.DS_Store
+.gradle/
+envirowatchsi-desktop/admin-token.txt
+*.iml
+out/
+build/
+**/.gradle/
+envirowatchsi-dsl/bin/
+envirowatchsi-desktop/desktopApp/bin/

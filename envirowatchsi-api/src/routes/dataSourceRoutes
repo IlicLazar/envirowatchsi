@@ -1,0 +1,26 @@
+const express = require("express");
+const router = express.Router();
+const { authenticate, requireAdmin } = require("../middleware/authMiddleware");
+
+const {
+  getAllDataSources,
+  createDataSource,
+  updateDataSource,
+  deleteDataSource,
+  syncDataSource,
+  clearAllMeasurements,
+} = require("../controllers/dataSourceController");
+
+router.get("/", authenticate, requireAdmin, getAllDataSources);
+
+router.post("/", authenticate, requireAdmin, createDataSource);
+
+router.put("/:id", authenticate, requireAdmin, updateDataSource);
+
+router.delete("/measurements/clear", authenticate, requireAdmin, clearAllMeasurements);
+
+router.delete("/:id", authenticate, requireAdmin, deleteDataSource);
+
+router.post("/:id/sync", authenticate, requireAdmin, syncDataSource);
+
+module.exports = router;
